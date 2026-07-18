@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Leilão — PokeCentral</title>
-<meta name="description" content="Leilão de Pokémon do Poke Idle World: lances públicos, cronômetro e regras à vista.">
+<meta name="description" content="Leilão de Pokémon do Poke Idle World: lances públicos e imutáveis, cronômetro e regras à vista.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -12,6 +12,7 @@
     --bg:#12100c; --panel:#1c1812; --panel2:#26201a; --panel3:#332a20;
     --line:#4a3c28; --line2:#6b5637;
     --gold:#f0b429; --green:#8fc45a; --red:#d4593f; --blue:#4a90c2; --purple:#a878c4; --pink:#d9709b;
+    --discord:#7d8ff5;
     --text:#f2e8d5; --muted:#a89880; --faint:#736450;
     --px:'Press Start 2P',monospace; --mono:'IBM Plex Mono',monospace;
   }
@@ -40,31 +41,50 @@
   header{border:2px solid var(--line);background:var(--panel);padding:20px;margin-bottom:20px;}
   h1{font-family:var(--px);font-size:clamp(13px,2.6vw,17px);margin:0 0 12px;line-height:1.5;}
   h1 span{color:var(--gold);}
-  header p{color:var(--muted);font-size:13px;margin:0;max-width:680px;}
+  header p{color:var(--muted);font-size:13px;margin:0 0 10px;max-width:700px;}
+  header p:last-child{margin-bottom:0;}
   header b{color:var(--text);}
 
-  .rules{border:2px solid var(--gold);background:var(--panel);padding:16px 18px;margin-bottom:26px;}
+  .rules{border:2px solid var(--gold);background:var(--panel);padding:16px 18px;margin-bottom:24px;}
   .rules .t{font-family:var(--px);font-size:8px;color:var(--gold);margin-bottom:11px;}
   .rules ol{margin:0;padding-left:19px;color:var(--muted);font-size:12.5px;line-height:1.9;}
   .rules li::marker{color:var(--gold);}
   .rules b{color:var(--text);}
+
+  /* sessão do participante */
+  .me{
+    display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+    border:2px solid var(--line);background:var(--panel);padding:12px 15px;margin-bottom:22px;font-size:12.5px;color:var(--muted);
+  }
+  .me img{width:30px;height:30px;border:2px solid var(--line);image-rendering:auto;}
+  .me b{color:var(--discord);}
+  .btn-discord{
+    font-family:var(--px);font-size:8px;padding:10px 12px;cursor:pointer;
+    background:transparent;border:2px solid var(--discord);color:var(--discord);
+  }
+  .btn-discord:hover{background:var(--discord);color:var(--bg);}
+  .me input{
+    background:var(--panel2);border:2px solid var(--line);color:var(--text);
+    font-family:var(--mono);font-size:12px;padding:7px 9px;outline:none;width:150px;
+  }
+  .me input:focus{border-color:var(--gold);}
 
   .sec-head{display:flex;align-items:center;gap:10px;margin:0 0 14px;}
   .sec-head h2{font-family:var(--px);font-size:11px;margin:0;}
   .sec-head .rule{flex:1;height:2px;background:var(--line);}
 
   .lote{border:2px solid var(--line);background:var(--panel);margin-bottom:18px;}
-  .lote.fim{border-color:var(--line2);opacity:.85;}
-  .lote-top{display:flex;gap:0;flex-wrap:wrap;}
+  .lote.fim{border-color:var(--line2);opacity:.9;}
+  .lote-top{display:flex;flex-wrap:wrap;}
   .lote-img{
     width:210px;flex-shrink:0;background:var(--panel2);border-right:2px solid var(--line);
-    display:flex;align-items:center;justify-content:center;position:relative;min-height:170px;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;position:relative;min-height:180px;overflow:hidden;
   }
   .lote-img img{width:100%;height:100%;object-fit:cover;}
-  .lote-img img.sprite{width:auto;height:65%;object-fit:contain;}
+  .lote-img img.sprite{width:auto;height:62%;object-fit:contain;}
   .lote-img .ph{font-family:var(--px);font-size:7px;color:var(--faint);}
   .iv-badge{position:absolute;top:0;right:0;font-family:var(--px);font-size:7px;padding:6px 7px;color:var(--bg);}
-  .lote-info{flex:1;min-width:230px;padding:16px 18px;}
+  .lote-info{flex:1;min-width:250px;padding:16px 18px;}
   .lote-nome{font-family:var(--px);font-size:11px;margin-bottom:8px;line-height:1.5;}
   .lote-meta{font-size:12.5px;color:var(--muted);margin-bottom:4px;}
   .lote-obs{font-size:12px;color:var(--faint);margin-bottom:12px;}
@@ -77,19 +97,27 @@
   .clock.urgent{color:var(--red);}
   .clock.over{color:var(--faint);}
 
+  .bid-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .bid-form input{
+    background:var(--panel2);border:2px solid var(--line);color:var(--text);
+    font-family:var(--mono);font-size:13px;padding:10px;outline:none;width:120px;
+  }
+  .bid-form input:focus{border-color:var(--green);}
   .bid-btn{
-    display:inline-block;font-family:var(--px);font-size:8.5px;text-decoration:none;
-    border:2px solid var(--green);color:var(--green);padding:11px 14px;line-height:1.6;
+    font-family:var(--px);font-size:8.5px;padding:11px 14px;cursor:pointer;
+    background:transparent;border:2px solid var(--green);color:var(--green);
   }
   .bid-btn:hover{background:var(--green);color:var(--bg);}
-  .bid-btn.off{border-color:var(--line);color:var(--faint);pointer-events:none;}
+  .bid-btn:disabled{opacity:.4;cursor:not-allowed;}
   .min-note{font-size:11.5px;color:var(--faint);margin-top:9px;}
+  .min-note b{color:var(--gold);}
+  .bid-msg{font-size:12px;margin-top:9px;}
+  .bid-msg.err{color:var(--red);}
+  .bid-msg.ok{color:var(--green);}
+  .locked-note{font-size:12px;color:var(--faint);}
 
   .log{border-top:2px solid var(--line);padding:14px 18px;}
-  .log-head{
-    font-family:var(--px);font-size:7px;color:var(--faint);letter-spacing:.06em;
-    margin-bottom:10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
-  }
+  .log-head{font-family:var(--px);font-size:7px;color:var(--faint);letter-spacing:.06em;margin-bottom:10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;}
   table.bids{width:100%;border-collapse:collapse;font-size:12px;}
   table.bids td{padding:5px 6px;border-top:2px solid var(--line);}
   table.bids tr:first-child td{border-top:none;}
@@ -98,20 +126,54 @@
   table.bids .amt{color:var(--gold);text-align:right;white-space:nowrap;}
   table.bids tr.top .amt{color:var(--green);}
   table.bids tr.bad td{color:var(--faint);text-decoration:line-through;}
-  .no-bids{color:var(--faint);font-size:12px;}
 
-  .winner{
-    border:2px solid var(--green);background:rgba(143,196,90,.07);
-    padding:12px 14px;margin-top:12px;font-size:12.5px;color:var(--muted);
-  }
+  .winner{border:2px solid var(--green);background:rgba(143,196,90,.07);padding:12px 14px;margin-top:12px;font-size:12.5px;color:var(--muted);}
   .winner b{color:var(--green);}
 
   .empty{border:2px dashed var(--line);padding:34px 20px;text-align:center;color:var(--faint);font-size:12.5px;line-height:1.8;}
-  .empty a{color:var(--green);}
   .loading{color:var(--faint);font-size:12.5px;padding:30px 0;text-align:center;}
-  .warn-box{border:2px solid var(--red);background:rgba(212,89,63,.07);padding:13px 15px;margin-top:26px;font-size:12.5px;color:var(--muted);}
-  .warn-box b{color:var(--red);}
-  .updated{font-size:11.5px;color:var(--faint);margin-top:16px;text-align:right;}
+  .trust{border:2px solid var(--line);background:var(--panel);padding:14px 16px;margin-top:26px;font-size:12.5px;color:var(--muted);line-height:1.8;}
+  .trust b{color:var(--gold);}
+
+  /* ---------- admin ---------- */
+  .edit-toggle{display:block;margin:34px auto 0;font-family:var(--px);font-size:7px;background:none;border:2px solid var(--line);color:var(--faint);padding:8px 10px;cursor:pointer;}
+  .edit-toggle:hover{border-color:var(--line2);color:var(--muted);}
+  #painel{display:none;margin-top:20px;}
+  .ed-panel{border:2px solid var(--line2);background:var(--panel);padding:18px;margin-bottom:16px;}
+  .ed-title{font-family:var(--px);font-size:9px;color:var(--gold);margin:0 0 14px;}
+  .ed-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;align-items:end;margin-bottom:12px;}
+  .ed-grid label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:5px;}
+  .ed-grid input{
+    width:100%;background:var(--panel2);border:2px solid var(--line);color:var(--text);
+    font-family:var(--mono);font-size:12.5px;padding:8px 9px;outline:none;
+  }
+  .ed-grid input:focus{border-color:var(--gold);}
+  .login-box{max-width:340px;margin:0 auto;}
+  .login-box input{width:100%;background:var(--panel2);border:2px solid var(--line);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px;outline:none;margin-bottom:10px;}
+  .login-box input:focus{border-color:var(--gold);}
+  .drop{border:2px dashed var(--line2);background:var(--panel2);padding:24px 16px;text-align:center;color:var(--faint);font-size:12px;cursor:pointer;margin-bottom:14px;line-height:1.8;}
+  .drop:hover,.drop.over{border-color:var(--gold);color:var(--gold);}
+  .drop b{color:var(--muted);}
+  .preview{display:flex;gap:14px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+  .preview img{width:120px;height:96px;object-fit:cover;border:2px solid var(--line);}
+  .preview .info{font-size:12px;color:var(--muted);line-height:1.8;}
+  .preview .info b{color:var(--green);}
+  .btn{font-family:var(--px);font-size:8px;padding:10px 12px;cursor:pointer;background:transparent;border:2px solid var(--line2);color:var(--muted);}
+  .btn:hover{border-color:var(--gold);color:var(--gold);}
+  .btn.go{border-color:var(--green);color:var(--green);}
+  .btn.go:hover{background:var(--green);color:var(--bg);}
+  .btn.sair{border-color:var(--line);color:var(--faint);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .who-adm{font-size:11.5px;color:var(--faint);margin-bottom:14px;}
+  .who-adm b{color:var(--green);}
+  table.mg{width:100%;border-collapse:collapse;font-size:12px;}
+  table.mg th{font-family:var(--px);font-size:6.5px;color:var(--faint);text-align:left;padding:0 6px 9px;font-weight:400;}
+  table.mg td{padding:6px;border-top:2px solid var(--line);}
+  .mini{font-family:var(--px);font-size:6.5px;padding:6px 7px;cursor:pointer;background:transparent;border:2px solid var(--line);color:var(--faint);}
+  .mini.rm:hover{color:var(--red);border-color:var(--red);}
+  .msg{font-size:12px;margin-top:10px;}
+  .msg.ok{color:var(--green);}
+  .msg.err{color:var(--red);}
 </style>
 </head>
 <body>
@@ -122,7 +184,7 @@
     <a href="/rentabilidade.html">QUANTO RENDE</a>
     <a href="/preco.html">QUANTO VALE</a>
     <a href="/vitrine.html">À VENDA</a>
-    <a href="/leilao.html">Leilão</a>
+    <a class="on" href="/leilao.html">LEILÃO</a>
     <a class="wa" id="navWa" href="#" target="_blank" rel="noopener">WHATSAPP</a>
   </nav>
 
@@ -130,44 +192,113 @@
     <h1>Leilão de <span>Pokémon</span></h1>
     <p>
       Aqui vão os Pokémon com IV alto — os que não têm preço de tabela porque quase ninguém vende.
-      <b>Todos os lances são públicos</b> e aparecem na lista de cada lote, com nome e horário.
-      O cronômetro e o vencedor são calculados na sua tela a partir dessa mesma lista: eu não digito nada aqui.
+      Entre com o <b>Discord</b> pra dar lance: seu nome aparece publicamente na lista.
+    </p>
+    <p>
+      O horário de cada lance é gravado pelo <b>servidor</b>, e o registro é <b>imutável</b> —
+      não existe permissão de edição nem de exclusão de lances no banco, nem pra mim.
     </p>
   </header>
 
   <div class="rules">
     <div class="t">COMO FUNCIONA</div>
     <ol>
-      <li>Dê seu lance pelo formulário. Ele precisa ser <b>maior que o lance atual + o incremento mínimo</b> do lote, senão não vale (e vai aparecer riscado na lista).</li>
-      <li>Lance nos <b>últimos 5 minutos estende o prazo em 5 minutos</b>. Isso se repete — então não adianta esperar o último segundo.</li>
-      <li>Encerrado o prazo, o maior lance válido ganha. <b>Eu chamo o vencedor</b> pelo Discord informado.</li>
-      <li>O vencedor tem <b>24 horas</b> pra fechar. Passou disso, passo pro segundo colocado.</li>
-      <li>Lance é compromisso. Quem der calote entra numa <b>lista pública</b> e não participa dos próximos.</li>
-      <li>Se o lote tiver <b>preço mínimo (reserva)</b>, isso está escrito no lote. Não existe reserva escondida aqui.</li>
+      <li>Cada lote tem <b>lance inicial</b> e <b>incremento mínimo</b>. Seu lance precisa ser pelo menos o lance atual + o incremento.</li>
+      <li>Lance nos <b>últimos 5 minutos estende o prazo em 5 minutos</b>, quantas vezes for preciso. Não adianta esperar o último segundo.</li>
+      <li>Encerrado o prazo, o maior lance válido ganha. <b>Eu chamo o vencedor</b> pelo Discord.</li>
+      <li>O vencedor tem <b>24 horas</b> pra fechar. Passou, passo pro segundo colocado.</li>
+      <li>Lance é compromisso. Quem der calote não participa dos próximos.</li>
+      <li>Se o lote tiver <b>reserva</b> (preço mínimo), está escrito no lote. Não existe reserva escondida aqui.</li>
     </ol>
   </div>
 
-  <div class="sec-head"><h2>Lotes abertos</h2><div class="rule"></div></div>
+  <div class="me" id="me"></div>
+
+  <div class="sec-head"><h2>Lotes</h2><div class="rule"></div></div>
   <div class="loading" id="loading">carregando lotes…</div>
   <div id="lotes"></div>
 
-  <div class="warn-box">
-    <b>▸ Formato em teste.</b> Este é o primeiro leilão do PokeCentral e o registro de lances é um formulário simples —
-    não tem login, então o nome é o que a pessoa declara. Se algo parecer estranho, me chame e eu mostro a planilha inteira.
-    Se o formato pegar, o próximo passo é lance com login de Discord, que deixa tudo verificável.
+  <div class="trust">
+    <b>▸ Por que confiar na lista?</b> Os lances ficam numa tabela com permissão só de leitura e inserção —
+    ninguém tem permissão de alterar ou apagar, incluindo o dono do site. O horário vem do servidor, não do seu computador.
+    Se um lance não respeitou a regra do incremento, ele aparece riscado, mas continua visível: nada é escondido.
   </div>
 
-  <div class="updated" id="updated"></div>
+  <button class="edit-toggle" id="editToggle">▪ modo vendedor</button>
+
+  <div id="painel">
+
+    <div class="ed-panel" id="loginPanel">
+      <div class="ed-title">ENTRAR (DONO)</div>
+      <div class="login-box">
+        <input type="email" id="email" placeholder="e-mail" autocomplete="username">
+        <input type="password" id="senha" placeholder="senha" autocomplete="current-password">
+        <button class="btn go" id="btnLogin" style="width:100%">ENTRAR</button>
+        <div class="msg" id="loginMsg"></div>
+      </div>
+    </div>
+
+    <div id="areaAdmin" style="display:none">
+
+      <div class="ed-panel">
+        <div class="ed-title">NOVO LOTE</div>
+        <div class="who-adm">logado como <b id="admEmail"></b> <button class="btn sair" id="btnSair" style="margin-left:10px">SAIR</button></div>
+
+        <div class="drop" id="drop">
+          Arraste o print aqui ou clique pra escolher<br>
+          <b>GolemQ170IV120N100.png</b> — nome, qualidade, IV e nível são lidos sozinhos
+        </div>
+        <input type="file" id="fileInput" accept="image/*" style="display:none">
+
+        <div class="preview" id="preview" style="display:none">
+          <img id="prevImg" alt=""><div class="info" id="prevInfo"></div>
+        </div>
+
+        <div class="ed-grid">
+          <div><label>Nome</label><input type="text" id="lNome" placeholder="Golem"></div>
+          <div><label>Qualidade</label><input type="text" id="lQual" placeholder="1.70"></div>
+          <div><label>IV</label><input type="number" id="lIv" max="192" placeholder="170"></div>
+          <div><label>Nível</label><input type="number" id="lNivel" placeholder="100"></div>
+          <div><label>Lance inicial (R$)</label><input type="number" id="lInicial" step="0.5" placeholder="30"></div>
+          <div><label>Incremento (R$)</label><input type="number" id="lIncr" step="0.5" value="2"></div>
+          <div><label>Reserva (opcional)</label><input type="number" id="lReserva" step="0.5" placeholder="vazio = sem reserva"></div>
+          <div><label>Encerra em</label><input type="datetime-local" id="lFim"></div>
+          <div><label>pokeId (opcional)</label><input type="number" id="lPokeId" placeholder="76"></div>
+          <div style="grid-column:1/-1"><label>Observação</label><input type="text" id="lObs" placeholder="meta forte, já no nível 100"></div>
+        </div>
+        <button class="btn go" id="btnCriar">+ ABRIR LEILÃO</button>
+        <div class="msg" id="admMsg"></div>
+      </div>
+
+      <div class="ed-panel">
+        <div class="ed-title">LOTES ABERTOS</div>
+        <table class="mg">
+          <thead><tr><th>Nome</th><th>IV</th><th>Encerra</th><th>Lances</th><th></th></tr></thead>
+          <tbody id="mgBody"></tbody>
+        </table>
+        <div class="msg" id="mgMsg"></div>
+        <p style="color:var(--faint);font-size:11.5px;line-height:1.7;margin-top:12px">
+          Apagar um lote apaga também os lances dele. Só faça isso com lote de teste — apagar leilão com disputa real destrói a confiança que a página inteira tenta construir.
+        </p>
+      </div>
+
+    </div>
+  </div>
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* ============ troque pelo seu número (DDI+DDD, só números) ============ */
-var WHATSAPP = '5511999999999';
-/* ====================================================================== */
+/* ================= CONFIGURAÇÃO ================= */
+var SUPABASE_URL = 'https://gimluwxoaxfxpbcfosrj.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpbWx1d3hvYXhmeHBiY2Zvc3JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MDIxMzYsImV4cCI6MjA5OTk3ODEzNn0.uT05zvrnqU_sLnVQBFpHkw7TJL-WBUDaSqJ26RVPaSE';
+var WHATSAPP = '5511999999999';   /* <-- TROQUE PELO SEU NÚMERO */
+var EXTENSAO_MIN = 5;             /* anti-sniping, em minutos */
+/* =============================================== */
 
+var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 var $ = function(id){ return document.getElementById(id); };
-var CFG = null, LANCES = [], timer = null;
+var lotes = [], lances = [], sessao = null, arquivo = null, tickTimer = null;
 
 function brl(n){ return 'R$ ' + Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -177,185 +308,363 @@ function ivColor(iv){
   if(iv>=140) return 'var(--gold)'; if(iv>=120) return 'var(--green)'; return 'var(--blue)';
 }
 function spriteUrl(id){ return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+id+'.png'; }
-$('navWa').href = 'https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent('Olá! Vim pelo leilão do PokeCentral.');
-function bidUrl(lote){
-  if(!CFG.entryLote) return CFG.formUrl;
-  var sep = CFG.formUrl.indexOf('?') >= 0 ? '&' : '?';
-  return CFG.formUrl + sep + 'usp=pp_url&' + CFG.entryLote + '=' + encodeURIComponent(lote.id);
-}
-
-/* ---------- CSV ---------- */
-function parseCSV(txt){
-  var rows=[], row=[], cur='', q=false;
-  for(var i=0;i<txt.length;i++){
-    var c=txt[i];
-    if(q){
-      if(c==='"'){ if(txt[i+1]==='"'){ cur+='"'; i++; } else q=false; }
-      else cur+=c;
-    } else {
-      if(c==='"') q=true;
-      else if(c===','){ row.push(cur); cur=''; }
-      else if(c==='\n'){ row.push(cur); rows.push(row); row=[]; cur=''; }
-      else if(c!=='\r') cur+=c;
-    }
-  }
-  if(cur!=='' || row.length){ row.push(cur); rows.push(row); }
-  return rows;
-}
-
-/* Google Forms grava "18/07/2026 14:32:05" */
-function parseData(s){
-  s = String(s||'').trim();
-  var m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})[ ,]+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
-  if(m) return new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +(m[6]||0));
-  var d = new Date(s);
-  return isNaN(d) ? null : d;
-}
-function parseValor(s){
-  return parseFloat(String(s||'').replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.')) || 0;
-}
 function hora(d){
   return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' '+
          String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
 }
+function aviso(el, txt, tipo){
+  el.className = 'msg ' + (tipo||''); el.textContent = txt;
+  if(tipo==='ok') setTimeout(function(){ el.textContent=''; }, 3000);
+}
+function lerNomeArquivo(n){
+  var arq = String(n||'').split('/').pop().replace(/\.(png|jpg|jpeg|webp|gif)$/i,'');
+  var m = arq.match(/^(.+?)Q(\d{2,4})IV(\d{1,3})(?:N(\d{1,3}))?$/);
+  if(!m) return null;
+  var q = m[2];
+  return { nome:m[1].replace(/([a-z])([A-Z])/g,'$1 $2').trim(),
+           qualidade:(q.length>=4?+q/1000:+q/100).toFixed(2), iv:+m[3], nivel:m[4]?+m[4]:null };
+}
+$('navWa').href = 'https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent('Olá! Vim pelo leilão do PokeCentral.');
 
-/* ---------- regra do leilão, calculada na tela ---------- */
+/* ---------- apuração (mesma regra pra todo mundo) ---------- */
 function apurar(lote){
-  var ext = (CFG.extensaoMin || 5) * 60000;
+  var ext = EXTENSAO_MIN * 60000;
   var fim = new Date(lote.fim).getTime();
-
-  var meus = LANCES.filter(function(b){ return b.lote === lote.id && b.data; })
-                   .sort(function(a,b){ return a.data - b.data; });
+  var meus = lances.filter(function(b){ return b.lote_id === lote.id; })
+    .map(function(b){ return { ref:b, data:new Date(b.criado_em), valor:Number(b.valor) }; })
+    .sort(function(a,b){ return a.data - b.data; });
 
   var validos = [], atual = 0;
   meus.forEach(function(b){
-    if(b.data.getTime() > fim){ b.ok = false; b.motivo = 'fora do prazo'; return; }
-    var minimo = validos.length === 0 ? lote.lanceInicial : atual + lote.incremento;
+    if(b.data.getTime() > fim){ b.ok=false; b.motivo='fora do prazo'; return; }
+    var minimo = validos.length===0 ? Number(lote.lance_inicial) : atual + Number(lote.incremento);
     if(b.valor >= minimo){
       b.ok = true; atual = b.valor; validos.push(b);
-      if(b.data.getTime() > fim - ext) fim = b.data.getTime() + ext;   // anti-sniping
-    } else {
-      b.ok = false; b.motivo = 'abaixo do mínimo';
-    }
+      if(b.data.getTime() > fim - ext) fim = b.data.getTime() + ext;
+    } else { b.ok=false; b.motivo='abaixo do mínimo'; }
   });
 
-  return {
-    fim: fim,
-    todos: meus,
-    validos: validos,
-    atual: atual,
-    lider: validos.length ? validos[validos.length-1] : null,
-    proximo: validos.length ? atual + lote.incremento : lote.lanceInicial
-  };
+  return { fim:fim, todos:meus, validos:validos, atual:atual,
+           lider: validos.length ? validos[validos.length-1] : null,
+           proximo: validos.length ? atual + Number(lote.incremento) : Number(lote.lance_inicial) };
 }
 
-/* ---------- render ---------- */
+/* ---------- carregar ---------- */
+function carregar(){
+  return Promise.all([
+    sb.from('lotes').select('*').order('fim', {ascending:true}),
+    sb.from('lances').select('*').order('criado_em', {ascending:true})
+  ]).then(function(r){
+    if(r[0].error) throw r[0].error;
+    if(r[1].error) throw r[1].error;
+    lotes = r[0].data || [];
+    lances = r[1].data || [];
+    $('loading').style.display = 'none';
+    render();
+    if($('areaAdmin').style.display === 'block') renderAdmin();
+  }).catch(function(e){
+    $('loading').textContent = 'não consegui carregar os lotes.';
+    console.error(e);
+  });
+}
+
+/* ---------- sessão ---------- */
+function ehDono(s){
+  return s && s.user && s.user.app_metadata && s.user.app_metadata.provider === 'email';
+}
+function nomeDiscord(s){
+  var m = s && s.user ? (s.user.user_metadata||{}) : {};
+  return m.full_name || m.name || m.user_name || m.preferred_username || (s && s.user ? s.user.email : '') || 'anônimo';
+}
+
+function renderMe(){
+  var el = $('me');
+  if(sessao && !ehDono(sessao)){
+    var m = sessao.user.user_metadata || {};
+    el.innerHTML =
+      (m.avatar_url ? '<img src="'+esc(m.avatar_url)+'" alt="">' : '') +
+      'entrando como <b>'+esc(nomeDiscord(sessao))+'</b>' +
+      '<label style="margin-left:auto;color:var(--faint)">seu nick no jogo: <input id="nickJogo" placeholder="ex: Ash" value="'+esc(localStorage.getItem('pc_nick')||'')+'"></label>' +
+      '<button class="btn sair" id="btnSairDiscord">SAIR</button>';
+    $('nickJogo').addEventListener('input', function(){ localStorage.setItem('pc_nick', this.value.trim()); });
+    $('btnSairDiscord').addEventListener('click', function(){ sb.auth.signOut().then(function(){ location.reload(); }); });
+  } else if(sessao && ehDono(sessao)){
+    el.innerHTML = 'você está logado como <b style="color:var(--green)">dono do site</b> — pra dar lance, saia e entre com Discord.';
+  } else {
+    el.innerHTML = 'Pra dar lance você precisa entrar com Discord. Seu nome fica visível na lista de lances. ' +
+                   '<button class="btn-discord" id="btnDiscord" style="margin-left:auto">ENTRAR COM DISCORD</button>';
+    $('btnDiscord').addEventListener('click', function(){
+      sb.auth.signInWithOAuth({ provider:'discord', options:{ redirectTo: location.href } });
+    });
+  }
+}
+
+sb.auth.getSession().then(function(r){
+  sessao = r.data.session;
+  renderMe(); mostrarAdmin();
+});
+sb.auth.onAuthStateChange(function(_e, s){
+  sessao = s; renderMe(); mostrarAdmin(); render();
+});
+
+/* ---------- render público ---------- */
 function render(){
   var agora = Date.now();
-  var html = '';
+  if(!lotes.length){
+    $('lotes').innerHTML = '<div class="empty">Nenhum lote aberto no momento.<br>Os leilões saem quando aparece um Pokémon bom demais pra ter preço de tabela.</div>';
+    return;
+  }
 
-  CFG.lotes.forEach(function(lote){
+  $('lotes').innerHTML = lotes.map(function(lote){
     var a = apurar(lote);
     var resta = a.fim - agora;
     var aberto = resta > 0;
 
     var img = lote.print
       ? '<img src="'+esc(lote.print)+'" alt="'+esc(lote.nome)+'" onerror="this.outerHTML=\'<span class=ph>SEM PRINT</span>\'">'
-      : (lote.pokeId ? '<img class="sprite" src="'+spriteUrl(lote.pokeId)+'" alt="">' : '<span class="ph">SEM PRINT</span>');
+      : (lote.poke_id ? '<img class="sprite" src="'+spriteUrl(lote.poke_id)+'" alt="">' : '<span class="ph">SEM PRINT</span>');
 
     var relogio;
     if(!aberto) relogio = '<span class="clock over">ENCERRADO</span>';
     else {
-      var s = Math.floor(resta/1000), d = Math.floor(s/86400);
-      var h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60), ss = s%60;
-      var txt = d>0 ? d+'d '+h+'h '+m+'m' : (h>0 ? h+'h '+m+'m '+ss+'s' : m+'m '+ss+'s');
-      relogio = '<span class="clock'+(resta < 15*60000 ? ' urgent' : '')+'">'+txt+'</span>';
+      var s = Math.floor(resta/1000), d = Math.floor(s/86400),
+          h = Math.floor(s%86400/3600), mi = Math.floor(s%3600/60), ss = s%60;
+      var txt = d>0 ? d+'d '+h+'h '+mi+'m' : (h>0 ? h+'h '+mi+'m '+ss+'s' : mi+'m '+ss+'s');
+      relogio = '<span class="clock'+(resta < 15*60000 ? ' urgent':'')+'">'+txt+'</span>';
     }
 
-    var linhas = a.todos.length
-      ? a.todos.slice().reverse().map(function(b){
-          var top = a.lider && b === a.lider;
-          return '<tr class="'+(b.ok ? (top?'top':'') : 'bad')+'">'+
-            '<td class="who">'+esc(b.nome)+(b.discord?' <span style="color:var(--faint)">('+esc(b.discord)+')</span>':'')+'</td>'+
-            '<td class="amt">'+brl(b.valor)+(b.ok?'':' <span style="font-size:10px">'+b.motivo+'</span>')+'</td>'+
-            '<td class="when">'+hora(b.data)+'</td></tr>';
-        }).join('')
-      : '';
+    var area;
+    if(!aberto){
+      area = '';
+    } else if(sessao && !ehDono(sessao)){
+      area = '<div class="bid-form">'+
+        '<input type="number" step="0.5" id="in-'+lote.id+'" placeholder="'+a.proximo.toFixed(2)+'">'+
+        '<button class="bid-btn" data-lance="'+lote.id+'">DAR LANCE ▸</button></div>'+
+        '<div class="min-note">Mínimo agora: <b>'+brl(a.proximo)+'</b></div>'+
+        '<div class="bid-msg" id="msg-'+lote.id+'"></div>';
+    } else if(sessao && ehDono(sessao)){
+      area = '<div class="locked-note">Você é o dono — não dá pra dar lance no próprio leilão por aqui.</div>';
+    } else {
+      area = '<button class="btn-discord" data-login="1">ENTRAR COM DISCORD PRA DAR LANCE</button>'+
+             '<div class="min-note">Mínimo agora: <b>'+brl(a.proximo)+'</b></div>';
+    }
 
-    html += ''+
-    '<div class="lote'+(aberto?'':' fim')+'">'+
+    var linhas = a.todos.slice().reverse().map(function(b){
+      var top = a.lider && b === a.lider;
+      return '<tr class="'+(b.ok ? (top?'top':'') : 'bad')+'">'+
+        '<td class="who">'+esc(b.ref.nome_discord||'anônimo')+
+          (b.ref.nome_jogo ? ' <span style="color:var(--faint)">('+esc(b.ref.nome_jogo)+')</span>' : '')+'</td>'+
+        '<td class="amt">'+brl(b.valor)+(b.ok?'':' <span style="font-size:10px">'+b.motivo+'</span>')+'</td>'+
+        '<td class="when">'+hora(b.data)+'</td></tr>';
+    }).join('');
+
+    return '<div class="lote'+(aberto?'':' fim')+'">'+
       '<div class="lote-top">'+
         '<div class="lote-img">'+img+'<div class="iv-badge" style="background:'+ivColor(lote.iv)+'">IV '+esc(lote.iv)+'</div></div>'+
         '<div class="lote-info">'+
           '<div class="lote-nome">'+esc(lote.nome)+'</div>'+
-          '<div class="lote-meta">Nível '+esc(lote.nivel)+' · lance inicial '+brl(lote.lanceInicial)+' · incremento '+brl(lote.incremento)+
-            (lote.reserva ? ' · <b style="color:var(--gold)">reserva '+brl(lote.reserva)+'</b>' : '')+'</div>'+
-          (lote.obs ? '<div class="lote-obs">'+esc(lote.obs)+'</div>' : '')+
+          '<div class="lote-meta">Nível '+esc(lote.nivel)+(lote.qualidade?' · Qualidade '+esc(lote.qualidade):'')+
+            ' · inicial '+brl(lote.lance_inicial)+' · incremento '+brl(lote.incremento)+
+            (lote.reserva?' · <b style="color:var(--gold)">reserva '+brl(lote.reserva)+'</b>':'')+'</div>'+
+          (lote.obs?'<div class="lote-obs">'+esc(lote.obs)+'</div>':'')+
           '<div class="bid-now">'+
             '<div><div class="bid-lbl">LANCE ATUAL</div>'+
-              (a.atual ? '<div class="bid-val">'+brl(a.atual)+'</div>'
-                       : '<div class="bid-val small">nenhum ainda</div>')+'</div>'+
+              (a.atual?'<div class="bid-val">'+brl(a.atual)+'</div>':'<div class="bid-val small">nenhum ainda</div>')+'</div>'+
             '<div><div class="bid-lbl">'+(aberto?'TERMINA EM':'STATUS')+'</div>'+relogio+'</div>'+
             '<div><div class="bid-lbl">LANCES</div><div class="bid-val small">'+a.validos.length+' válido(s)</div></div>'+
           '</div>'+
-          (aberto
-            ? '<a class="bid-btn" href="'+esc(bidUrl(lote))+'" target="_blank" rel="noopener">DAR LANCE ▸</a>'+
-'<div class="min-note">Próximo lance válido: <b style="color:var(--gold)">'+brl(a.proximo)+'</b> ou mais.</div>'
-            : '<a class="bid-btn off">ENCERRADO</a>')+
+          area+
           (!aberto && a.lider
-            ? '<div class="winner"><b>Arrematado por '+esc(a.lider.nome)+'</b> — '+brl(a.lider.valor)+
-              (lote.reserva && a.lider.valor < lote.reserva ? ' <span style="color:var(--red)">(abaixo da reserva — não fechado)</span>' : '')+
-              '<br>Já entrei em contato pelo Discord informado.</div>'
-            : '')+
-          (!aberto && !a.lider ? '<div class="winner" style="border-color:var(--line)"><b style="color:var(--muted)">Encerrado sem lances.</b></div>' : '')+
+            ? '<div class="winner"><b>Arrematado por '+esc(a.lider.ref.nome_discord)+'</b> — '+brl(a.lider.valor)+
+              (lote.reserva && a.lider.valor < Number(lote.reserva) ? ' <span style="color:var(--red)">(abaixo da reserva — não fechado)</span>':'')+
+              '<br>Entro em contato pelo Discord.</div>' : '')+
+          (!aberto && !a.lider ? '<div class="winner" style="border-color:var(--line)"><b style="color:var(--muted)">Encerrado sem lances.</b></div>':'')+
         '</div>'+
       '</div>'+
-      (a.todos.length ? '<div class="log"><div class="log-head"><span>HISTÓRICO DE LANCES</span><span>riscado = não valeu pela regra</span></div>'+
-        '<table class="bids">'+linhas+'</table></div>' : '')+
+      (a.todos.length ? '<div class="log"><div class="log-head"><span>HISTÓRICO DE LANCES</span><span>riscado = fora da regra</span></div><table class="bids">'+linhas+'</table></div>':'')+
     '</div>';
-  });
+  }).join('');
 
-  $('lotes').innerHTML = html || '<div class="empty">Nenhum lote no momento.<br>Os leilões saem quando aparece um Pokémon bom demais pra ter preço de tabela — fique de olho.</div>';
+  document.querySelectorAll('[data-login]').forEach(function(b){
+    b.addEventListener('click', function(){
+      sb.auth.signInWithOAuth({ provider:'discord', options:{ redirectTo: location.href } });
+    });
+  });
+  document.querySelectorAll('[data-lance]').forEach(function(b){
+    b.addEventListener('click', function(){ darLance(this.dataset.lance, this); });
+  });
 }
 
-/* ---------- carregamento ---------- */
-fetch('leiloes.json?v='+Date.now())
-  .then(function(r){ if(!r.ok) throw 0; return r.json(); })
-  .then(function(cfg){
-    CFG = cfg;
-    $('loading').style.display = 'none';
-    if(!cfg.csvUrl || cfg.csvUrl.indexOf('http') !== 0){ render(); return; }
-    return fetch(cfg.csvUrl)
-      .then(function(r){ return r.text(); })
-      .then(function(txt){
-        var rows = parseCSV(txt);
-        if(!rows.length) return;
-        var head = rows[0].map(function(h){ return h.trim(); });
-        var c = cfg.colunas;
-        var iD = head.indexOf(c.data), iL = head.indexOf(c.lote),
-            iN = head.indexOf(c.nome), iC = head.indexOf(c.discord), iV = head.indexOf(c.valor);
-        LANCES = rows.slice(1).filter(function(r){ return r.length > 1; }).map(function(r){
-          return {
-            data: parseData(r[iD]),
-            lote: (r[iL]||'').trim(),
-            nome: (r[iN]||'anônimo').trim(),
-            discord: iC >= 0 ? (r[iC]||'').trim() : '',
-            valor: parseValor(r[iV])
-          };
-        });
-      })
-      .catch(function(){ /* segue sem lances */ });
-  })
-  .then(function(){
-    if(!CFG) return;
-    render();
-    $('updated').textContent = 'lances lidos direto da planilha pública · atualiza sozinho a cada 30s';
-    timer = setInterval(render, 1000);
-    setInterval(function(){ location.reload(); }, 30000);
-  })
-  .catch(function(){
-    $('loading').textContent = 'não consegui carregar os lotes.';
+/* ---------- dar lance ---------- */
+function darLance(loteId, btn){
+  var lote = lotes.filter(function(l){ return l.id === loteId; })[0];
+  var a = apurar(lote);
+  var msg = $('msg-'+loteId);
+  var valor = parseFloat($('in-'+loteId).value);
+
+  if(Date.now() > a.fim){ aviso(msg, 'esse leilão já encerrou', 'err'); return; }
+  if(!valor){ aviso(msg, 'digite um valor', 'err'); return; }
+  if(valor < a.proximo){ aviso(msg, 'mínimo agora é '+brl(a.proximo), 'err'); return; }
+
+  var nick = (localStorage.getItem('pc_nick')||'').trim();
+  if(!nick){ aviso(msg, 'preencha seu nick do jogo lá em cima antes de dar lance', 'err'); return; }
+
+  btn.disabled = true;
+  aviso(msg, 'enviando…', '');
+
+  sb.from('lances').insert({
+    lote_id: loteId,
+    user_id: sessao.user.id,
+    nome_discord: nomeDiscord(sessao),
+    nome_jogo: nick,
+    valor: valor
+  }).then(function(r){
+    btn.disabled = false;
+    if(r.error){ aviso(msg, 'erro: '+r.error.message, 'err'); return; }
+    $('in-'+loteId).value = '';
+    return carregar();
   });
+}
+
+/* ---------- admin ---------- */
+$('editToggle').addEventListener('click', function(){
+  var p = $('painel');
+  var aberto = p.style.display === 'block';
+  p.style.display = aberto ? 'none' : 'block';
+  this.textContent = aberto ? '▪ modo vendedor' : '▪ fechar modo vendedor';
+  if(!aberto) p.scrollIntoView({behavior:'smooth'});
+});
+
+function mostrarAdmin(){
+  if(ehDono(sessao)){
+    $('loginPanel').style.display = 'none';
+    $('areaAdmin').style.display = 'block';
+    $('admEmail').textContent = sessao.user.email;
+    if(!$('lFim').value){
+      var d = new Date(Date.now()+48*3600000); d.setMinutes(0,0,0);
+      $('lFim').value = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+
+                        String(d.getDate()).padStart(2,'0')+'T'+String(d.getHours()).padStart(2,'0')+':00';
+    }
+    renderAdmin();
+  } else {
+    $('loginPanel').style.display = 'block';
+    $('areaAdmin').style.display = 'none';
+  }
+}
+
+$('btnLogin').addEventListener('click', function(){
+  var btn = this; btn.disabled = true;
+  sb.auth.signInWithPassword({ email:$('email').value.trim(), password:$('senha').value })
+    .then(function(r){
+      btn.disabled = false;
+      if(r.error) aviso($('loginMsg'), 'não entrou: '+r.error.message, 'err');
+      else $('senha').value = '';
+    });
+});
+$('senha').addEventListener('keydown', function(e){ if(e.key==='Enter') $('btnLogin').click(); });
+$('btnSair').addEventListener('click', function(){ sb.auth.signOut(); });
+
+$('drop').addEventListener('click', function(){ $('fileInput').click(); });
+$('drop').addEventListener('dragover', function(e){ e.preventDefault(); this.classList.add('over'); });
+$('drop').addEventListener('dragleave', function(){ this.classList.remove('over'); });
+$('drop').addEventListener('drop', function(e){
+  e.preventDefault(); this.classList.remove('over');
+  if(e.dataTransfer.files[0]) usarArquivo(e.dataTransfer.files[0]);
+});
+$('fileInput').addEventListener('change', function(){ if(this.files[0]) usarArquivo(this.files[0]); });
+
+function usarArquivo(file){
+  arquivo = file;
+  $('preview').style.display = 'flex';
+  $('prevImg').src = URL.createObjectURL(file);
+  var d = lerNomeArquivo(file.name);
+  if(d){
+    if(!$('lNome').value)  $('lNome').value  = d.nome;
+    if(!$('lQual').value)  $('lQual').value  = d.qualidade;
+    if(!$('lIv').value)    $('lIv').value    = d.iv;
+    if(!$('lNivel').value && d.nivel) $('lNivel').value = d.nivel;
+    $('prevInfo').innerHTML = '<b>✓ lido do nome do arquivo</b><br>'+esc(d.nome)+' · qualidade '+d.qualidade+
+                              ' · IV '+d.iv+(d.nivel?' · nível '+d.nivel:'');
+  } else {
+    $('prevInfo').innerHTML = esc(file.name)+'<br>Nome fora do padrão — preencha na mão.';
+  }
+}
+
+$('btnCriar').addEventListener('click', function(){
+  var btn = this;
+  var nome = $('lNome').value.trim();
+  var inicial = parseFloat($('lInicial').value) || 0;
+  var fim = $('lFim').value;
+  if(!nome || !inicial || !fim){ aviso($('admMsg'), 'preencha nome, lance inicial e encerramento', 'err'); return; }
+
+  btn.disabled = true;
+  aviso($('admMsg'), 'criando…', '');
+
+  var etapa = arquivo
+    ? sb.storage.from('prints').upload('leilao/'+Date.now()+'-'+arquivo.name, arquivo, {upsert:true})
+        .then(function(up){ if(up.error) throw up.error;
+          return sb.storage.from('prints').getPublicUrl(up.data.path).data.publicUrl; })
+    : Promise.resolve(null);
+
+  etapa.then(function(url){
+    return sb.from('lotes').insert({
+      nome: nome,
+      qualidade: $('lQual').value.trim() || null,
+      iv: parseInt($('lIv').value) || null,
+      nivel: parseInt($('lNivel').value) || 1,
+      print: url,
+      poke_id: parseInt($('lPokeId').value) || null,
+      obs: $('lObs').value.trim() || null,
+      lance_inicial: inicial,
+      incremento: parseFloat($('lIncr').value) || 1,
+      reserva: parseFloat($('lReserva').value) || null,
+      fim: new Date(fim).toISOString()
+    });
+  }).then(function(r){
+    if(r.error) throw r.error;
+    ['lNome','lQual','lIv','lNivel','lInicial','lReserva','lPokeId','lObs'].forEach(function(i){ $(i).value=''; });
+    arquivo = null; $('preview').style.display='none'; $('fileInput').value='';
+    aviso($('admMsg'), '✓ leilão aberto', 'ok');
+    btn.disabled = false;
+    return carregar();
+  }).catch(function(e){
+    aviso($('admMsg'), 'erro: '+(e.message||e), 'err');
+    btn.disabled = false;
+  });
+});
+
+function renderAdmin(){
+  var body = $('mgBody');
+  if(!lotes.length){
+    body.innerHTML = '<tr><td colspan="5" style="color:var(--faint);padding:14px 6px">nenhum lote</td></tr>';
+    return;
+  }
+  body.innerHTML = lotes.map(function(l){
+    var n = lances.filter(function(b){ return b.lote_id===l.id; }).length;
+    return '<tr data-id="'+l.id+'">'+
+      '<td>'+esc(l.nome)+'</td><td>'+esc(l.iv)+'</td>'+
+      '<td style="color:var(--muted)">'+hora(new Date(l.fim))+'</td>'+
+      '<td>'+n+'</td>'+
+      '<td style="width:1%"><button class="mini rm" data-a="del">APAGAR</button></td></tr>';
+  }).join('');
+
+  body.querySelectorAll('[data-a="del"]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var id = this.closest('tr').dataset.id;
+      var l = lotes.filter(function(x){ return x.id===id; })[0];
+      if(!confirm('Apagar o lote "'+l.nome+'" e todos os lances dele?')) return;
+      sb.from('lotes').delete().eq('id', id).then(function(r){
+        if(r.error) aviso($('mgMsg'), 'erro: '+r.error.message, 'err');
+        else carregar();
+      });
+    });
+  });
+}
+
+/* ---------- ciclo ---------- */
+carregar();
+tickTimer = setInterval(render, 1000);          // cronômetro
+setInterval(carregar, 15000);                    // busca lances novos
 </script>
 </body>
 </html>
