@@ -146,6 +146,13 @@
     font-family:var(--mono);font-size:12.5px;padding:8px 9px;outline:none;
   }
   .ed-grid input:focus{border-color:var(--gold);}
+  .auto-hint{
+    border:2px solid var(--line);background:var(--panel2);padding:9px 11px;
+    margin-bottom:12px;font-size:11.5px;color:var(--faint);line-height:1.7;
+  }
+  .auto-hint b{color:var(--gold);}
+  .auto-hint.ok{border-color:var(--green);}
+  .auto-hint.ok b{color:var(--green);}
   .btn{
     font-family:var(--px);font-size:8px;padding:10px 12px;cursor:pointer;
     background:transparent;border:2px solid var(--line2);color:var(--muted);
@@ -187,8 +194,8 @@
     <a class="home" href="/index.html">▪ POKECENTRAL</a>
     <a href="/rentabilidade.html">QUANTO RENDE</a>
     <a href="/preco.html">QUANTO VALE</a>
-    <a href="/vitrine.html">À VENDA</a>
-    <a href="/leilao.html">Leilão</a>
+    <a class="on" href="/vitrine.html">À VENDA</a>
+    <a href="/leilao.html">LEILÃO</a>
     <a class="wa" id="navWa" href="#" target="_blank" rel="noopener">WHATSAPP</a>
   </nav>
 
@@ -273,13 +280,20 @@
 
     <div class="ed-panel">
       <div class="ed-title">ADICIONAR POKÉMON</div>
+
+      <div class="auto-hint" id="autoHint">
+        Nomeie o print como <b>GolemQ170IV120N100.png</b> — nome, qualidade, IV e nível são preenchidos sozinhos ao colar o caminho.
+        O <b>N</b> (nível) é opcional. Só o preço fica pra você digitar.
+      </div>
+
       <div class="ed-grid">
-        <div><label>Nome</label><input type="text" id="fNome" placeholder="Charizard"></div>
-        <div><label>IV (0–192)</label><input type="number" id="fIv" placeholder="149" max="192"></div>
-        <div><label>Nível</label><input type="number" id="fNivel" placeholder="240"></div>
+        <div style="grid-column:1/-1"><label>Print (caminho)</label><input type="text" id="fPrint" placeholder="prints/loja/GolemQ170IV120N100.png"></div>
+        <div><label>Nome</label><input type="text" id="fNome" placeholder="Golem"></div>
+        <div><label>Qualidade</label><input type="text" id="fQual" placeholder="1.70"></div>
+        <div><label>IV (0–192)</label><input type="number" id="fIv" placeholder="120" max="192"></div>
+        <div><label>Nível</label><input type="number" id="fNivel" placeholder="100"></div>
         <div><label>Preço (R$)</label><input type="number" id="fPreco" step="0.5" placeholder="30"></div>
-        <div><label>Print (caminho)</label><input type="text" id="fPrint" placeholder="prints/charizard-149.png"></div>
-        <div><label>pokeId (opcional)</label><input type="number" id="fPokeId" placeholder="6"></div>
+        <div><label>pokeId (opcional)</label><input type="number" id="fPokeId" placeholder="76"></div>
         <div style="grid-column:1/-1"><label>Observação (opcional)</label><input type="text" id="fObs" placeholder="meta forte, ótimo pra farm de moeda"></div>
       </div>
       <button class="btn go" id="addBtn">+ ADICIONAR</button>
@@ -288,7 +302,7 @@
     <div class="ed-panel">
       <div class="ed-title">CATÁLOGO</div>
       <table class="mg">
-        <thead><tr><th>Nome</th><th>IV</th><th>Nv</th><th>R$</th><th>Print</th><th></th></tr></thead>
+        <thead><tr><th>Nome</th><th>Qual.</th><th>IV</th><th>Nv</th><th>R$</th><th>Print</th><th></th></tr></thead>
         <tbody id="mgBody"></tbody>
       </table>
     </div>
@@ -303,7 +317,7 @@
       </div>
       <p class="ed-hint">
         No GitHub: abra <b>estoque.json</b> → lápis → apague tudo → cole → "Commit changes". O Vercel republica em ~30s.<br>
-        Os prints vão na pasta <b>/prints</b> do repositório (botão "Add file → Upload files"). Use nomes sem espaço e sem acento.<br>
+        Os prints vão em <b>/prints/loja</b> (botão "Add file → Upload files"). Use nomes sem espaço e sem acento.<br>
         Nada aqui é salvo sozinho — esta tela só monta o texto. Quem grava é você, pelo GitHub.
       </p>
     </div>
@@ -350,6 +364,21 @@ function waLink(msg){
 }
 function spriteUrl(pokeId){
   return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + pokeId + '.png';
+}
+
+/* Lê "prints/loja/GolemQ170IV120N100.png" → {nome, qualidade, iv, nivel} */
+function lerNomeArquivo(caminho){
+  var arq = String(caminho||'').split('/').pop().replace(/\.(png|jpg|jpeg|webp|gif)$/i,'');
+  var m = arq.match(/^(.+?)Q(\d{2,4})IV(\d{1,3})(?:N(\d{1,3}))?$/);
+  if(!m) return null;
+  var nome = m[1].replace(/([a-z])([A-Z])/g,'$1 $2').trim();
+  var q = m[2];
+  return {
+    nome: nome,
+    qualidade: (q.length >= 4 ? +q/1000 : +q/100).toFixed(2),
+    iv: +m[3],
+    nivel: m[4] ? +m[4] : null
+  };
 }
 
 /* ---------- carregamento ---------- */
@@ -413,7 +442,7 @@ function render(){
         '</div>' +
         '<div class="card-body">' +
           '<div class="card-name">' + esc(p.nome) + '</div>' +
-          '<div class="card-meta">Nível ' + esc(p.nivel) + '</div>' +
+          '<div class="card-meta">Nível ' + esc(p.nivel) + (p.qualidade ? ' · Qualidade ' + esc(p.qualidade) : '') + '</div>' +
           (p.obs ? '<div class="card-obs">' + esc(p.obs) + '</div>' : '') +
           '<div class="card-price">' + brl(p.preco) + '</div>' +
           '<a class="card-cta" href="' + waLink(msg) + '" target="_blank" rel="noopener">TENHO INTERESSE ▸</a>' +
@@ -449,6 +478,27 @@ $('editToggle').addEventListener('click', function(){
   if(!aberto){ renderEditor(); ed.scrollIntoView({behavior:'smooth'}); }
 });
 
+/* preenchimento automático pelo nome do arquivo */
+$('fPrint').addEventListener('input', function(){
+  var hint = $('autoHint');
+  var d = lerNomeArquivo(this.value);
+  if(!d){
+    hint.className = 'auto-hint';
+    hint.innerHTML = 'Nomeie o print como <b>GolemQ170IV120N100.png</b> — nome, qualidade, IV e nível são preenchidos sozinhos ao colar o caminho. ' +
+                     'O <b>N</b> (nível) é opcional. Só o preço fica pra você digitar.';
+    return;
+  }
+  if(!$('fNome').value)  $('fNome').value  = d.nome;
+  if(!$('fQual').value)  $('fQual').value  = d.qualidade;
+  if(!$('fIv').value)    $('fIv').value    = d.iv;
+  if(!$('fNivel').value && d.nivel) $('fNivel').value = d.nivel;
+
+  hint.className = 'auto-hint ok';
+  hint.innerHTML = '✓ Li do arquivo: <b>' + esc(d.nome) + '</b> · qualidade <b>' + d.qualidade +
+                   '</b> · IV <b>' + d.iv + '</b>' + (d.nivel ? ' · nível <b>' + d.nivel + '</b>' : ' · nível não informado') +
+                   '. Confira e preencha o preço.';
+});
+
 $('addBtn').addEventListener('click', function(){
   var nome = $('fNome').value.trim();
   var preco = parseFloat($('fPreco').value) || 0;
@@ -456,6 +506,7 @@ $('addBtn').addEventListener('click', function(){
   estoque.push({
     id: 'p' + Date.now(),
     nome: nome,
+    qualidade: $('fQual').value.trim(),
     iv: parseFloat($('fIv').value) || 0,
     nivel: parseFloat($('fNivel').value) || 1,
     preco: preco,
@@ -464,19 +515,23 @@ $('addBtn').addEventListener('click', function(){
     obs: $('fObs').value.trim(),
     disponivel: true
   });
-  ['fNome','fIv','fNivel','fPreco','fPrint','fPokeId','fObs'].forEach(function(id){ $(id).value = ''; });
+  ['fPrint','fNome','fQual','fIv','fNivel','fPreco','fPokeId','fObs'].forEach(function(id){ $(id).value = ''; });
+  $('autoHint').className = 'auto-hint';
+  $('autoHint').innerHTML = 'Nomeie o print como <b>GolemQ170IV120N100.png</b> — nome, qualidade, IV e nível são preenchidos sozinhos ao colar o caminho. ' +
+                            'O <b>N</b> (nível) é opcional. Só o preço fica pra você digitar.';
   renderEditor(); render();
 });
 
 function renderEditor(){
   var body = $('mgBody');
   if(estoque.length === 0){
-    body.innerHTML = '<tr><td colspan="6" style="color:var(--faint);padding:14px 6px">nenhum item ainda</td></tr>';
+    body.innerHTML = '<tr><td colspan="7" style="color:var(--faint);padding:14px 6px">nenhum item ainda</td></tr>';
   } else {
     body.innerHTML = estoque.map(function(p, i){
       return '' +
       '<tr class="' + (p.disponivel === false ? 'off' : '') + '" data-i="' + i + '">' +
         '<td><input data-k="nome" value="' + esc(p.nome) + '"></td>' +
+        '<td style="width:58px"><input data-k="qualidade" value="' + esc(p.qualidade || '') + '"></td>' +
         '<td style="width:56px"><input data-k="iv" type="number" value="' + esc(p.iv) + '"></td>' +
         '<td style="width:56px"><input data-k="nivel" type="number" value="' + esc(p.nivel) + '"></td>' +
         '<td style="width:66px"><input data-k="preco" type="number" step="0.5" value="' + esc(p.preco) + '"></td>' +
@@ -493,7 +548,8 @@ function renderEditor(){
     inp.addEventListener('input', function(){
       var i = +this.closest('tr').dataset.i;
       var k = this.dataset.k;
-      estoque[i][k] = (k === 'nome' || k === 'print') ? this.value : (parseFloat(this.value) || 0);
+      var texto = (k === 'nome' || k === 'print' || k === 'qualidade');
+      estoque[i][k] = texto ? this.value : (parseFloat(this.value) || 0);
       gerarJSON(); render();
     });
   });
@@ -504,4 +560,36 @@ function renderEditor(){
       renderEditor(); render();
     });
   });
-  body.querySelectorAll('[data-a="del"]').
+  body.querySelectorAll('[data-a="del"]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var i = +this.closest('tr').dataset.i;
+      if(!confirm('Remover "' + estoque[i].nome + '" da lista?')) return;
+      estoque.splice(i, 1);
+      renderEditor(); render();
+    });
+  });
+
+  gerarJSON();
+}
+
+function gerarJSON(){
+  $('saida').value = JSON.stringify({ atualizado: hojeISO(), pokemons: estoque }, null, 2);
+}
+
+$('copiar').addEventListener('click', function(){
+  navigator.clipboard.writeText($('saida').value).then(function(){
+    $('msg').textContent = 'copiado!';
+    setTimeout(function(){ $('msg').textContent = ''; }, 2000);
+  });
+});
+
+$('baixar').addEventListener('click', function(){
+  var blob = new Blob([$('saida').value], { type:'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'estoque.json';
+  a.click();
+});
+</script>
+</body>
+</html>
