@@ -4,28 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PokeCentral — RMT no Poke Idle World, dentro das regras</title>
-<meta name="description" content="A central de RMT do Poke Idle World: calculadoras grátis pra saber se o farm compensa e uma vitrine de Pokémon pra você começar já produzindo.">
+<meta name="description" content="Descubra o que compensa farmar, quanto vale o seu Pokémon e compre com print real. A central de RMT do Poke Idle World.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#12100c; --panel:#1c1812; --panel2:#26201a; --panel3:#332a20;
     --line:#4a3c28; --line2:#6b5637;
-    --gold:#f0b429; --green:#8fc45a; --red:#d4593f; --blue:#4a90c2; --purple:#a878c4;
+    --gold:#f0b429; --green:#8fc45a; --red:#d4593f; --blue:#4a90c2; --purple:#a878c4; --pink:#d9709b;
     --text:#f2e8d5; --muted:#a89880; --faint:#736450;
-    --px:'Press Start 2P',monospace;
-    --mono:'IBM Plex Mono',monospace;
+    --px:'Press Start 2P',monospace; --mono:'IBM Plex Mono',monospace;
   }
-  /* ---------- menu ---------- */
-  .nav{
-    display:flex;gap:2px;flex-wrap:wrap;align-items:stretch;
-    border:2px solid var(--line);background:var(--panel);
-    margin:14px 0 22px;
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--bg);
+    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 3px);
+    color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.7;padding:0 16px 60px;
   }
+  .wrap{max-width:1000px;margin:0 auto;}
+  img{image-rendering:pixelated;}
+
+  /* ---------- nav ---------- */
+  .nav{display:flex;gap:2px;flex-wrap:wrap;border:2px solid var(--line);background:var(--panel);margin:14px 0 0;}
   .nav a{
-    font-family:var(--px);font-size:8px;letter-spacing:.05em;
-    color:var(--muted);text-decoration:none;padding:12px 13px;
-    border-right:2px solid var(--line);display:flex;align-items:center;
+    font-family:var(--px);font-size:8px;letter-spacing:.05em;color:var(--muted);text-decoration:none;
+    padding:12px 13px;border-right:2px solid var(--line);display:flex;align-items:center;
   }
   .nav a:last-child{border-right:none;}
   .nav a:hover{background:var(--panel2);color:var(--gold);}
@@ -33,220 +36,335 @@
   .nav a.home{color:var(--gold);}
   .nav a.wa{margin-left:auto;color:var(--green);border-right:none;border-left:2px solid var(--line);}
   .nav a.wa:hover{background:var(--green);color:var(--bg);}
-  @media(max-width:620px){
-    .nav a{font-size:7px;padding:10px;}
-    .nav a.wa{margin-left:0;}
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;background:var(--bg);
-    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 3px);
-    color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.7;
-    padding:0 16px 60px;
-  }
-  .wrap{max-width:940px;margin:0 auto;}
-  img{image-rendering:pixelated;}
+  @media(max-width:620px){ .nav a{font-size:7px;padding:10px;} .nav a.wa{margin-left:0;} }
 
   .hud{
     display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
-    border:2px solid var(--line);border-top:none;background:var(--panel);
-    padding:8px 12px;margin-bottom:28px;
+    border:2px solid var(--line);border-top:none;background:var(--panel);padding:8px 12px;margin-bottom:24px;
     font-family:var(--px);font-size:8px;color:var(--faint);letter-spacing:.05em;
   }
   .hud .on{color:var(--green);}
 
-  header{
-    border:2px solid var(--line);background:var(--panel);
-    padding:22px;margin-bottom:26px;
-    display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap;
-  }
-  .brand-block{flex:1;min-width:250px;}
-  .brand{font-family:var(--px);font-size:clamp(17px,3.6vw,27px);line-height:1.35;margin:0 0 14px;}
-  .brand span{color:var(--gold);}
-  .tagline{
-    font-family:var(--mono);font-size:14px;color:var(--text);
-    margin:0 0 12px;border-left:3px solid var(--gold);padding-left:11px;line-height:1.6;
-  }
-  header p.sub{color:var(--muted);font-size:13px;margin:0;max-width:560px;}
-  .starter{display:flex;gap:2px;align-items:flex-end;}
-  .starter img{width:64px;height:64px;}
+  /* ---------- hero ---------- */
+  .hero{border:2px solid var(--line);background:var(--panel);padding:30px 26px;margin-bottom:26px;position:relative;overflow:hidden;}
 
-  .ticker{
-    border:2px solid var(--line);background:var(--panel2);
-    padding:11px 14px;margin-bottom:34px;
-    display:flex;gap:20px;flex-wrap:wrap;align-items:center;
-    font-size:12.5px;color:var(--muted);
+  .hero h1{
+    font-family:var(--px);font-size:clamp(15px,2.9vw,24px);line-height:1.65;margin:0 0 18px;letter-spacing:-.01em;
   }
-  .ticker b{color:var(--gold);font-weight:500;}
-  .ticker .sep{color:var(--line2);}
-  .ticker .date{margin-left:auto;color:var(--faint);font-size:11.5px;}
+  .hero h1 span{color:var(--gold);}
+  .hero-in{display:flex;gap:24px;align-items:stretch;flex-wrap:nowrap;}
+  .hero-txt{flex:1;min-width:0;margin-left:20px;}
 
+  .hero-side{
+    flex-shrink:0;width:130px;
+    display:flex;align-items:flex-end;justify-content:center;
+    padding-bottom:4px;
+  }
+  .hero-side img{max-width:100%;height:auto;max-height:140px;}
+  .hero-side img.flip{transform:scaleX(-1);}
+  .hero-side.right img{margin-left:-22px;}
+  .hero-side.left img{margin-left:-22px;}
+
+  .eyebrow{
+    font-family:var(--px);font-size:8px;letter-spacing:.14em;color:var(--gold);
+    margin-bottom:18px;display:flex;align-items:center;gap:8px;
+  }
+  .eyebrow::before{content:"";width:7px;height:7px;background:var(--gold);}
+
+  .brand-mark{font-family:var(--px);font-size:11px;color:var(--faint);margin-bottom:14px;letter-spacing:.02em;}
+  .brand-mark span{color:var(--gold);}
+
+  .hero h1{
+    font-family:var(--px);font-size:clamp(15px,2.9vw,24px);line-height:1.65;margin:0 0 18px;letter-spacing:-.01em;
+  }
+  .hero h1 span{color:var(--gold);}
+
+  .hero p{color:var(--muted);font-size:13.5px;margin:0;max-width:600px;line-height:1.75;}
+  .hero p b{color:var(--text);}
+
+  .hero-side{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:110px;}
+  .hero-side img{max-width:100%;height:auto;max-height:130px;}
+  .hero-side.right img{transform:scaleX(-1);max-height:115px;}
+
+  @media(max-width:900px){
+    .hero-side{width:80px;}
+    .hero-side img{max-height:96px;}
+  }
+  @media(max-width:640px){
+    .hero-side{display:none;}
+  }
+
+  /* ---------- seções ---------- */
   .sec-head{display:flex;align-items:center;gap:10px;margin:0 0 4px;}
-  .sec-head h2{font-family:var(--px);font-size:12px;margin:0;letter-spacing:.02em;}
+  .sec-head h2{font-family:var(--px);font-size:12px;margin:0;}
   .sec-head .rule{flex:1;height:2px;background:var(--line);}
   .sec-desc{color:var(--faint);font-size:12.5px;margin:0 0 16px;}
-  section{margin-bottom:38px;}
+  section{margin-bottom:40px;}
 
-  .menu{border:2px solid var(--line);background:var(--panel);}
-  .item{
-    display:flex;gap:16px;align-items:center;
-    padding:16px 18px;border-bottom:2px solid var(--line);
-    text-decoration:none;color:inherit;
+  /* ---------- grade de ferramentas ---------- */
+  .tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;}
+  .tool{
+    border:2px solid var(--line);border-top:4px solid var(--tint);background:var(--panel);
+    padding:20px;display:flex;gap:16px;text-decoration:none;color:inherit;align-items:flex-start;
   }
-  .item:last-child{border-bottom:none;}
-  .item:hover{background:var(--panel2);}
-  .item:hover .item-name{color:var(--tint,var(--gold));}
-  .item:hover .cursor{opacity:1;}
-  .cursor{font-family:var(--px);font-size:10px;color:var(--tint,var(--gold));opacity:0;transition:opacity .1s;width:14px;flex-shrink:0;}
-  .item-sprite{
-    width:56px;height:56px;flex-shrink:0;background:var(--panel2);
-    border:2px solid var(--line);display:flex;align-items:center;justify-content:center;
+  .tool:hover{background:var(--panel2);border-color:var(--tint);border-top-color:var(--tint);}
+  .tool-ico{
+    width:64px;height:64px;flex-shrink:0;border:2px solid var(--line);background:var(--panel2);
+    display:flex;align-items:center;justify-content:center;
   }
-  .item-sprite img{width:48px;height:48px;}
-  .item-body{flex:1;min-width:0;}
-  .item-name{font-family:var(--px);font-size:11px;margin-bottom:7px;line-height:1.5;}
-  .item-desc{color:var(--muted);font-size:12.5px;line-height:1.6;}
-  .item-tag{
-    font-family:var(--px);font-size:7px;letter-spacing:.08em;
-    color:var(--tint,var(--gold));border:2px solid var(--tint,var(--gold));
-    padding:4px 6px;flex-shrink:0;align-self:flex-start;
+  .tool-ico img{width:100%;height:100%;object-fit:contain;}
+  .tool-body{flex:1;min-width:0;}
+  .tool-name{font-family:var(--px);font-size:11.5px;color:var(--tint);margin-bottom:9px;line-height:1.5;}
+  .tool-desc{color:var(--muted);font-size:12.5px;line-height:1.65;margin-bottom:14px;}
+  .tool-cta{
+    font-family:var(--px);font-size:8px;color:var(--tint);border:2px solid var(--tint);
+    padding:8px 10px;display:inline-block;
+  }
+  .tool:hover .tool-cta{background:var(--tint);color:var(--bg);}
+
+  /* ---------- mercado ---------- */
+  .market{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:16px;}
+  .mk{border:2px solid var(--line);border-top:4px solid var(--tint);background:var(--panel);padding:20px;}
+  .mk-head{display:flex;gap:14px;align-items:center;margin-bottom:14px;}
+  .mk-ico{width:52px;height:52px;flex-shrink:0;border:2px solid var(--line);background:var(--panel2);display:flex;align-items:center;justify-content:center;}
+  .mk-ico img{width:100%;height:100%;object-fit:contain;}
+  .mk-title{font-family:var(--px);font-size:11px;color:var(--tint);line-height:1.5;}
+  .mk-sub{font-size:12px;color:var(--faint);margin-top:6px;}
+  .mk-cta{
+    font-family:var(--px);font-size:8px;color:var(--tint);border:2px solid var(--tint);
+    padding:9px 11px;text-decoration:none;display:inline-block;margin-top:4px;
+  }
+  .mk-cta:hover{background:var(--tint);color:var(--bg);}
+  .mk-body{margin-bottom:14px;}
+
+  /* mini cards de estoque */
+  .mini-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:14px;}
+  .mini-card{border:2px solid var(--line);background:var(--panel2);text-decoration:none;color:inherit;display:block;}
+  .mini-card:hover{border-color:var(--gold);}
+  .mini-img{aspect-ratio:1.3/1;background:var(--panel3);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .mini-img img{width:100%;height:100%;object-fit:cover;}
+  .mini-img img.sprite{width:auto;height:70%;object-fit:contain;}
+  .mini-img .ph{font-family:var(--px);font-size:6px;color:var(--faint);}
+  .mini-body{padding:8px 9px;}
+  .mini-name{font-family:var(--px);font-size:7.5px;line-height:1.5;margin-bottom:5px;}
+  .mini-meta{font-size:10.5px;color:var(--faint);}
+  .mini-price{font-family:var(--px);font-size:8.5px;color:var(--gold);margin-top:6px;}
+
+  /* leilão */
+  .lot{border:2px solid var(--line);background:var(--panel2);margin-bottom:8px;display:flex;gap:12px;align-items:stretch;}
+  .lot:last-of-type{margin-bottom:14px;}
+  .lot-img{width:88px;flex-shrink:0;background:var(--panel3);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .lot-img img{width:100%;height:100%;object-fit:cover;}
+  .lot-img img.sprite{width:auto;height:66%;object-fit:contain;}
+  .lot-img .ph{font-family:var(--px);font-size:6px;color:var(--faint);}
+  .lot-info{flex:1;min-width:0;padding:11px 12px 11px 0;}
+  .lot-name{font-family:var(--px);font-size:9px;line-height:1.5;margin-bottom:7px;}
+  .lot-meta{font-size:11px;color:var(--faint);margin-bottom:8px;}
+  .lot-row{display:flex;gap:16px;flex-wrap:wrap;align-items:baseline;}
+  .lot-lbl{font-family:var(--px);font-size:6px;color:var(--faint);letter-spacing:.06em;display:block;margin-bottom:4px;}
+  .lot-val{font-family:var(--px);font-size:10px;color:var(--gold);}
+  .lot-clock{font-family:var(--px);font-size:10px;color:var(--green);}
+  .lot-clock.urgent{color:var(--red);}
+
+  /* destaque quando é lote único */
+  .lot.solo{flex-direction:row;}
+  .lot.solo .lot-img{width:150px;}
+  .lot.solo .lot-name{font-size:11px;}
+  .lot.solo .lot-val, .lot.solo .lot-clock{font-size:13px;}
+  @media(max-width:480px){
+    .lot, .lot.solo{flex-direction:column;}
+    .lot-img, .lot.solo .lot-img{width:100%;height:120px;}
+    .lot-info{padding:0 12px 12px;}
   }
 
-  .panel{border:2px solid var(--line);background:var(--panel);padding:20px;}
-  .pitch{
-    border:2px solid var(--green);background:rgba(143,196,90,.07);
-    padding:13px 15px;margin-bottom:20px;font-size:12.5px;color:var(--muted);
-  }
+  .empty-note{color:var(--faint);font-size:12.5px;line-height:1.75;margin-bottom:14px;}
+  .empty-note b{color:var(--muted);}
+  .loading-note{color:var(--faint);font-size:12px;margin-bottom:14px;}
+  .more-note{font-size:11.5px;color:var(--faint);margin-bottom:12px;}
+
+  .pitch{border:2px solid var(--green);background:rgba(143,196,90,.07);padding:13px 15px;font-size:12.5px;color:var(--muted);}
   .pitch b{color:var(--green);}
-  .pitch .txt-hi{color:var(--text);}
-  .shelf-row{
-    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
-    background:var(--panel2);border:2px solid var(--line);padding:12px 14px;margin-bottom:20px;
-  }
-  .shelf-row b{font-family:var(--px);font-size:9.5px;line-height:1.5;}
-  .shelf-row small{display:block;color:var(--muted);font-size:12px;margin-top:6px;}
-  .badge{
-    font-family:var(--px);font-size:8px;padding:7px 9px;text-decoration:none;white-space:nowrap;
-    border:2px solid var(--green);color:var(--green);
-  }
-  .badge:hover{background:var(--green);color:var(--bg);}
-  .btn-wa{
-    display:inline-block;background:var(--green);color:#12100c;text-decoration:none;
-    border:2px solid var(--green);padding:13px 20px;font-family:var(--px);font-size:10px;
-  }
-  .btn-wa:hover{background:var(--bg);color:var(--green);}
+  .pitch .hi{color:var(--text);}
 
+  /* ---------- comunidade ---------- */
+  .links{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:2px;}
+  .lk{border:2px solid var(--line);background:var(--panel);padding:15px 16px;text-decoration:none;color:inherit;display:block;}
+  .lk:hover{background:var(--panel2);border-color:var(--line2);}
+  .lk-t{font-family:var(--px);font-size:9px;margin-bottom:7px;color:var(--gold);line-height:1.5;}
+  .lk p{margin:0;font-size:12px;color:var(--muted);line-height:1.6;}
+  .lk .by{color:var(--faint);font-size:11px;display:block;margin-top:6px;}
+
+  /* ---------- regras ---------- */
   .rules{border:2px solid var(--gold);background:var(--panel);padding:18px 20px;}
   .rules ul{margin:0;padding-left:20px;color:var(--muted);font-size:13px;line-height:1.9;}
   .rules li::marker{color:var(--gold);}
   .rules b{color:var(--text);}
   .disclaimer{font-size:12px;color:var(--faint);line-height:1.7;margin:16px 0 0;padding-top:14px;border-top:2px solid var(--line);}
 
-  footer{border:2px solid var(--line);background:var(--panel);padding:16px 18px;color:var(--faint);font-size:12px;line-height:1.9;}
-  footer a{color:var(--muted);}
-  footer a:hover{color:var(--gold);}
-  footer b{color:var(--text);}
-
-  @media(max-width:560px){
-    .item{gap:11px;padding:14px;}
-    .item-sprite{width:44px;height:44px;}
-    .item-sprite img{width:38px;height:38px;}
-    .item-name{font-size:9.5px;}
-    .item-tag{display:none;}
-    .starter{display:none;}
+  /* ---------- rodapé ---------- */
+  footer{border:2px solid var(--line);background:var(--panel);padding:20px;text-align:center;}
+  .foot-made{font-family:var(--px);font-size:9px;color:var(--muted);margin-bottom:12px;line-height:1.8;}
+  .foot-made b{color:var(--gold);}
+  .foot-made .heart{color:var(--red);}
+  .foot-claim{
+    border:2px solid var(--gold);background:rgba(240,180,41,.06);
+    padding:11px 14px;margin:0 auto 16px;max-width:560px;font-size:12px;color:var(--muted);line-height:1.7;
   }
+  .foot-claim b{color:var(--gold);}
+  .foot-links{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;}
+  .foot-links a{
+    font-family:var(--px);font-size:8px;text-decoration:none;padding:9px 11px;
+    border:2px solid var(--line2);color:var(--muted);
+  }
+  .foot-links a:hover{border-color:var(--gold);color:var(--gold);}
+  .foot-links a.dc{border-color:#7d8ff5;color:#7d8ff5;}
+  .foot-links a.dc:hover{background:#7d8ff5;color:var(--bg);}
+  .foot-links a.wa2{border-color:var(--green);color:var(--green);}
+  .foot-links a.wa2:hover{background:var(--green);color:var(--bg);}
+  .foot-fine{font-size:11.5px;color:var(--faint);line-height:1.8;}
+  .foot-fine a{color:var(--faint);}
+  .foot-fine a:hover{color:var(--muted);}
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <nav class="nav">
-    <a class="home" href="/index.html">▪ POKECENTRAL</a>
+    <a class="home on" href="/index.html">▪ POKECENTRAL</a>
     <a href="/rentabilidade.html">QUANTO RENDE</a>
     <a href="/preco.html">QUANTO VALE</a>
     <a href="/vitrine.html">À VENDA</a>
-    <a href="/leilao.html">Leilão</a>
-    <!-- TROQUE o número -->
-    <a class="wa" href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Vim%20pelo%20PokeCentral." target="_blank" rel="noopener">WHATSAPP</a>
+    <a href="/leilao.html">LEILÃO</a>
+    <a class="wa" id="navWa" href="#" target="_blank" rel="noopener">WHATSAPP</a>
   </nav>
+
   <div class="hud">
     <span>POKECENTRAL v1</span>
     <span class="on">● BETA DO JOGO — TUDO RESETA</span>
     <span>LIMITE 4 CONTAS/IP</span>
   </div>
 
-  <header>
-    <div class="brand-block">
-      <h1 class="brand">Poke<span>Central</span></h1>
-      <p class="tagline">A central de RMT do Poke Idle World<br>calcule seu lucro, comece com os melhores Pokémon.</p>
-      <p class="sub">
-        Ferramentas grátis pra saber se o seu farm compensa antes de gastar a hora, e uma vitrine pra quem quer pular a fila.
-        Tudo dentro das regras — sem promessa de mudar de vida, é um extra jogando.
-      </p>
-    </div>
-    <div class="starter">
-      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" alt="Charizard">
-      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/239.png" alt="Elekid">
-    </div>
-  </header>
+  <div class="hero">
+    <div class="hero-in">
 
-  <!-- ATUALIZE esta faixa quando os preços mudarem -->
-  <div class="ticker">
-    <span>Melhor spot: <b>Elekid ~650k/h</b></span>
-    <span class="sep">│</span>
-    <span>Diamante no mercado: <b>~600k moeda</b></span>
-    <span class="sep">│</span>
-    <span>Diamante entre players: <b>R$0,18–0,20</b></span>
-    <span class="date">atualizado 18/07</span>
+      <div class="hero-side right">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/150.gif" alt="Mewtwo">
+      </div>
+
+      <div class="hero-txt">
+        <div class="eyebrow">A CENTRAL DE RMT DO POKE IDLE WORLD</div>
+        <div class="brand-mark">Poke<span>Central</span></div>
+        <h1>Descubra o que compensa farmar, quanto vale o seu Pokémon e onde <span>comprar sem tomar golpe</span>.</h1>
+        <p>
+          Ferramentas grátis pra fazer a conta antes de gastar a hora, e uma loja com <b>print real</b> de cada Pokémon.
+          Tudo dentro das regras — sem promessa de mudar de vida, é um extra jogando.
+        </p>
+      </div>
+
+      <div class="hero-side left">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/6.gif" alt="Charizard">
+      </div>
+
+    </div>
   </div>
 
   <section>
     <div class="sec-head"><h2>Ferramentas</h2><div class="rule"></div></div>
     <p class="sec-desc">Grátis. Rodam no seu navegador — nada é enviado pra lugar nenhum.</p>
-    <div class="menu">
+    <div class="tools">
 
-      <a class="item" href="/rentabilidade" style="--tint:var(--gold)">
-        <div class="cursor">▶</div>
-        <div class="item-sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/76.png" alt=""></div>
-        <div class="item-body">
-          <div class="item-name">Calculadora de rentabilidade</div>
-          <div class="item-desc">Compara as 3 rotas de RMT em R$/hora por conta: flip de diamante, lendário IV baixo e lendário IV alto upado. Diz qual rende mais com os preços de hoje.</div>
+      <a class="tool" href="/rentabilidade.html" style="--tint:var(--gold)">
+        <div class="tool-ico"><img src="icons/rende.png" alt=""></div>
+        <div class="tool-body">
+          <div class="tool-name">Quanto rende</div>
+          <div class="tool-desc">
+            Compara as rotas de RMT em R$/hora por conta — flip de diamante, lendário IV baixo,
+            lendário IV alto upado e venda de moeda — e mostra quantas capturas de cada raridade saem por hora.
+          </div>
+          <span class="tool-cta">ABRIR ▸</span>
         </div>
-        <div class="item-tag">DECISÃO</div>
       </a>
 
-      <a class="item" href="/preco" style="--tint:var(--blue)">
-        <div class="cursor">▶</div>
-        <div class="item-sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/123.png" alt=""></div>
-        <div class="item-body">
-          <div class="item-name">Calculadora de preço</div>
-          <div class="item-desc">Quanto cobrar por um lendário, com base em IV, nível e demanda da espécie. Devolve preço de venda rápida, preço justo e teto de leilão.</div>
+      <a class="tool" href="/preco.html" style="--tint:var(--blue)">
+        <div class="tool-ico"><img src="icons/vale.png" alt=""></div>
+        <div class="tool-body">
+          <div class="tool-name">Quanto vale</div>
+          <div class="tool-desc">
+            Estima por quanto anunciar um lendário com base em IV, nível e demanda da espécie.
+            Devolve três preços: venda rápida, preço justo e teto de leilão.
+          </div>
+          <span class="tool-cta">ABRIR ▸</span>
         </div>
-        <div class="item-tag">PREÇO</div>
       </a>
 
     </div>
   </section>
 
   <section>
-    <div class="sec-head"><h2>Loja</h2><div class="rule"></div></div>
-    <p class="sec-desc">Print real de cada Pokémon. Preço acertado antes, entrega no jogo.</p>
-    <div class="panel">
+    <div class="sec-head"><h2>Mercado</h2><div class="rule"></div></div>
+    <p class="sec-desc">Meus Pokémon à venda. Print real, preço acertado antes, entrega no jogo.</p>
 
-      <div class="pitch">
-        <b>▸ Por que comprar em vez de farmar?</b><br>
-        É <span class="txt-hi">atalho de tempo</span>, não investimento: um lendário bom pode custar 20+ horas de farm pra sair.
-        Comprando, você começa produzindo hoje. Lembrando que o jogo está em beta e
-        <span class="txt-hi">tudo reseta no lançamento</span> — compre pelo tempo que economiza agora, não pra guardar.
+    <div class="market">
+
+      <div class="mk" style="--tint:var(--gold)">
+        <div class="mk-head">
+          <div class="mk-ico"><img src="icons/venda.png" alt=""></div>
+          <div>
+            <div class="mk-title">À venda</div>
+            <div class="mk-sub" id="lojaSub">carregando…</div>
+          </div>
+        </div>
+        <div class="mk-body" id="lojaBody">
+          <div class="loading-note">buscando estoque…</div>
+        </div>
+        <a class="mk-cta" href="/vitrine.html" id="lojaCta">VER TUDO ▸</a>
       </div>
 
-      <div class="shelf-row">
-        <div><b>Vitrine de Pokémon</b><small>Lendários com print, IV e nível na descrição</small></div>
-        <a class="badge" href="/vitrine">VER VITRINE ▸</a>
+      <div class="mk" style="--tint:var(--purple)">
+        <div class="mk-head">
+          <div class="mk-ico"><img src="icons/leilao.png" alt=""></div>
+          <div>
+            <div class="mk-title">Leilão</div>
+            <div class="mk-sub" id="leilaoSub">carregando…</div>
+          </div>
+        </div>
+        <div class="mk-body" id="leilaoBody">
+          <div class="loading-note">buscando lotes…</div>
+        </div>
+        <a class="mk-cta" href="/leilao.html" id="leilaoCta">VER LEILÕES ▸</a>
       </div>
 
-      <!-- TROQUE o número: DDI+DDD, só números -->
-      <a class="btn-wa" href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Vim%20pelo%20PokeCentral%20e%20queria%20saber%20mais." target="_blank" rel="noopener">FALAR NO WHATSAPP</a>
+    </div>
+
+    <div class="pitch">
+      <b>▸ Por que comprar em vez de farmar?</b><br>
+      É <span class="hi">atalho de tempo</span>, não investimento: um lendário bom pode custar 20+ horas de farm pra sair.
+      Comprando, você começa produzindo hoje. Lembrando que o jogo está em beta e
+      <span class="hi">tudo reseta no lançamento</span> — compre pelo tempo que economiza agora, não pra guardar.
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Comunidade</h2><div class="rule"></div></div>
+    <p class="sec-desc">O que uso e recomendo.</p>
+    <div class="links">
+
+      <a class="lk" href="https://poke.idleworld.online/play" target="_blank" rel="noopener">
+        <div class="lk-t">Jogo oficial</div>
+        <p>Poke Idle World — criar conta e jogar.</p>
+      </a>
+
+      <a class="lk" href="https://poke.idleworld.online/pokepedia" target="_blank" rel="noopener">
+        <div class="lk-t">Pokepedia</div>
+        <p>Enciclopédia oficial: as 251 espécies, itens, moves e os sistemas do jogo (qualidade, shiny, XP).</p>
+      </a>
+
+      <a class="lk" href="https://piwtools.vercel.app/" target="_blank" rel="noopener">
+        <div class="lk-t">PIW Tools</div>
+        <p>Hunt e meta — taxa de captura por Pokémon e ranking das melhores espécies.</p>
+        <span class="by">por Rakupo / bar (gcanivel)</span>
+      </a>
+
     </div>
   </section>
 
@@ -269,15 +387,189 @@
   </section>
 
   <footer>
-    <b>PokeCentral</b> — feito por um jogador, pra jogadores. Sem vínculo com os desenvolvedores do Poke Idle World.<br>
-    Crédito às ferramentas da comunidade:
-    <a href="https://piwtools.vercel.app/" target="_blank" rel="noopener">piwtools</a> (Rakupo / gcanivel) ·
-    <a href="https://poke-idle-dicas.vercel.app/" target="_blank" rel="noopener">poke-idle-dicas</a><br>
-    Jogo oficial: <a href="https://poke.idleworld.online/play" target="_blank" rel="noopener">poke.idleworld.online</a> ·
-    Sprites: <a href="https://github.com/PokeAPI/sprites" target="_blank" rel="noopener">PokeAPI</a>
+    <div class="foot-claim">
+      Ferramentas e curadoria de preços feitas por mim — <b>pode usar, só credite</b>.
+    </div>
+
+    <div class="foot-links">
+      <!-- TROQUE pelo convite do Discord que NÃO expira -->
+      <a class="dc" href="#" target="_blank" rel="noopener">DISCORD DO POKECENTRAL</a>
+      <a class="wa2" id="footWa" href="#" target="_blank" rel="noopener">WHATSAPP</a>
+    </div>
+
+    <div class="foot-fine">
+      <b style="color:var(--muted)">PokeCentral</b> — por <b style="color:var(--gold)">Mikael Pelizari</b>,
+      jogador de Poke Idle World.<br>
+      Sem vínculo com os desenvolvedores do jogo · Sprites:
+      <a href="https://github.com/PokeAPI/sprites" target="_blank" rel="noopener">PokeAPI</a>
+    </div>
   </footer>
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ================= CONFIGURAÇÃO ================= */
+var SUPABASE_URL = 'https://gimluwxoaxfxpbcfosrj.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpbWx1d3hvYXhmeHBiY2Zvc3JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MDIxMzYsImV4cCI6MjA5OTk3ODEzNn0.uT05zvrnqU_sLnVQBFpHkw7TJL-WBUDaSqJ26RVPaSE';
+var WHATSAPP = '5511959404657';   /* <-- TROQUE PELO SEU NÚMERO */
+var EXTENSAO_MIN = 5;
+/* =============================================== */
+
+var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+var $ = function(id){ return document.getElementById(id); };
+var lotesAbertos = [], lancesTodos = [];
+
+function brl(n){ return 'R$ ' + Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function spriteUrl(id){ return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+id+'.png'; }
+function waLink(msg){ return 'https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent(msg); }
+
+$('navWa').href = waLink('Olá! Vim pelo PokeCentral.');
+$('footWa').href = waLink('Olá! Vim pelo PokeCentral.');
+
+/* ---------------- LOJA ---------------- */
+sb.from('pokemons').select('*').eq('disponivel', true).order('criado_em', {ascending:false})
+  .then(function(r){
+    if(r.error) throw r.error;
+    var itens = r.data || [];
+
+    if(!itens.length){
+      $('lojaSub').textContent = 'estoque vazio agora';
+      $('lojaBody').innerHTML =
+        '<div class="empty-note"><b>Nenhum Pokémon à venda no momento.</b><br>' +
+        'Cada Pokémon é único, então o estoque gira rápido. Me chame que eu aviso quando entrar algo — ' +
+        'ou <b>capturo sob encomenda</b> a espécie e o IV que você procura.</div>';
+      $('lojaCta').textContent = 'PEDIR SOB ENCOMENDA ▸';
+      $('lojaCta').href = waLink('Olá! Vi que a loja do PokeCentral está sem estoque. Queria encomendar um Pokémon: espécie ___, IV a partir de ___.');
+      $('lojaCta').target = '_blank';
+      return;
+    }
+
+    $('lojaSub').textContent = itens.length + ' disponíve' + (itens.length===1?'l':'is') + ' · últimos adicionados';
+    $('lojaBody').innerHTML =
+      '<div class="mini-grid">' +
+      itens.slice(0,4).map(function(p){
+        var img = p.print
+          ? '<img src="'+esc(p.print)+'" alt="'+esc(p.nome)+'" onerror="this.outerHTML=\'<span class=ph>SEM PRINT</span>\'">'
+          : (p.poke_id ? '<img class="sprite" src="'+spriteUrl(p.poke_id)+'" alt="">' : '<span class="ph">SEM PRINT</span>');
+        return '<a class="mini-card" href="/vitrine.html">'+
+          '<div class="mini-img">'+img+'</div>'+
+          '<div class="mini-body">'+
+            '<div class="mini-name">'+esc(p.nome)+'</div>'+
+            '<div class="mini-meta">IV '+esc(p.iv)+' · Nv '+esc(p.nivel)+'</div>'+
+            '<div class="mini-price">'+brl(p.preco)+'</div>'+
+          '</div></a>';
+      }).join('') + '</div>' +
+      (itens.length > 4 ? '<div class="more-note">+ '+(itens.length-4)+' na vitrine completa</div>' : '');
+  })
+  .catch(function(e){
+    $('lojaSub').textContent = '';
+    $('lojaBody').innerHTML = '<div class="empty-note">Não consegui carregar o estoque agora.</div>';
+    console.error(e);
+  });
+
+/* ---------------- LEILÃO ---------------- */
+function apurar(lote){
+  var ext = EXTENSAO_MIN * 60000;
+  var fim = new Date(lote.fim).getTime();
+  var meus = lancesTodos.filter(function(b){ return b.lote_id === lote.id; })
+    .map(function(b){ return { data:new Date(b.criado_em), valor:Number(b.valor) }; })
+    .sort(function(a,b){ return a.data - b.data; });
+
+  var atual = 0, n = 0;
+  meus.forEach(function(b){
+    if(b.data.getTime() > fim) return;
+    var minimo = n===0 ? Number(lote.lance_inicial) : atual + Number(lote.incremento);
+    if(b.valor >= minimo){
+      atual = b.valor; n++;
+      if(b.data.getTime() > fim - ext) fim = b.data.getTime() + ext;
+    }
+  });
+  return { fim:fim, atual:atual, lances:n };
+}
+
+function tempoTxt(ms){
+  var s = Math.floor(ms/1000);
+  var d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60), ss = s%60;
+  if(d>0) return d+'d '+h+'h';
+  if(h>0) return h+'h '+m+'m';
+  return m+'m '+ss+'s';
+}
+
+function renderLeilao(){
+  if(!lotesAbertos.length) return;
+
+  var agora = Date.now();
+  var vivos = lotesAbertos.map(function(l){
+    var a = apurar(l);
+    return { lote:l, ap:a, resta:a.fim - agora };
+  }).filter(function(x){ return x.resta > 0; })
+    .sort(function(a,b){ return a.resta - b.resta; });
+
+  if(!vivos.length){
+    $('leilaoSub').textContent = 'nenhum lote aberto';
+    $('leilaoBody').innerHTML =
+      '<div class="empty-note"><b>Nenhum leilão rolando agora.</b><br>' +
+      'Os leilões saem quando aparece um Pokémon bom demais pra ter preço de tabela. ' +
+      'Entra no Discord que eu aviso quando abrir o próximo.</div>';
+    return;
+  }
+
+  var solo = vivos.length === 1;
+  var mostrar = vivos.slice(0, solo ? 1 : 2);
+
+  $('leilaoSub').textContent = vivos.length + ' lote' + (vivos.length===1?'':'s') + ' aberto' +
+                               (vivos.length===1?'':'s') + ' · encerrando primeiro';
+
+  $('leilaoBody').innerHTML = mostrar.map(function(x){
+    var l = x.lote, a = x.ap;
+    var img = l.print
+      ? '<img src="'+esc(l.print)+'" alt="'+esc(l.nome)+'" onerror="this.outerHTML=\'<span class=ph>SEM PRINT</span>\'">'
+      : (l.poke_id ? '<img class="sprite" src="'+spriteUrl(l.poke_id)+'" alt="">' : '<span class="ph">SEM PRINT</span>');
+
+    return '<div class="lot'+(solo?' solo':'')+'">'+
+      '<div class="lot-img">'+img+'</div>'+
+      '<div class="lot-info">'+
+        '<div class="lot-name">'+esc(l.nome)+'</div>'+
+        '<div class="lot-meta">IV '+esc(l.iv)+' · Nv '+esc(l.nivel)+
+          (l.qualidade ? ' · Q '+esc(l.qualidade) : '')+'</div>'+
+        '<div class="lot-row">'+
+          '<div><span class="lot-lbl">'+(a.lances ? 'LANCE ATUAL' : 'LANCE INICIAL')+'</span>'+
+            '<span class="lot-val">'+brl(a.lances ? a.atual : l.lance_inicial)+'</span></div>'+
+          '<div><span class="lot-lbl">TERMINA EM</span>'+
+            '<span class="lot-clock'+(x.resta < 3600000 ? ' urgent' : '')+'">'+tempoTxt(x.resta)+'</span></div>'+
+        '</div>'+
+      '</div></div>';
+  }).join('') +
+  (vivos.length > mostrar.length
+    ? '<div class="more-note">+ '+(vivos.length-mostrar.length)+' lote(s) aberto(s) na página do leilão</div>'
+    : '');
+}
+
+Promise.all([
+  sb.from('lotes').select('*'),
+  sb.from('lances').select('lote_id, valor, criado_em')
+]).then(function(r){
+  if(r[0].error) throw r[0].error;
+  lotesAbertos = r[0].data || [];
+  lancesTodos = (r[1] && !r[1].error) ? (r[1].data || []) : [];
+
+  if(!lotesAbertos.length){
+    $('leilaoSub').textContent = 'nenhum lote aberto';
+    $('leilaoBody').innerHTML =
+      '<div class="empty-note"><b>Nenhum leilão rolando agora.</b><br>' +
+      'Os leilões saem quando aparece um Pokémon bom demais pra ter preço de tabela. ' +
+      'Entra no Discord que eu aviso quando abrir o próximo.</div>';
+    return;
+  }
+  renderLeilao();
+  setInterval(renderLeilao, 1000);
+}).catch(function(e){
+  $('leilaoSub').textContent = '';
+  $('leilaoBody').innerHTML = '<div class="empty-note">Não consegui carregar os leilões agora.</div>';
+  console.error(e);
+});
+</script>
 </body>
 </html>
