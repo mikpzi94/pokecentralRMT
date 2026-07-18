@@ -1,0 +1,28 @@
+{
+  "csvUrl": "https://docs.google.com/spreadsheets/d/12BtBL55FNxTaQvD9tf2xMP7MU2_SXg_a7RSlXBJEaVw/edit?usp=sharing",
+  "formUrl": "https://docs.google.com/forms/d/e/1FAIpQLSfjR3BDZJsYb--B5EwMGiudmK8TOIm1s3TyZzU0G6Y06LlHhQ/viewform?usp=publish-editor",
+  "entryLote": "entry.704588582=01",
+  "colunas": {
+    "data": "Carimbo de data/hora",
+    "lote": "Lote",
+    "nome": "Seu nome no jogo",
+    "discord": "Seu Discord",
+    "valor": "Valor do lance"
+  },
+  "extensaoMin": 5,
+  "lotes": [
+    {
+      "id": "charizard-165",
+      "nome": "Charizard",
+      "iv": 165,
+      "nivel": 100,
+      "print": "prints/charizard-165.png",
+      "pokeId": 6,
+      "obs": "meta forte, já no nível 100",
+      "lanceInicial": 30,
+      "incremento": 2,
+      "reserva": null,
+      "fim": "2026-07-20T21:00"
+    }
+  ]
+}

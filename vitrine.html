@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>À venda — PokeCentral</title>
+<meta name="description" content="Pokémon do Poke Idle World à venda, com print real, IV e nível. Preço acertado antes, entrega no jogo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12100c; --panel:#1c1812; --panel2:#26201a; --panel3:#332a20;
+    --line:#4a3c28; --line2:#6b5637;
+    --gold:#f0b429; --green:#8fc45a; --red:#d4593f; --blue:#4a90c2; --purple:#a878c4; --pink:#d9709b;
+    --text:#f2e8d5; --muted:#a89880; --faint:#736450;
+    --px:'Press Start 2P',monospace; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--bg);
+    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 3px);
+    color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.7;padding:0 16px 60px;
+  }
+  .wrap{max-width:1000px;margin:0 auto;}
+  img{image-rendering:pixelated;}
+
+  /* ---------- menu ---------- */
+  .nav{
+    display:flex;gap:2px;flex-wrap:wrap;align-items:stretch;
+    border:2px solid var(--line);background:var(--panel);margin:14px 0 22px;
+  }
+  .nav a{
+    font-family:var(--px);font-size:8px;letter-spacing:.05em;
+    color:var(--muted);text-decoration:none;padding:12px 13px;
+    border-right:2px solid var(--line);display:flex;align-items:center;
+  }
+  .nav a:last-child{border-right:none;}
+  .nav a:hover{background:var(--panel2);color:var(--gold);}
+  .nav a.on{background:var(--panel2);color:var(--gold);box-shadow:inset 0 -3px 0 var(--gold);}
+  .nav a.home{color:var(--gold);}
+  .nav a.wa{margin-left:auto;color:var(--green);border-right:none;border-left:2px solid var(--line);}
+  .nav a.wa:hover{background:var(--green);color:var(--bg);}
+  @media(max-width:620px){
+    .nav a{font-size:7px;padding:10px;}
+    .nav a.wa{margin-left:0;}
+  }
+
+  /* ---------- header ---------- */
+  header{border:2px solid var(--line);background:var(--panel);padding:20px;margin-bottom:20px;}
+  h1{font-family:var(--px);font-size:clamp(13px,2.6vw,17px);margin:0 0 12px;line-height:1.5;}
+  h1 span{color:var(--gold);}
+  header p{color:var(--muted);font-size:13px;margin:0;max-width:660px;}
+  header b{color:var(--text);}
+
+  .pitch{
+    border:2px solid var(--green);background:rgba(143,196,90,.07);
+    padding:13px 15px;margin-bottom:20px;font-size:12.5px;color:var(--muted);
+  }
+  .pitch b{color:var(--green);}
+  .pitch .hi{color:var(--text);}
+
+  /* ---------- como funciona ---------- */
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2px;margin-bottom:26px;}
+  .step{border:2px solid var(--line);background:var(--panel);padding:14px 15px;}
+  .step-n{font-family:var(--px);font-size:8px;color:var(--gold);margin-bottom:8px;}
+  .step p{margin:0;font-size:12px;color:var(--muted);line-height:1.6;}
+  .step b{color:var(--text);}
+
+  /* ---------- filtros ---------- */
+  .sec-head{display:flex;align-items:center;gap:10px;margin:0 0 14px;}
+  .sec-head h2{font-family:var(--px);font-size:11px;margin:0;}
+  .sec-head .rule{flex:1;height:2px;background:var(--line);}
+  .sec-head .count{font-size:12px;color:var(--faint);}
+
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+  .filters input, .filters select{
+    background:var(--panel2);border:2px solid var(--line);color:var(--text);
+    font-family:var(--mono);font-size:12.5px;padding:9px 10px;outline:none;
+  }
+  .filters input{flex:1;min-width:150px;}
+  .filters input:focus, .filters select:focus{border-color:var(--gold);}
+
+  /* ---------- grid ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:14px;}
+  .card{border:2px solid var(--line);background:var(--panel);display:flex;flex-direction:column;}
+  .card:hover{border-color:var(--line2);}
+  .card-img{
+    aspect-ratio:1.25/1;background:var(--panel2);border-bottom:2px solid var(--line);
+    display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
+  }
+  .card-img img{width:100%;height:100%;object-fit:cover;}
+  .card-img img.sprite{width:auto;height:70%;object-fit:contain;}
+  .card-img .ph{font-family:var(--px);font-size:7px;color:var(--faint);text-align:center;padding:10px;line-height:1.8;}
+  .iv-badge{
+    position:absolute;top:0;right:0;font-family:var(--px);font-size:7px;
+    padding:6px 7px;color:var(--bg);letter-spacing:.04em;
+  }
+  .card-body{padding:12px 13px;display:flex;flex-direction:column;gap:7px;flex:1;}
+  .card-name{font-family:var(--px);font-size:9.5px;line-height:1.5;}
+  .card-meta{font-size:11.5px;color:var(--muted);}
+  .card-obs{font-size:11.5px;color:var(--faint);line-height:1.5;}
+  .card-price{font-family:var(--px);font-size:12px;color:var(--gold);margin-top:2px;}
+  .card-cta{
+    margin-top:auto;font-family:var(--px);font-size:8px;text-align:center;text-decoration:none;
+    border:2px solid var(--green);color:var(--green);padding:10px 6px;line-height:1.6;
+  }
+  .card-cta:hover{background:var(--green);color:var(--bg);}
+
+  .empty{
+    border:2px dashed var(--line);padding:34px 20px;text-align:center;color:var(--faint);
+    font-size:12.5px;line-height:1.8;grid-column:1/-1;
+  }
+  .empty a{color:var(--green);}
+  .loading{color:var(--faint);font-size:12.5px;padding:30px 0;text-align:center;}
+
+  /* ---------- vendidos ---------- */
+  .sold-strip{
+    border:2px solid var(--line);background:var(--panel);padding:14px 16px;margin-top:30px;
+    font-size:12px;color:var(--faint);line-height:1.9;
+  }
+  .sold-strip .t{font-family:var(--px);font-size:8px;color:var(--muted);margin-bottom:9px;}
+  .sold-strip span{color:var(--muted);}
+
+  /* ---------- avisos ---------- */
+  .warn{border:2px solid var(--gold);background:var(--panel);padding:16px 18px;margin-top:30px;}
+  .warn .t{font-family:var(--px);font-size:8px;color:var(--gold);margin-bottom:11px;}
+  .warn ul{margin:0;padding-left:18px;color:var(--muted);font-size:12.5px;line-height:1.85;}
+  .warn li::marker{color:var(--gold);}
+  .warn b{color:var(--text);}
+
+  .updated{font-size:11.5px;color:var(--faint);margin-top:18px;text-align:right;}
+
+  /* ---------- editor ---------- */
+  .edit-toggle{
+    display:block;margin:34px auto 0;font-family:var(--px);font-size:7px;
+    background:none;border:2px solid var(--line);color:var(--faint);padding:8px 10px;cursor:pointer;
+  }
+  .edit-toggle:hover{border-color:var(--line2);color:var(--muted);}
+  #editor{display:none;margin-top:20px;}
+  .ed-panel{border:2px solid var(--line2);background:var(--panel);padding:18px;margin-bottom:16px;}
+  .ed-title{font-family:var(--px);font-size:9px;color:var(--gold);margin:0 0 14px;}
+  .ed-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:11px;align-items:end;margin-bottom:12px;}
+  .ed-grid label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:5px;}
+  .ed-grid input{
+    width:100%;background:var(--panel2);border:2px solid var(--line);color:var(--text);
+    font-family:var(--mono);font-size:12.5px;padding:8px 9px;outline:none;
+  }
+  .ed-grid input:focus{border-color:var(--gold);}
+  .btn{
+    font-family:var(--px);font-size:8px;padding:10px 12px;cursor:pointer;
+    background:transparent;border:2px solid var(--line2);color:var(--muted);
+  }
+  .btn:hover{border-color:var(--gold);color:var(--gold);}
+  .btn.go{border-color:var(--green);color:var(--green);}
+  .btn.go:hover{background:var(--green);color:var(--bg);}
+  table.mg{width:100%;border-collapse:collapse;font-size:12px;}
+  table.mg th{
+    font-family:var(--px);font-size:6.5px;color:var(--faint);text-align:left;
+    padding:0 6px 9px;font-weight:400;letter-spacing:.05em;
+  }
+  table.mg td{padding:6px;border-top:2px solid var(--line);}
+  table.mg input{
+    width:100%;background:var(--panel2);border:2px solid var(--line);color:var(--text);
+    font-family:var(--mono);font-size:11.5px;padding:5px 6px;outline:none;
+  }
+  table.mg tr.off{opacity:.45;}
+  .mini{
+    font-family:var(--px);font-size:6.5px;padding:6px 7px;cursor:pointer;
+    background:transparent;border:2px solid var(--line);color:var(--faint);margin-right:3px;
+  }
+  .mini:hover{color:var(--text);border-color:var(--line2);}
+  .mini.rm:hover{color:var(--red);border-color:var(--red);}
+  textarea{
+    width:100%;height:180px;background:var(--panel2);border:2px solid var(--line);color:var(--text);
+    font-family:var(--mono);font-size:12px;padding:10px;outline:none;resize:vertical;line-height:1.6;
+  }
+  .ed-hint{color:var(--faint);font-size:11.5px;line-height:1.7;margin-top:12px;}
+  .ed-hint b{color:var(--muted);}
+  .ok{color:var(--green);font-size:11.5px;margin-left:9px;}
+  .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:13px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav">
+    <a class="home" href="/index.html">▪ POKECENTRAL</a>
+    <a href="/rentabilidade.html">QUANTO RENDE</a>
+    <a href="/preco.html">QUANTO VALE</a>
+    <a href="/vitrine.html">À VENDA</a>
+    <a href="/leilao.html">Leilão</a>
+    <a class="wa" id="navWa" href="#" target="_blank" rel="noopener">WHATSAPP</a>
+  </nav>
+
+  <header>
+    <h1>Pokémon <span>à venda</span></h1>
+    <p>
+      Cada anúncio tem <b>print real</b> do Pokémon no jogo — não é sprite genérico, é a prova do que você está comprando.
+      Estoque de 1 por Pokémon: se sumiu da lista, foi vendido.
+    </p>
+  </header>
+
+  <div class="pitch">
+    <b>▸ Por que comprar em vez de farmar?</b><br>
+    É <span class="hi">atalho de tempo</span>, não investimento: um lendário bom pode custar 20+ horas de farm pra sair.
+    Comprando, você já começa produzindo hoje. Lembrando que o jogo está em beta e
+    <span class="hi">tudo reseta no lançamento</span> — compre pelo tempo que economiza agora, não pra guardar.
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-n">01</div>
+      <p>Você clica no Pokémon e me chama no <b>WhatsApp</b>. A mensagem já vai pronta perguntando se ainda está disponível.</p>
+    </div>
+    <div class="step">
+      <div class="step-n">02</div>
+      <p>Confirmo o estoque e combinamos <b>preço e forma de pagamento</b> antes de qualquer coisa.</p>
+    </div>
+    <div class="step">
+      <div class="step-n">03</div>
+      <p>Pagamento confirmado, faço a <b>entrega no jogo</b> na hora. Sem intermediário, a não ser que você prefira usar um.</p>
+    </div>
+  </div>
+
+  <div class="sec-head">
+    <h2>Disponíveis</h2>
+    <span class="count" id="count"></span>
+    <div class="rule"></div>
+  </div>
+
+  <div class="filters">
+    <input type="text" id="search" placeholder="buscar por nome...">
+    <select id="sortSel">
+      <option value="recent">mais recentes</option>
+      <option value="priceAsc">menor preço</option>
+      <option value="priceDesc">maior preço</option>
+      <option value="ivDesc">maior IV</option>
+    </select>
+    <select id="ivFilter">
+      <option value="0">qualquer IV</option>
+      <option value="100">IV ≥ 100</option>
+      <option value="120">IV ≥ 120</option>
+      <option value="140">IV ≥ 140</option>
+      <option value="160">IV ≥ 160</option>
+      <option value="180">IV ≥ 180</option>
+    </select>
+  </div>
+
+  <div class="loading" id="loading">carregando estoque…</div>
+  <div class="grid" id="grid" style="display:none"></div>
+
+  <div class="sold-strip" id="soldStrip" style="display:none">
+    <div class="t">JÁ VENDIDOS</div>
+    <div id="soldList"></div>
+  </div>
+
+  <div class="warn">
+    <div class="t">ANTES DE FECHAR</div>
+    <ul>
+      <li>O jogo está em <b>beta e tudo reseta no lançamento</b> (menos diamante da loja oficial, que volta com +25%). Compre pelo tempo que economiza agora.</li>
+      <li>Combine o preço <b>antes</b>. Se alguém te apressar ou mudar o valor no meio, desconfie — inclusive de mim.</li>
+      <li>Se preferir, use um <b>intermediário confiável</b> da comunidade. Não me ofendo, é o certo a fazer com quem você ainda não conhece.</li>
+      <li>Cuidado com print falso e estorno de Pix. Vale pros dois lados.</li>
+      <li>Multi-conta tem <b>limite de 4 por IP</b> e VPN parece ser passível de ban — informação da comunidade, confirme no Discord oficial.</li>
+    </ul>
+  </div>
+
+  <div class="updated" id="updated"></div>
+
+  <button class="edit-toggle" id="editToggle">▪ modo vendedor</button>
+
+  <div id="editor">
+
+    <div class="ed-panel">
+      <div class="ed-title">ADICIONAR POKÉMON</div>
+      <div class="ed-grid">
+        <div><label>Nome</label><input type="text" id="fNome" placeholder="Charizard"></div>
+        <div><label>IV (0–192)</label><input type="number" id="fIv" placeholder="149" max="192"></div>
+        <div><label>Nível</label><input type="number" id="fNivel" placeholder="240"></div>
+        <div><label>Preço (R$)</label><input type="number" id="fPreco" step="0.5" placeholder="30"></div>
+        <div><label>Print (caminho)</label><input type="text" id="fPrint" placeholder="prints/charizard-149.png"></div>
+        <div><label>pokeId (opcional)</label><input type="number" id="fPokeId" placeholder="6"></div>
+        <div style="grid-column:1/-1"><label>Observação (opcional)</label><input type="text" id="fObs" placeholder="meta forte, ótimo pra farm de moeda"></div>
+      </div>
+      <button class="btn go" id="addBtn">+ ADICIONAR</button>
+    </div>
+
+    <div class="ed-panel">
+      <div class="ed-title">CATÁLOGO</div>
+      <table class="mg">
+        <thead><tr><th>Nome</th><th>IV</th><th>Nv</th><th>R$</th><th>Print</th><th></th></tr></thead>
+        <tbody id="mgBody"></tbody>
+      </table>
+    </div>
+
+    <div class="ed-panel">
+      <div class="ed-title">JSON PRA SUBIR</div>
+      <textarea id="saida" readonly></textarea>
+      <div class="actions">
+        <button class="btn go" id="copiar">COPIAR</button>
+        <button class="btn" id="baixar">BAIXAR</button>
+        <span class="ok" id="msg"></span>
+      </div>
+      <p class="ed-hint">
+        No GitHub: abra <b>estoque.json</b> → lápis → apague tudo → cole → "Commit changes". O Vercel republica em ~30s.<br>
+        Os prints vão na pasta <b>/prints</b> do repositório (botão "Add file → Upload files"). Use nomes sem espaço e sem acento.<br>
+        Nada aqui é salvo sozinho — esta tela só monta o texto. Quem grava é você, pelo GitHub.
+      </p>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+/* ============ CONFIGURAÇÃO — troque pelo seu número (DDI+DDD, só números) ============ */
+var WHATSAPP = '5511999999999';
+/* ==================================================================================== */
+
+var $ = function(id){ return document.getElementById(id); };
+var estoque = [];
+var atualizado = '';
+
+/* ---------- helpers ---------- */
+function brl(n){
+  return 'R$ ' + Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function ivColor(iv){
+  iv = Number(iv)||0;
+  if(iv >= 180) return 'var(--pink)';
+  if(iv >= 160) return 'var(--purple)';
+  if(iv >= 140) return 'var(--gold)';
+  if(iv >= 120) return 'var(--green)';
+  return 'var(--blue)';
+}
+function esc(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function hojeISO(){
+  var d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function brDate(iso){
+  var p = String(iso||'').split('-');
+  return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : '';
+}
+function waLink(msg){
+  return 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(msg);
+}
+function spriteUrl(pokeId){
+  return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + pokeId + '.png';
+}
+
+/* ---------- carregamento ---------- */
+$('navWa').href = waLink('Olá! Vim pelo PokeCentral.');
+
+fetch('estoque.json?v=' + Date.now())
+  .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+  .then(function(d){
+    estoque = (d && d.pokemons) ? d.pokemons : [];
+    atualizado = (d && d.atualizado) ? d.atualizado : '';
+    render();
+  })
+  .catch(function(){
+    estoque = [];
+    render();
+  });
+
+/* ---------- vitrine pública ---------- */
+function render(){
+  $('loading').style.display = 'none';
+  $('grid').style.display = 'grid';
+
+  var termo = ($('search').value || '').toLowerCase();
+  var ordem = $('sortSel').value;
+  var ivMin = parseFloat($('ivFilter').value) || 0;
+
+  var itens = estoque.filter(function(p){ return p.disponivel !== false; });
+  var totalDisp = itens.length;
+
+  if(termo) itens = itens.filter(function(p){ return String(p.nome||'').toLowerCase().indexOf(termo) >= 0; });
+  if(ivMin) itens = itens.filter(function(p){ return (parseFloat(p.iv)||0) >= ivMin; });
+
+  if(ordem === 'priceAsc') itens.sort(function(a,b){ return (a.preco||0)-(b.preco||0); });
+  else if(ordem === 'priceDesc') itens.sort(function(a,b){ return (b.preco||0)-(a.preco||0); });
+  else if(ordem === 'ivDesc') itens.sort(function(a,b){ return (b.iv||0)-(a.iv||0); });
+
+  $('count').textContent = totalDisp > 0 ? '(' + totalDisp + ')' : '';
+
+  if(itens.length === 0){
+    $('grid').innerHTML =
+      '<div class="empty">' +
+        (totalDisp === 0
+          ? 'Nenhum Pokémon à venda no momento.<br>Me chama no WhatsApp que eu te aviso quando entrar algo — ou encomendo o que você procura.<br><br>' +
+            '<a href="' + waLink('Olá! Vi que a vitrine do PokeCentral está vazia. Estou procurando um Pokémon específico, dá pra encomendar?') + '" target="_blank" rel="noopener">falar no WhatsApp →</a>'
+          : 'Nenhum Pokémon com esses filtros.') +
+      '</div>';
+  } else {
+    $('grid').innerHTML = itens.map(function(p){
+      var img;
+      if(p.print) img = '<img src="' + esc(p.print) + '" alt="' + esc(p.nome) + '" onerror="this.outerHTML=\'<span class=ph>SEM PRINT</span>\'">';
+      else if(p.pokeId) img = '<img class="sprite" src="' + spriteUrl(p.pokeId) + '" alt="' + esc(p.nome) + '">';
+      else img = '<span class="ph">SEM PRINT</span>';
+
+      var msg = 'Olá! Tenho interesse no ' + p.nome + ' (IV ' + p.iv + ', Nv. ' + p.nivel + ') anunciado por ' +
+                brl(p.preco) + ' no PokeCentral. Ainda está disponível?';
+
+      return '' +
+      '<div class="card">' +
+        '<div class="card-img">' + img +
+          '<div class="iv-badge" style="background:' + ivColor(p.iv) + '">IV ' + esc(p.iv) + '</div>' +
+        '</div>' +
+        '<div class="card-body">' +
+          '<div class="card-name">' + esc(p.nome) + '</div>' +
+          '<div class="card-meta">Nível ' + esc(p.nivel) + '</div>' +
+          (p.obs ? '<div class="card-obs">' + esc(p.obs) + '</div>' : '') +
+          '<div class="card-price">' + brl(p.preco) + '</div>' +
+          '<a class="card-cta" href="' + waLink(msg) + '" target="_blank" rel="noopener">TENHO INTERESSE ▸</a>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // vendidos (prova social)
+  var vendidos = estoque.filter(function(p){ return p.disponivel === false; });
+  if(vendidos.length > 0){
+    $('soldStrip').style.display = 'block';
+    $('soldList').innerHTML = vendidos.slice(-8).reverse().map(function(p){
+      return '<span>' + esc(p.nome) + ' IV ' + esc(p.iv) + ' Nv.' + esc(p.nivel) + ' — ' + brl(p.preco) + '</span>';
+    }).join(' · ');
+  } else {
+    $('soldStrip').style.display = 'none';
+  }
+
+  $('updated').textContent = atualizado ? 'estoque atualizado em ' + brDate(atualizado) : '';
+}
+
+['search','sortSel','ivFilter'].forEach(function(id){
+  $(id).addEventListener('input', render);
+});
+
+/* ---------- editor ---------- */
+$('editToggle').addEventListener('click', function(){
+  var ed = $('editor');
+  var aberto = ed.style.display === 'block';
+  ed.style.display = aberto ? 'none' : 'block';
+  this.textContent = aberto ? '▪ modo vendedor' : '▪ fechar modo vendedor';
+  if(!aberto){ renderEditor(); ed.scrollIntoView({behavior:'smooth'}); }
+});
+
+$('addBtn').addEventListener('click', function(){
+  var nome = $('fNome').value.trim();
+  var preco = parseFloat($('fPreco').value) || 0;
+  if(!nome || !preco){ alert('Preencha ao menos nome e preço.'); return; }
+  estoque.push({
+    id: 'p' + Date.now(),
+    nome: nome,
+    iv: parseFloat($('fIv').value) || 0,
+    nivel: parseFloat($('fNivel').value) || 1,
+    preco: preco,
+    print: $('fPrint').value.trim(),
+    pokeId: parseFloat($('fPokeId').value) || null,
+    obs: $('fObs').value.trim(),
+    disponivel: true
+  });
+  ['fNome','fIv','fNivel','fPreco','fPrint','fPokeId','fObs'].forEach(function(id){ $(id).value = ''; });
+  renderEditor(); render();
+});
+
+function renderEditor(){
+  var body = $('mgBody');
+  if(estoque.length === 0){
+    body.innerHTML = '<tr><td colspan="6" style="color:var(--faint);padding:14px 6px">nenhum item ainda</td></tr>';
+  } else {
+    body.innerHTML = estoque.map(function(p, i){
+      return '' +
+      '<tr class="' + (p.disponivel === false ? 'off' : '') + '" data-i="' + i + '">' +
+        '<td><input data-k="nome" value="' + esc(p.nome) + '"></td>' +
+        '<td style="width:56px"><input data-k="iv" type="number" value="' + esc(p.iv) + '"></td>' +
+        '<td style="width:56px"><input data-k="nivel" type="number" value="' + esc(p.nivel) + '"></td>' +
+        '<td style="width:66px"><input data-k="preco" type="number" step="0.5" value="' + esc(p.preco) + '"></td>' +
+        '<td><input data-k="print" value="' + esc(p.print || '') + '"></td>' +
+        '<td style="white-space:nowrap;width:1%">' +
+          '<button class="mini" data-a="toggle">' + (p.disponivel === false ? 'REATIVAR' : 'VENDIDO') + '</button>' +
+          '<button class="mini rm" data-a="del">X</button>' +
+        '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  body.querySelectorAll('input').forEach(function(inp){
+    inp.addEventListener('input', function(){
+      var i = +this.closest('tr').dataset.i;
+      var k = this.dataset.k;
+      estoque[i][k] = (k === 'nome' || k === 'print') ? this.value : (parseFloat(this.value) || 0);
+      gerarJSON(); render();
+    });
+  });
+  body.querySelectorAll('[data-a="toggle"]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var i = +this.closest('tr').dataset.i;
+      estoque[i].disponivel = estoque[i].disponivel === false;
+      renderEditor(); render();
+    });
+  });
+  body.querySelectorAll('[data-a="del"]').

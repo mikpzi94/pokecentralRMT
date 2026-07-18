@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leilão — PokeCentral</title>
+<meta name="description" content="Leilão de Pokémon do Poke Idle World: lances públicos, cronômetro e regras à vista.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12100c; --panel:#1c1812; --panel2:#26201a; --panel3:#332a20;
+    --line:#4a3c28; --line2:#6b5637;
+    --gold:#f0b429; --green:#8fc45a; --red:#d4593f; --blue:#4a90c2; --purple:#a878c4; --pink:#d9709b;
+    --text:#f2e8d5; --muted:#a89880; --faint:#736450;
+    --px:'Press Start 2P',monospace; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--bg);
+    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 3px);
+    color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.7;padding:0 16px 60px;
+  }
+  .wrap{max-width:1000px;margin:0 auto;}
+  img{image-rendering:pixelated;}
+
+  .nav{display:flex;gap:2px;flex-wrap:wrap;border:2px solid var(--line);background:var(--panel);margin:14px 0 22px;}
+  .nav a{
+    font-family:var(--px);font-size:8px;letter-spacing:.05em;color:var(--muted);text-decoration:none;
+    padding:12px 13px;border-right:2px solid var(--line);display:flex;align-items:center;
+  }
+  .nav a:last-child{border-right:none;}
+  .nav a:hover{background:var(--panel2);color:var(--gold);}
+  .nav a.on{background:var(--panel2);color:var(--gold);box-shadow:inset 0 -3px 0 var(--gold);}
+  .nav a.home{color:var(--gold);}
+  .nav a.wa{margin-left:auto;color:var(--green);border-right:none;border-left:2px solid var(--line);}
+  .nav a.wa:hover{background:var(--green);color:var(--bg);}
+  @media(max-width:620px){ .nav a{font-size:7px;padding:10px;} .nav a.wa{margin-left:0;} }
+
+  header{border:2px solid var(--line);background:var(--panel);padding:20px;margin-bottom:20px;}
+  h1{font-family:var(--px);font-size:clamp(13px,2.6vw,17px);margin:0 0 12px;line-height:1.5;}
+  h1 span{color:var(--gold);}
+  header p{color:var(--muted);font-size:13px;margin:0;max-width:680px;}
+  header b{color:var(--text);}
+
+  .rules{border:2px solid var(--gold);background:var(--panel);padding:16px 18px;margin-bottom:26px;}
+  .rules .t{font-family:var(--px);font-size:8px;color:var(--gold);margin-bottom:11px;}
+  .rules ol{margin:0;padding-left:19px;color:var(--muted);font-size:12.5px;line-height:1.9;}
+  .rules li::marker{color:var(--gold);}
+  .rules b{color:var(--text);}
+
+  .sec-head{display:flex;align-items:center;gap:10px;margin:0 0 14px;}
+  .sec-head h2{font-family:var(--px);font-size:11px;margin:0;}
+  .sec-head .rule{flex:1;height:2px;background:var(--line);}
+
+  .lote{border:2px solid var(--line);background:var(--panel);margin-bottom:18px;}
+  .lote.fim{border-color:var(--line2);opacity:.85;}
+  .lote-top{display:flex;gap:0;flex-wrap:wrap;}
+  .lote-img{
+    width:210px;flex-shrink:0;background:var(--panel2);border-right:2px solid var(--line);
+    display:flex;align-items:center;justify-content:center;position:relative;min-height:170px;overflow:hidden;
+  }
+  .lote-img img{width:100%;height:100%;object-fit:cover;}
+  .lote-img img.sprite{width:auto;height:65%;object-fit:contain;}
+  .lote-img .ph{font-family:var(--px);font-size:7px;color:var(--faint);}
+  .iv-badge{position:absolute;top:0;right:0;font-family:var(--px);font-size:7px;padding:6px 7px;color:var(--bg);}
+  .lote-info{flex:1;min-width:230px;padding:16px 18px;}
+  .lote-nome{font-family:var(--px);font-size:11px;margin-bottom:8px;line-height:1.5;}
+  .lote-meta{font-size:12.5px;color:var(--muted);margin-bottom:4px;}
+  .lote-obs{font-size:12px;color:var(--faint);margin-bottom:12px;}
+
+  .bid-now{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;}
+  .bid-lbl{font-family:var(--px);font-size:6.5px;color:var(--faint);letter-spacing:.06em;margin-bottom:6px;}
+  .bid-val{font-family:var(--px);font-size:14px;color:var(--gold);}
+  .bid-val.small{font-size:9px;color:var(--muted);}
+  .clock{font-family:var(--px);font-size:11px;color:var(--green);}
+  .clock.urgent{color:var(--red);}
+  .clock.over{color:var(--faint);}
+
+  .bid-btn{
+    display:inline-block;font-family:var(--px);font-size:8.5px;text-decoration:none;
+    border:2px solid var(--green);color:var(--green);padding:11px 14px;line-height:1.6;
+  }
+  .bid-btn:hover{background:var(--green);color:var(--bg);}
+  .bid-btn.off{border-color:var(--line);color:var(--faint);pointer-events:none;}
+  .min-note{font-size:11.5px;color:var(--faint);margin-top:9px;}
+
+  .log{border-top:2px solid var(--line);padding:14px 18px;}
+  .log-head{
+    font-family:var(--px);font-size:7px;color:var(--faint);letter-spacing:.06em;
+    margin-bottom:10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  }
+  table.bids{width:100%;border-collapse:collapse;font-size:12px;}
+  table.bids td{padding:5px 6px;border-top:2px solid var(--line);}
+  table.bids tr:first-child td{border-top:none;}
+  table.bids .who{color:var(--text);}
+  table.bids .when{color:var(--faint);font-size:11.5px;text-align:right;white-space:nowrap;}
+  table.bids .amt{color:var(--gold);text-align:right;white-space:nowrap;}
+  table.bids tr.top .amt{color:var(--green);}
+  table.bids tr.bad td{color:var(--faint);text-decoration:line-through;}
+  .no-bids{color:var(--faint);font-size:12px;}
+
+  .winner{
+    border:2px solid var(--green);background:rgba(143,196,90,.07);
+    padding:12px 14px;margin-top:12px;font-size:12.5px;color:var(--muted);
+  }
+  .winner b{color:var(--green);}
+
+  .empty{border:2px dashed var(--line);padding:34px 20px;text-align:center;color:var(--faint);font-size:12.5px;line-height:1.8;}
+  .empty a{color:var(--green);}
+  .loading{color:var(--faint);font-size:12.5px;padding:30px 0;text-align:center;}
+  .warn-box{border:2px solid var(--red);background:rgba(212,89,63,.07);padding:13px 15px;margin-top:26px;font-size:12.5px;color:var(--muted);}
+  .warn-box b{color:var(--red);}
+  .updated{font-size:11.5px;color:var(--faint);margin-top:16px;text-align:right;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav">
+    <a class="home" href="/index.html">▪ POKECENTRAL</a>
+    <a href="/rentabilidade.html">QUANTO RENDE</a>
+    <a href="/preco.html">QUANTO VALE</a>
+    <a href="/vitrine.html">À VENDA</a>
+    <a href="/leilao.html">Leilão</a>
+    <a class="wa" id="navWa" href="#" target="_blank" rel="noopener">WHATSAPP</a>
+  </nav>
+
+  <header>
+    <h1>Leilão de <span>Pokémon</span></h1>
+    <p>
+      Aqui vão os Pokémon com IV alto — os que não têm preço de tabela porque quase ninguém vende.
+      <b>Todos os lances são públicos</b> e aparecem na lista de cada lote, com nome e horário.
+      O cronômetro e o vencedor são calculados na sua tela a partir dessa mesma lista: eu não digito nada aqui.
+    </p>
+  </header>
+
+  <div class="rules">
+    <div class="t">COMO FUNCIONA</div>
+    <ol>
+      <li>Dê seu lance pelo formulário. Ele precisa ser <b>maior que o lance atual + o incremento mínimo</b> do lote, senão não vale (e vai aparecer riscado na lista).</li>
+      <li>Lance nos <b>últimos 5 minutos estende o prazo em 5 minutos</b>. Isso se repete — então não adianta esperar o último segundo.</li>
+      <li>Encerrado o prazo, o maior lance válido ganha. <b>Eu chamo o vencedor</b> pelo Discord informado.</li>
+      <li>O vencedor tem <b>24 horas</b> pra fechar. Passou disso, passo pro segundo colocado.</li>
+      <li>Lance é compromisso. Quem der calote entra numa <b>lista pública</b> e não participa dos próximos.</li>
+      <li>Se o lote tiver <b>preço mínimo (reserva)</b>, isso está escrito no lote. Não existe reserva escondida aqui.</li>
+    </ol>
+  </div>
+
+  <div class="sec-head"><h2>Lotes abertos</h2><div class="rule"></div></div>
+  <div class="loading" id="loading">carregando lotes…</div>
+  <div id="lotes"></div>
+
+  <div class="warn-box">
+    <b>▸ Formato em teste.</b> Este é o primeiro leilão do PokeCentral e o registro de lances é um formulário simples —
+    não tem login, então o nome é o que a pessoa declara. Se algo parecer estranho, me chame e eu mostro a planilha inteira.
+    Se o formato pegar, o próximo passo é lance com login de Discord, que deixa tudo verificável.
+  </div>
+
+  <div class="updated" id="updated"></div>
+
+</div>
+
+<script>
+/* ============ troque pelo seu número (DDI+DDD, só números) ============ */
+var WHATSAPP = '5511999999999';
+/* ====================================================================== */
+
+var $ = function(id){ return document.getElementById(id); };
+var CFG = null, LANCES = [], timer = null;
+
+function brl(n){ return 'R$ ' + Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function ivColor(iv){
+  iv = Number(iv)||0;
+  if(iv>=180) return 'var(--pink)'; if(iv>=160) return 'var(--purple)';
+  if(iv>=140) return 'var(--gold)'; if(iv>=120) return 'var(--green)'; return 'var(--blue)';
+}
+function spriteUrl(id){ return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+id+'.png'; }
+$('navWa').href = 'https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent('Olá! Vim pelo leilão do PokeCentral.');
+function bidUrl(lote){
+  if(!CFG.entryLote) return CFG.formUrl;
+  var sep = CFG.formUrl.indexOf('?') >= 0 ? '&' : '?';
+  return CFG.formUrl + sep + 'usp=pp_url&' + CFG.entryLote + '=' + encodeURIComponent(lote.id);
+}
+
+/* ---------- CSV ---------- */
+function parseCSV(txt){
+  var rows=[], row=[], cur='', q=false;
+  for(var i=0;i<txt.length;i++){
+    var c=txt[i];
+    if(q){
+      if(c==='"'){ if(txt[i+1]==='"'){ cur+='"'; i++; } else q=false; }
+      else cur+=c;
+    } else {
+      if(c==='"') q=true;
+      else if(c===','){ row.push(cur); cur=''; }
+      else if(c==='\n'){ row.push(cur); rows.push(row); row=[]; cur=''; }
+      else if(c!=='\r') cur+=c;
+    }
+  }
+  if(cur!=='' || row.length){ row.push(cur); rows.push(row); }
+  return rows;
+}
+
+/* Google Forms grava "18/07/2026 14:32:05" */
+function parseData(s){
+  s = String(s||'').trim();
+  var m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})[ ,]+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if(m) return new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +(m[6]||0));
+  var d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+function parseValor(s){
+  return parseFloat(String(s||'').replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.')) || 0;
+}
+function hora(d){
+  return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' '+
+         String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+
+/* ---------- regra do leilão, calculada na tela ---------- */
+function apurar(lote){
+  var ext = (CFG.extensaoMin || 5) * 60000;
+  var fim = new Date(lote.fim).getTime();
+
+  var meus = LANCES.filter(function(b){ return b.lote === lote.id && b.data; })
+                   .sort(function(a,b){ return a.data - b.data; });
+
+  var validos = [], atual = 0;
+  meus.forEach(function(b){
+    if(b.data.getTime() > fim){ b.ok = false; b.motivo = 'fora do prazo'; return; }
+    var minimo = validos.length === 0 ? lote.lanceInicial : atual + lote.incremento;
+    if(b.valor >= minimo){
+      b.ok = true; atual = b.valor; validos.push(b);
+      if(b.data.getTime() > fim - ext) fim = b.data.getTime() + ext;   // anti-sniping
+    } else {
+      b.ok = false; b.motivo = 'abaixo do mínimo';
+    }
+  });
+
+  return {
+    fim: fim,
+    todos: meus,
+    validos: validos,
+    atual: atual,
+    lider: validos.length ? validos[validos.length-1] : null,
+    proximo: validos.length ? atual + lote.incremento : lote.lanceInicial
+  };
+}
+
+/* ---------- render ---------- */
+function render(){
+  var agora = Date.now();
+  var html = '';
+
+  CFG.lotes.forEach(function(lote){
+    var a = apurar(lote);
+    var resta = a.fim - agora;
+    var aberto = resta > 0;
+
+    var img = lote.print
+      ? '<img src="'+esc(lote.print)+'" alt="'+esc(lote.nome)+'" onerror="this.outerHTML=\'<span class=ph>SEM PRINT</span>\'">'
+      : (lote.pokeId ? '<img class="sprite" src="'+spriteUrl(lote.pokeId)+'" alt="">' : '<span class="ph">SEM PRINT</span>');
+
+    var relogio;
+    if(!aberto) relogio = '<span class="clock over">ENCERRADO</span>';
+    else {
+      var s = Math.floor(resta/1000), d = Math.floor(s/86400);
+      var h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60), ss = s%60;
+      var txt = d>0 ? d+'d '+h+'h '+m+'m' : (h>0 ? h+'h '+m+'m '+ss+'s' : m+'m '+ss+'s');
+      relogio = '<span class="clock'+(resta < 15*60000 ? ' urgent' : '')+'">'+txt+'</span>';
+    }
+
+    var linhas = a.todos.length
+      ? a.todos.slice().reverse().map(function(b){
+          var top = a.lider && b === a.lider;
+          return '<tr class="'+(b.ok ? (top?'top':'') : 'bad')+'">'+
+            '<td class="who">'+esc(b.nome)+(b.discord?' <span style="color:var(--faint)">('+esc(b.discord)+')</span>':'')+'</td>'+
+            '<td class="amt">'+brl(b.valor)+(b.ok?'':' <span style="font-size:10px">'+b.motivo+'</span>')+'</td>'+
+            '<td class="when">'+hora(b.data)+'</td></tr>';
+        }).join('')
+      : '';
+
+    html += ''+
+    '<div class="lote'+(aberto?'':' fim')+'">'+
+      '<div class="lote-top">'+
+        '<div class="lote-img">'+img+'<div class="iv-badge" style="background:'+ivColor(lote.iv)+'">IV '+esc(lote.iv)+'</div></div>'+
+        '<div class="lote-info">'+
+          '<div class="lote-nome">'+esc(lote.nome)+'</div>'+
+          '<div class="lote-meta">Nível '+esc(lote.nivel)+' · lance inicial '+brl(lote.lanceInicial)+' · incremento '+brl(lote.incremento)+
+            (lote.reserva ? ' · <b style="color:var(--gold)">reserva '+brl(lote.reserva)+'</b>' : '')+'</div>'+
+          (lote.obs ? '<div class="lote-obs">'+esc(lote.obs)+'</div>' : '')+
+          '<div class="bid-now">'+
+            '<div><div class="bid-lbl">LANCE ATUAL</div>'+
+              (a.atual ? '<div class="bid-val">'+brl(a.atual)+'</div>'
+                       : '<div class="bid-val small">nenhum ainda</div>')+'</div>'+
+            '<div><div class="bid-lbl">'+(aberto?'TERMINA EM':'STATUS')+'</div>'+relogio+'</div>'+
+            '<div><div class="bid-lbl">LANCES</div><div class="bid-val small">'+a.validos.length+' válido(s)</div></div>'+
+          '</div>'+
+          (aberto
+            ? '<a class="bid-btn" href="'+esc(bidUrl(lote))+'" target="_blank" rel="noopener">DAR LANCE ▸</a>'+
+'<div class="min-note">Próximo lance válido: <b style="color:var(--gold)">'+brl(a.proximo)+'</b> ou mais.</div>'
+            : '<a class="bid-btn off">ENCERRADO</a>')+
+          (!aberto && a.lider
+            ? '<div class="winner"><b>Arrematado por '+esc(a.lider.nome)+'</b> — '+brl(a.lider.valor)+
+              (lote.reserva && a.lider.valor < lote.reserva ? ' <span style="color:var(--red)">(abaixo da reserva — não fechado)</span>' : '')+
+              '<br>Já entrei em contato pelo Discord informado.</div>'
+            : '')+
+          (!aberto && !a.lider ? '<div class="winner" style="border-color:var(--line)"><b style="color:var(--muted)">Encerrado sem lances.</b></div>' : '')+
+        '</div>'+
+      '</div>'+
+      (a.todos.length ? '<div class="log"><div class="log-head"><span>HISTÓRICO DE LANCES</span><span>riscado = não valeu pela regra</span></div>'+
+        '<table class="bids">'+linhas+'</table></div>' : '')+
+    '</div>';
+  });
+
+  $('lotes').innerHTML = html || '<div class="empty">Nenhum lote no momento.<br>Os leilões saem quando aparece um Pokémon bom demais pra ter preço de tabela — fique de olho.</div>';
+}
+
+/* ---------- carregamento ---------- */
+fetch('leiloes.json?v='+Date.now())
+  .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+  .then(function(cfg){
+    CFG = cfg;
+    $('loading').style.display = 'none';
+    if(!cfg.csvUrl || cfg.csvUrl.indexOf('http') !== 0){ render(); return; }
+    return fetch(cfg.csvUrl)
+      .then(function(r){ return r.text(); })
+      .then(function(txt){
+        var rows = parseCSV(txt);
+        if(!rows.length) return;
+        var head = rows[0].map(function(h){ return h.trim(); });
+        var c = cfg.colunas;
+        var iD = head.indexOf(c.data), iL = head.indexOf(c.lote),
+            iN = head.indexOf(c.nome), iC = head.indexOf(c.discord), iV = head.indexOf(c.valor);
+        LANCES = rows.slice(1).filter(function(r){ return r.length > 1; }).map(function(r){
+          return {
+            data: parseData(r[iD]),
+            lote: (r[iL]||'').trim(),
+            nome: (r[iN]||'anônimo').trim(),
+            discord: iC >= 0 ? (r[iC]||'').trim() : '',
+            valor: parseValor(r[iV])
+          };
+        });
+      })
+      .catch(function(){ /* segue sem lances */ });
+  })
+  .then(function(){
+    if(!CFG) return;
+    render();
+    $('updated').textContent = 'lances lidos direto da planilha pública · atualiza sozinho a cada 30s';
+    timer = setInterval(render, 1000);
+    setInterval(function(){ location.reload(); }, 30000);
+  })
+  .catch(function(){
+    $('loading').textContent = 'não consegui carregar os lotes.';
+  });
+</script>
+</body>
+</html>

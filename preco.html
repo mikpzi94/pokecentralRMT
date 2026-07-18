@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de preço — PokeCentral</title>
+<meta name="description" content="Quanto cobrar por um lendário do Poke Idle World: preço sugerido por IV, nível e demanda da espécie.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+  /* ---------- menu ---------- */
+  .nav{
+    display:flex;gap:2px;flex-wrap:wrap;align-items:stretch;
+    border:2px solid var(--line);background:var(--panel);
+    margin:14px 0 22px;
+  }
+  .nav a{
+    font-family:var(--px);font-size:8px;letter-spacing:.05em;
+    color:var(--muted);text-decoration:none;padding:12px 13px;
+    border-right:2px solid var(--line);display:flex;align-items:center;
+  }
+  .nav a:last-child{border-right:none;}
+  .nav a:hover{background:var(--panel2);color:var(--gold);}
+  .nav a.on{background:var(--panel2);color:var(--gold);box-shadow:inset 0 -3px 0 var(--gold);}
+  .nav a.home{color:var(--gold);}
+  .nav a.wa{margin-left:auto;color:var(--green);border-right:none;border-left:2px solid var(--line);}
+  .nav a.wa:hover{background:var(--green);color:var(--bg);}
+  @media(max-width:620px){
+    .nav a{font-size:7px;padding:10px;}
+    .nav a.wa{margin-left:0;}
+  }
+  :root{
+    --bg:#12100c; --panel:#1c1812; --panel2:#26201a; --panel3:#332a20;
+    --line:#4a3c28; --line2:#6b5637;
+    --gold:#f0b429; --green:#8fc45a; --red:#d4593f; --blue:#4a90c2; --purple:#a878c4;
+    --text:#f2e8d5; --muted:#a89880; --faint:#736450;
+    --px:'Press Start 2P',monospace; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--bg);
+    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 3px);
+    color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.7;padding:0 16px 60px;
+  }
+  .wrap{max-width:1000px;margin:0 auto;}
+  .back{display:inline-block;font-family:var(--px);font-size:8px;color:var(--faint);text-decoration:none;padding:14px 0 12px;}
+  .back:hover{color:var(--gold);}
+
+  header{border:2px solid var(--line);background:var(--panel);padding:20px;margin-bottom:22px;}
+  h1{font-family:var(--px);font-size:clamp(13px,2.6vw,17px);margin:0 0 12px;line-height:1.5;}
+  h1 span{color:var(--gold);}
+  header p{color:var(--muted);font-size:13px;margin:0 0 10px;max-width:700px;}
+  header p:last-child{margin-bottom:0;}
+  header b{color:var(--text);}
+
+  .warn{
+    border:2px solid var(--gold);background:rgba(240,180,41,.07);
+    padding:12px 14px;margin-bottom:22px;font-size:12.5px;color:var(--muted);
+  }
+  .warn b{color:var(--gold);}
+
+  .panel{border:2px solid var(--line);background:var(--panel);padding:18px;}
+  .grid{display:grid;gap:14px;align-items:end;margin-bottom:6px;}
+  .grid.main{grid-template-columns:repeat(auto-fit,minmax(230px,1fr));}
+  .grid.adv{grid-template-columns:repeat(auto-fit,minmax(230px,1fr));}
+  .adv-head{
+    font-family:var(--px);font-size:7px;letter-spacing:.08em;color:var(--faint);
+    margin:22px 0 12px;display:flex;align-items:center;gap:10px;
+  }
+  .adv-head::after{content:"";flex:1;height:2px;background:var(--line);}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;}
+  input[type=number],select{
+    width:100%;background:var(--panel2);border:2px solid var(--line);color:var(--text);
+    font-family:var(--mono);font-size:13px;padding:9px 10px;outline:none;
+  }
+  input:focus,select:focus{border-color:var(--gold);}
+  .note{color:var(--faint);font-size:11.5px;line-height:1.7;margin:12px 0 0;}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:20px;}
+  .pcard{border:2px solid var(--line);border-top:4px solid var(--tint);background:var(--panel2);padding:16px;}
+  .pcard-tag{font-family:var(--px);font-size:7px;letter-spacing:.1em;color:var(--tint);margin-bottom:8px;}
+  .pcard-title{font-family:var(--px);font-size:9.5px;line-height:1.6;margin:0 0 8px;}
+  .pcard p{color:var(--faint);font-size:11.5px;line-height:1.6;margin:0 0 14px;}
+  .pcard-val{font-family:var(--px);font-size:15px;color:var(--tint);}
+
+  table.tb{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:20px;}
+  table.tb th{font-family:var(--px);font-size:7px;letter-spacing:.06em;color:var(--faint);text-align:left;padding:0 9px 10px;font-weight:400;}
+  table.tb td{padding:8px 9px;border-top:2px solid var(--line);}
+  table.tb .num{text-align:right;}
+  tr.hl td{background:var(--panel2);color:var(--gold);}
+
+  .contrib{
+    border:2px solid var(--green);background:rgba(143,196,90,.07);
+    padding:14px 16px;margin-top:26px;font-size:12.5px;color:var(--muted);
+  }
+  .contrib b{color:var(--green);}
+  .contrib a{
+    display:inline-block;margin-top:12px;font-family:var(--px);font-size:8px;
+    border:2px solid var(--green);color:var(--green);padding:9px 11px;text-decoration:none;
+  }
+  .contrib a:hover{background:var(--green);color:var(--bg);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav">
+    <a class="home" href="/index.html">▪ POKECENTRAL</a>
+    <a href="/rentabilidade.html">QUANTO RENDE</a>
+    <a href="/preco.html">QUANTO VALE</a>
+    <a href="/vitrine.html">À VENDA</a>
+    <a href="/leilao.html">Leilão</a>
+    <!-- TROQUE o número -->
+    <a class="wa" href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Vim%20pelo%20PokeCentral." target="_blank" rel="noopener">WHATSAPP</a>
+  </nav>
+
+  <a class="back" href="/">◀ VOLTAR PRO HUB</a>
+
+  <header>
+    <h1>Calculadora de <span>preço</span></h1>
+    <p>
+      Sugere um preço de venda pra um lendário com base no <b>IV</b> (0 a 192 — quanto maior, mais raro),
+      na <b>demanda</b> pela espécie e no <b>nível</b> — um Pokémon já upado poupa tempo de quem compra, então vale mais que um igual no nível 1.
+    </p>
+    <p>
+      A base é o que já foi observado no mercado (IV 100 ≈ R$3, IV 120 ≈ R$8), projetado numa curva de raridade até 192.
+      <b>Acima de IV 120 é extrapolação</b>, não preço confirmado — use como ponto de partida e ajuste pelo que você observar vendendo.
+    </p>
+  </header>
+
+  <div class="warn">
+    <b>▸ Lembre do beta.</b> Tudo reseta no lançamento (menos diamante da loja oficial, que volta com +25%).
+    Ninguém paga preço de "raridade pura" por algo temporário — por isso a curva desacelera no topo, e por isso vale girar rápido em vez de segurar esperando o preço ideal.
+  </div>
+
+  <div class="panel">
+    <p class="note" style="margin-top:0">
+      Digite o IV e o nível, escolha o quanto a espécie é procurada e, se quiser, ajuste os dois fatores de crescimento.
+      A calculadora devolve 3 sugestões de preço.
+    </p>
+
+    <div class="grid main">
+      <div>
+        <label for="p-iv">IV do Pokémon (0 – 192)</label>
+        <input type="number" id="p-iv" value="120" min="0" max="192" step="1">
+      </div>
+      <div>
+        <label for="p-level">Nível atual</label>
+        <input type="number" id="p-level" value="1" min="1" step="1">
+      </div>
+      <div>
+        <label for="p-demand">Demanda pela espécie/tipo</label>
+        <select id="p-demand">
+          <option value="0.7">Baixa (pouca gente procurando)</option>
+          <option value="1.0" selected>Normal</option>
+          <option value="1.3">Alta (bastante procurado)</option>
+          <option value="1.6">Muito alta / muito cobiçado</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="adv-head">AJUSTE FINO (OPCIONAL)</div>
+
+    <div class="grid adv">
+      <div>
+        <label for="p-tailgrowth">Crescimento acima do IV 150 (%/10 pts)</label>
+        <input type="number" id="p-tailgrowth" value="15" min="0" step="1">
+      </div>
+      <div>
+        <label for="p-levelvalue">Bônus de nível (R$/10 níveis)</label>
+        <input type="number" id="p-levelvalue" value="0.5" min="0" step="0.1">
+      </div>
+    </div>
+
+    <p class="note">
+      Abaixo de IV 150 a curva segue a proporção observada no mercado (~63% a cada 10 pontos).
+      Acima disso ela desacelera pra taxa que você definir aqui. O bônus de nível é um ajuste simples e editável,
+      não uma regressão — os dados de fórum são ruidosos (misturam espécies, lotes e shiny). Recalibre pelo que você vender de verdade.
+    </p>
+
+    <div class="cards">
+      <div class="pcard" style="--tint:var(--green)">
+        <div class="pcard-tag">VENDA RÁPIDA</div>
+        <div class="pcard-title">Liquidez (~20% abaixo)</div>
+        <p>Preço pra vender logo, sem ficar esperando comprador.</p>
+        <div class="pcard-val" id="p-fast">-</div>
+      </div>
+      <div class="pcard" style="--tint:var(--blue)">
+        <div class="pcard-tag">REFERÊNCIA</div>
+        <div class="pcard-title">Preço justo pela raridade</div>
+        <p>Valor "correto" considerando o quão raro é esse IV.</p>
+        <div class="pcard-val" id="p-fair">-</div>
+      </div>
+      <div class="pcard" style="--tint:var(--gold)">
+        <div class="pcard-tag">FLEX / LEILÃO</div>
+        <div class="pcard-title">Teto (~25% acima)</div>
+        <p>Preço pra tentar com quem paga mais por status.</p>
+        <div class="pcard-val" id="p-flex">-</div>
+      </div>
+    </div>
+
+    <p class="note" id="p-note"></p>
+
+    <table class="tb">
+      <thead><tr><th>IV</th><th class="num">Venda rápida</th><th class="num">Preço justo</th><th class="num">Flex / leilão</th></tr></thead>
+      <tbody id="p-table-body"></tbody>
+    </table>
+    <p class="note">
+      Linhas destacadas = perto do IV que você digitou. Os valores já incluem o bônus de nível.
+      A partir de IV 150, considere leilão informal (postar e pedir lances) em vez de preço fixo — nessa faixa tem poucos compradores dispostos a pagar cheio e rápido.
+    </p>
+  </div>
+
+  <div class="contrib">
+    <b>▸ Vendeu por um preço diferente?</b><br>
+    Essa curva melhora com venda real, não com chute. Se você fechou uma venda, me manda espécie, IV, nível e o valor
+    que eu uso pra recalibrar — e todo mundo que usar a calculadora ganha com isso.
+    <br>
+    <!-- TROQUE o número: DDI+DDD, só números -->
+    <a href="https://wa.me/5511999999999?text=Vendi%20um%20Pok%C3%A9mon%20e%20quero%20contribuir%20com%20a%20calculadora%3A%20esp%C3%A9cie%20___%2C%20IV%20___%2C%20n%C3%ADvel%20___%2C%20vendido%20por%20R%24___" target="_blank" rel="noopener">CONTRIBUIR COM UMA VENDA</a>
+  </div>
+
+</div>
+
+<script>
+var BREAKPOINT_IV = 150;
+
+function fmt(n,d){
+  if(!isFinite(n)) return "0";
+  return Number(n).toLocaleString("pt-BR",{minimumFractionDigits:d||0,maximumFractionDigits:d||2});
+}
+function brl(n){ return "R$ " + fmt(n,2); }
+function roundHalf(n){ return Math.round(n*2)/2; }
+function brlRounded(n){ return brl(roundHalf(n)); }
+
+function basePrice(iv, tailGrowthPct){
+  var priceAt150 = 3 * Math.pow(8/3, (BREAKPOINT_IV-100)/20);
+  if(iv <= BREAKPOINT_IV) return 3 * Math.pow(8/3, (iv-100)/20);
+  return priceAt150 * Math.pow(1 + (tailGrowthPct||0)/100, (iv-BREAKPOINT_IV)/10);
+}
+
+function calcPrice(){
+  var iv = parseFloat(document.getElementById("p-iv").value) || 0;
+  var level = parseFloat(document.getElementById("p-level").value) || 1;
+  var demand = parseFloat(document.getElementById("p-demand").value) || 1;
+  var tail = parseFloat(document.getElementById("p-tailgrowth").value) || 0;
+  var perTen = parseFloat(document.getElementById("p-levelvalue").value) || 0;
+
+  var levelBonus = (Math.max(level,1) / 10) * perTen;
+  var fair = basePrice(iv, tail) * demand + levelBonus;
+
+  document.getElementById("p-fast").textContent = brlRounded(fair * 0.8);
+  document.getElementById("p-fair").textContent = brlRounded(fair);
+  document.getElementById("p-flex").textContent = brlRounded(fair * 1.25);
+
+  var n = document.getElementById("p-note");
+  if(iv > BREAKPOINT_IV){
+    n.textContent = "Acima de IV " + BREAKPOINT_IV + " o preço cresce mais devagar (taxa reduzida por causa do beta/reset). Considere leilão informal em vez de fixar e esperar.";
+  } else if(iv > 120){
+    n.textContent = "Faixa extrapolada (acima do que já se viu vender) — ponto de partida, não preço confirmado.";
+  } else if(iv >= 100){
+    n.textContent = "Faixa já observada e validada no mercado.";
+  } else {
+    n.textContent = "Abaixo de IV 100 não há âncora de mercado observada — a curva funciona, mas com bem mais incerteza.";
+  }
+
+  buildPriceTable(demand, iv, tail, levelBonus);
+}
+
+function buildPriceTable(demand, currentIv, tail, levelBonus){
+  var body = document.getElementById("p-table-body");
+  body.innerHTML = "";
+  [100,110,120,130,140,150,160,170,180,192].forEach(function(ivPoint){
+    var fair = basePrice(ivPoint, tail) * demand + (levelBonus||0);
+    var tr = document.createElement("tr");
+    if(Math.abs(ivPoint - currentIv) <= 5) tr.className = "hl";
+    tr.innerHTML =
+      '<td>IV ' + ivPoint + '</td>' +
+      '<td class="num">' + brlRounded(fair*0.8) + '</td>' +
+      '<td class="num">' + brlRounded(fair) + '</td>' +
+      '<td class="num">' + brlRounded(fair*1.25) + '</td>';
+    body.appendChild(tr);
+  });
+}
+
+["p-iv","p-level","p-tailgrowth","p-levelvalue"].forEach(function(id){
+  document.getElementById(id).addEventListener("input", calcPrice);
+});
+document.getElementById("p-demand").addEventListener("change", calcPrice);
+calcPrice();
+</script>
+</body>
+</html>

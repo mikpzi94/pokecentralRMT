@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de lucro — PokeCentral</title>
+<meta name="description" content="Compare as rotas de RMT do Poke Idle World em R$/hora por conta e descubra qual rende mais com os preços de hoje.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+  /* ---------- menu ---------- */
+  .nav{
+    display:flex;gap:2px;flex-wrap:wrap;align-items:stretch;
+    border:2px solid var(--line);background:var(--panel);
+    margin:14px 0 22px;
+  }
+  .nav a{
+    font-family:var(--px);font-size:8px;letter-spacing:.05em;
+    color:var(--muted);text-decoration:none;padding:12px 13px;
+    border-right:2px solid var(--line);display:flex;align-items:center;
+  }
+  .nav a:last-child{border-right:none;}
+  .nav a:hover{background:var(--panel2);color:var(--gold);}
+  .nav a.on{background:var(--panel2);color:var(--gold);box-shadow:inset 0 -3px 0 var(--gold);}
+  .nav a.home{color:var(--gold);}
+  .nav a.wa{margin-left:auto;color:var(--green);border-right:none;border-left:2px solid var(--line);}
+  .nav a.wa:hover{background:var(--green);color:var(--bg);}
+  @media(max-width:620px){
+    .nav a{font-size:7px;padding:10px;}
+    .nav a.wa{margin-left:0;}
+  }
+  :root{
+    --bg:#12100c; --panel:#1c1812; --panel2:#26201a; --panel3:#332a20;
+    --line:#4a3c28; --line2:#6b5637;
+    --gold:#f0b429; --green:#8fc45a; --red:#d4593f; --blue:#4a90c2; --purple:#a878c4;
+    --text:#f2e8d5; --muted:#a89880; --faint:#736450;
+    --px:'Press Start 2P',monospace; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--bg);
+    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 3px);
+    color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.7;padding:0 16px 60px;
+  }
+  .wrap{max-width:1000px;margin:0 auto;}
+  .back{
+    display:inline-block;font-family:var(--px);font-size:8px;color:var(--faint);
+    text-decoration:none;padding:14px 0 12px;
+  }
+  .back:hover{color:var(--gold);}
+
+  header{border:2px solid var(--line);background:var(--panel);padding:20px;margin-bottom:26px;}
+  h1{font-family:var(--px);font-size:clamp(13px,2.6vw,17px);margin:0 0 12px;line-height:1.5;}
+  h1 span{color:var(--gold);}
+  header p{color:var(--muted);font-size:13px;margin:0;max-width:660px;}
+
+  .sec-head{display:flex;align-items:center;gap:10px;margin:0 0 4px;}
+  .sec-head h2{font-family:var(--px);font-size:11px;margin:0;}
+  .sec-head .rule{flex:1;height:2px;background:var(--line);}
+  .sec-desc{color:var(--faint);font-size:12.5px;margin:0 0 16px;max-width:780px;}
+  section{margin-bottom:38px;}
+
+  .panel{border:2px solid var(--line);background:var(--panel);padding:18px;}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;}
+  input[type=number]{
+    width:100%;background:var(--panel2);border:2px solid var(--line);color:var(--text);
+    font-family:var(--mono);font-size:13px;padding:9px 10px;outline:none;
+  }
+  input[type=number]:focus{border-color:var(--gold);}
+
+  table.tb{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:14px;}
+  table.tb th{
+    font-family:var(--px);font-size:7px;letter-spacing:.06em;color:var(--faint);
+    text-align:left;padding:0 9px 10px;font-weight:400;
+  }
+  table.tb td{padding:8px 9px;border-top:2px solid var(--line);}
+  table.tb .num{text-align:right;}
+  .dot{display:inline-block;width:9px;height:9px;margin-right:8px;vertical-align:middle;}
+  tr.hl td{background:var(--panel2);color:var(--gold);}
+
+  .shared{border:2px solid var(--line);background:var(--panel);padding:16px 18px;margin-bottom:20px;}
+  .shared-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;}
+  .acc-warn{
+    border:2px solid var(--red);color:var(--red);background:rgba(212,89,63,.08);
+    padding:10px 12px;margin-top:14px;font-size:12.5px;display:none;
+  }
+  .acc-warn.show{display:block;}
+  .acc-ok{color:var(--green);font-size:12px;margin-top:10px;}
+
+  .routes{display:grid;grid-template-columns:repeat(auto-fit,minmax(228px,1fr));gap:16px;}
+  .route{border:2px solid var(--line);border-top:4px solid var(--tint);background:var(--panel);padding:16px;display:flex;flex-direction:column;}
+  .route-tag{font-family:var(--px);font-size:7px;letter-spacing:.1em;color:var(--tint);margin-bottom:8px;}
+  .route-title{font-family:var(--px);font-size:10px;line-height:1.6;margin:0 0 12px;}
+  .route .note{color:var(--faint);font-size:11.5px;line-height:1.6;margin:0 0 14px;}
+  .route input{margin-bottom:11px;}
+  .out{margin-top:auto;padding-top:13px;border-top:2px solid var(--line);}
+  .out-line{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);margin-bottom:5px;}
+  .out-line b{color:var(--text);font-weight:500;}
+  .out-big{font-family:var(--px);font-size:11px;color:var(--tint);margin-top:9px;line-height:1.5;}
+
+  .rank-1{color:var(--green);}
+  .reco-title{font-family:var(--px);font-size:8px;color:var(--gold);margin:18px 0 8px;letter-spacing:.04em;}
+  .reco-title:first-child{margin-top:0;}
+  .reco-line{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:9px 0;border-bottom:2px solid var(--line);font-size:13px;}
+  .reco-line:last-of-type{border-bottom:none;}
+  .reco-badge{color:var(--muted);font-size:12px;}
+  .reco-total{font-family:var(--px);font-size:9.5px;color:var(--green);margin-top:12px;line-height:1.6;}
+  .foot-note{color:var(--faint);font-size:11.5px;line-height:1.7;margin-top:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="nav">
+    <a class="home" href="/index.html">▪ POKECENTRAL</a>
+    <a href="/rentabilidade.html">QUANTO RENDE</a>
+    <a href="/preco.html">QUANTO VALE</a>
+    <a href="/vitrine.html">À VENDA</a>
+    <a href="/leilao.html">Leilão</a>
+    <!-- TROQUE o número -->
+    <a class="wa" href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Vim%20pelo%20PokeCentral." target="_blank" rel="noopener">WHATSAPP</a>
+  </nav>
+
+  <a class="back" href="/">◀ VOLTAR PRO HUB</a>
+
+  <header>
+    <h1>Calculadora de <span>lucro</span></h1>
+    <p>
+      Duas coisas: quantas capturas de cada raridade saem por hora, e quanto cada rota de RMT rende em dinheiro real.
+      Todos os campos são editáveis — preencha com o que você observa no jogo hoje, porque preço de mercado muda de hora em hora.
+    </p>
+  </header>
+
+  <section>
+    <div class="sec-head"><h2>1. Qualidade por hora</h2><div class="rule"></div></div>
+    <p class="sec-desc">
+      As porcentagens de cada faixa são fixas (definidas pelo jogo) e valem pra qualquer espécie.
+      O que muda de um Pokémon/nível/local pro outro é só a <b>taxa de captura</b> — o número depois do "/h" na tela de caça.
+    </p>
+    <div class="panel">
+      <div style="max-width:240px">
+        <label for="catches">Capturas por hora</label>
+        <input type="number" id="catches" value="8.16" step="0.01">
+      </div>
+      <table class="tb">
+        <thead>
+          <tr><th>Raridade</th><th>Faixa</th><th class="num">Chance</th><th class="num">Por hora</th><th class="num">Tempo p/ 1</th></tr>
+        </thead>
+        <tbody id="rarity-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>2. Rotas de monetização</h2><div class="rule"></div></div>
+    <p class="sec-desc">
+      Cada card projeta o cenário em que <b>todas</b> as suas contas fazem só aquela rota — serve pra comparar eficiência.
+      A divisão real vem na seção 4.
+    </p>
+
+    <div class="shared">
+      <div class="shared-grid">
+        <div>
+          <label for="hpd">Horas de farm por dia (por conta)</label>
+          <input type="number" id="hpd" value="20" step="1">
+        </div>
+        <div>
+          <label for="accts">Contas ativas (limite: <span id="maxLabel">4</span> por IP)</label>
+          <input type="number" id="accts" value="4" step="1" min="0">
+        </div>
+      </div>
+      <div class="acc-warn" id="accWarn"></div>
+      <div class="acc-ok" id="accOk"></div>
+    </div>
+
+    <div class="routes">
+
+      <div class="route" style="--tint:var(--gold)">
+        <div class="route-tag">ROTA 01</div>
+        <div class="route-title">Farm + flip de diamante</div>
+        <p class="note">Farma moeda, compra diamante de outro player com essa moeda e revende por dinheiro real abaixo da loja oficial.</p>
+        <label for="r1-gph">Moeda farmada / hora (por conta)</label>
+        <input type="number" id="r1-gph" value="650000" step="1000">
+        <label for="r1-dcost">Preço do diamante no mercado (moeda)</label>
+        <input type="number" id="r1-dcost" value="600000" step="1000">
+        <label for="r1-dprice">Preço de venda do diamante (R$)</label>
+        <input type="number" id="r1-dprice" value="0.19" step="0.01">
+        <div class="out">
+          <div class="out-line"><span>R$/h (todas)</span><b id="r1-rph">-</b></div>
+          <div class="out-line"><span>R$/dia (todas)</span><b id="r1-rpd">-</b></div>
+          <div class="out-big" id="r1-rpm">-</div>
+        </div>
+      </div>
+
+      <div class="route" style="--tint:var(--red)">
+        <div class="route-tag">ROTA 02</div>
+        <div class="route-title">Lendário IV baixo — venda direta</div>
+        <p class="note">Caça o lendário, não gasta tempo upando e vende assim mesmo. Vale menos, mas gira rápido — o que combina com beta que reseta.</p>
+        <label for="r2-hrs">Horas médias até pegar 1 vendável</label>
+        <input type="number" id="r2-hrs" value="6" step="0.5">
+        <label for="r2-price">Preço médio de venda (R$)</label>
+        <input type="number" id="r2-price" value="5" step="0.5">
+        <div class="out">
+          <div class="out-line"><span>R$/h (todas)</span><b id="r2-rph">-</b></div>
+          <div class="out-line"><span>R$/dia (todas)</span><b id="r2-rpd">-</b></div>
+          <div class="out-big" id="r2-rpm">-</div>
+        </div>
+      </div>
+
+      <div class="route" style="--tint:var(--green)">
+        <div class="route-tag">ROTA 03</div>
+        <div class="route-title">Lendário IV alto — upar até 100</div>
+        <p class="note">Espera um IV mais alto e investe tempo upando até 100 antes de vender. Preço bem melhor, ciclo bem mais longo.</p>
+        <label for="r3-hrs">Horas médias até pegar 1 com IV alto</label>
+        <input type="number" id="r3-hrs" value="12" step="0.5">
+        <label for="r3-up">Horas de up até o nível 100</label>
+        <input type="number" id="r3-up" value="24" step="0.5">
+        <label for="r3-price">Preço médio de venda (R$)</label>
+        <input type="number" id="r3-price" value="35" step="1">
+        <div class="out">
+          <div class="out-line"><span>R$/h (todas)</span><b id="r3-rph">-</b></div>
+          <div class="out-line"><span>R$/dia (todas)</span><b id="r3-rpd">-</b></div>
+          <div class="out-big" id="r3-rpm">-</div>
+        </div>
+      </div>
+
+      <div class="route" style="--tint:var(--purple)">
+        <div class="route-tag">ROTA 04</div>
+        <div class="route-title">Venda direta de moeda</div>
+        <p class="note">Sem caçar nem comprar diamante — vende a moeda farmada direto por dinheiro real.</p>
+        <label for="r4-gph">Moeda farmada / hora (por conta)</label>
+        <input type="number" id="r4-gph" value="650000" step="1000">
+        <label for="r4-price">Preço por 1 milhão de moeda (R$)</label>
+        <input type="number" id="r4-price" value="0.20" step="0.01">
+        <div class="out">
+          <div class="out-line"><span>R$/h (todas)</span><b id="r4-rph">-</b></div>
+          <div class="out-line"><span>R$/dia (todas)</span><b id="r4-rpd">-</b></div>
+          <div class="out-big" id="r4-rpm">-</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>3. Ranking por conta</h2><div class="rule"></div></div>
+    <p class="sec-desc">Sem multiplicar pelo número de contas — é isso que diz qual rota rende mais por hora de jogo.</p>
+    <div class="panel">
+      <table class="tb" style="margin-top:0">
+        <thead><tr><th>Rota</th><th class="num">R$/hora (1 conta)</th><th class="num">R$/mês (1 conta)</th></tr></thead>
+        <tbody id="summary-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>4. Divisão das contas</h2><div class="rule"></div></div>
+    <div class="panel" id="recommendation"></div>
+    <p class="foot-note">
+      Preços de diamante, moeda e Pokémon variam por horário — atualize os campos com o que você observar.
+      O jogo está em beta e tudo reseta no lançamento (exceto diamante da loja oficial, que volta com +25%): gire o estoque rápido, não acumule.
+      Em negociação P2P, use intermediário confiável e confirme o pagamento antes de entregar.
+    </p>
+  </section>
+
+</div>
+
+<script>
+/* ================= LIMITE DE CONTAS =================
+   Mude aqui se a regra do jogo mudar. */
+var MAX_CONTAS = 4;
+/* ==================================================== */
+
+function fmt(n,d){
+  if(!isFinite(n)) return "0";
+  return Number(n).toLocaleString("pt-BR",{minimumFractionDigits:d||0,maximumFractionDigits:d||2});
+}
+function brl(n){ return "R$ " + fmt(n,2); }
+function val(id){ return parseFloat(document.getElementById(id).value) || 0; }
+
+var RARITIES = [
+  {name:"Fraca",    range:"0,80 – 1,00", pct:10,       color:"#736450"},
+  {name:"Comum",    range:"1,00 – 1,10", pct:34.03846, color:"#a89880"},
+  {name:"Incomum",  range:"1,10 – 1,30", pct:30,       color:"#8fc45a"},
+  {name:"Rara",     range:"1,30 – 1,50", pct:20,       color:"#4a90c2"},
+  {name:"Épica",    range:"1,50 – 1,70", pct:5,        color:"#a878c4"},
+  {name:"Lendária", range:"1,70 – 1,80", pct:0.96154,  color:"#f0b429"}
+];
+
+function formatTime(hours){
+  if(!isFinite(hours) || hours <= 0) return "-";
+  if(hours < 1) return Math.round(hours*60) + " min";
+  if(hours < 24){
+    var h = Math.floor(hours), m = Math.round((hours-h)*60);
+    if(m===60){ h++; m=0; }
+    return m>0 ? (h+"h "+m+"min") : (h+"h");
+  }
+  var days = Math.floor(hours/24), remH = Math.round(hours - days*24);
+  if(remH===24){ days++; remH=0; }
+  return remH>0 ? (days+"d "+remH+"h") : (days+"d");
+}
+
+function buildRarityTable(){
+  var body = document.getElementById("rarity-body");
+  body.innerHTML = "";
+  RARITIES.forEach(function(r){
+    var tr = document.createElement("tr");
+    if(r.name==="Lendária") tr.className = "hl";
+    tr.innerHTML =
+      '<td><span class="dot" style="background:'+r.color+'"></span>'+r.name+'</td>'+
+      '<td>'+r.range+'</td>'+
+      '<td class="num">'+fmt(r.pct,5)+'%</td>'+
+      '<td class="num" data-out="'+r.name+'-count">0</td>'+
+      '<td class="num" data-out="'+r.name+'-time">-</td>';
+    body.appendChild(tr);
+  });
+}
+
+function calcRarity(){
+  var c = val("catches");
+  RARITIES.forEach(function(r){
+    var count = c * r.pct / 100;
+    document.querySelector('[data-out="'+r.name+'-count"]').textContent = fmt(count, count < 1 ? 4 : 2);
+    document.querySelector('[data-out="'+r.name+'-time"]').textContent = count > 0 ? "1 a cada " + formatTime(1/count) : "-";
+  });
+}
+
+function checkAccounts(accts){
+  var warn = document.getElementById("accWarn");
+  var ok = document.getElementById("accOk");
+  if(accts > MAX_CONTAS){
+    warn.className = "acc-warn show";
+    warn.innerHTML = "⚠ Você colocou <b>"+accts+"</b> contas, mas o limite reportado é <b>"+MAX_CONTAS+" por IP</b>. "+
+                     "Os números abaixo assumem as "+accts+" contas — só saiba que passar do limite pode custar banimento. "+
+                     "Se as contas estão em IPs diferentes de verdade, tudo bem; VPN não conta e é risco.";
+    ok.textContent = "";
+  } else {
+    warn.className = "acc-warn";
+    ok.textContent = "✓ " + accts + " de " + MAX_CONTAS + " contas — dentro do limite.";
+  }
+}
+
+function calcRoutes(){
+  var hpd = val("hpd");
+  var accts = val("accts");
+  checkAccounts(accts);
+
+  var r1 = (val("r1-gph") / (val("r1-dcost") || 1)) * val("r1-dprice");
+  var r2 = val("r2-price") / (val("r2-hrs") || 1);
+  var r3 = val("r3-price") / ((val("r3-hrs") + val("r3-up")) || 1);
+  var r4 = (val("r4-gph") / 1000000) * val("r4-price");
+
+  writeRoute("r1", r1, hpd, accts);
+  writeRoute("r2", r2, hpd, accts);
+  writeRoute("r3", r3, hpd, accts);
+  writeRoute("r4", r4, hpd, accts);
+
+  var routes = [
+    {name:"Rota 01 — Flip de diamante", perAcct:r1},
+    {name:"Rota 02 — Lendário IV baixo", perAcct:r2},
+    {name:"Rota 03 — Lendário IV alto (up 100)", perAcct:r3},
+    {name:"Rota 04 — Venda direta de moeda", perAcct:r4}
+  ];
+
+  buildSummary(routes, hpd);
+  buildRecommendation(routes, accts, hpd);
+}
+
+function writeRoute(prefix, perAcct, hpd, accts){
+  var rph = perAcct * accts;
+  document.getElementById(prefix+"-rph").textContent = brl(rph);
+  document.getElementById(prefix+"-rpd").textContent = brl(rph * hpd);
+  document.getElementById(prefix+"-rpm").textContent = brl(rph * hpd * 30) + " / mês";
+}
+
+function buildSummary(routes, hpd){
+  var sorted = routes.slice().sort(function(a,b){ return b.perAcct - a.perAcct; });
+  var body = document.getElementById("summary-body");
+  body.innerHTML = "";
+  sorted.forEach(function(row, i){
+    var cls = i===0 ? "rank-1" : "";
+    var tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td class="'+cls+'">'+(i===0 ? "▶ " : "")+row.name+'</td>'+
+      '<td class="num '+cls+'">'+brl(row.perAcct)+'</td>'+
+      '<td class="num '+cls+'">'+brl(row.perAcct * hpd * 30)+'</td>';
+    body.appendChild(tr);
+  });
+}
+
+function buildRecommendation(routes, accts, hpd){
+  var box = document.getElementById("recommendation");
+  accts = Math.max(0, Math.round(accts));
+  if(accts <= 0){
+    box.innerHTML = '<p class="foot-note" style="margin:0">Informe ao menos 1 conta ativa pra ver a divisão.</p>';
+    return;
+  }
+
+  var sorted = routes.slice().sort(function(a,b){ return b.perAcct - a.perAcct; });
+  var best = sorted[0], second = sorted[1];
+  var optimalMonth = best.perAcct * accts * hpd * 30;
+
+  var html = '<div class="reco-title">ALOCAÇÃO ÓTIMA (com os valores atuais)</div>';
+  html += '<div class="reco-line"><span>Todas as <b>'+accts+'</b> contas em <b>'+best.name+'</b></span>'+
+          '<span class="reco-badge">'+brl(best.perAcct)+' / h por conta</span></div>';
+  html += '<div class="reco-total">≈ '+brl(optimalMonth)+' / mês</div>';
+
+  if(second && second.perAcct > 0 && accts >= 2){
+    var n1 = Math.round(accts * best.perAcct / (best.perAcct + second.perAcct));
+    n1 = Math.min(accts - 1, Math.max(1, n1));
+    var n2 = accts - n1;
+    var divMonth = (n1*best.perAcct + n2*second.perAcct) * hpd * 30;
+    html += '<div class="reco-title">COM DIVERSIFICAÇÃO (menos dependência de um mercado só)</div>';
+    html += '<div class="reco-line"><span><b>'+n1+'</b> conta(s) em '+best.name+'</span>'+
+            '<span class="reco-badge">'+brl(best.perAcct)+' / h</span></div>';
+    html += '<div class="reco-line"><span><b>'+n2+'</b> conta(s) em '+second.name+'</span>'+
+            '<span class="reco-badge">'+brl(second.perAcct)+' / h</span></div>';
+    html += '<div class="reco-total">≈ '+brl(divMonth)+' / mês<br>'+
+            '<span style="color:var(--faint)">('+brl(optimalMonth-divMonth)+' a menos que o all-in)</span></div>';
+  }
+  box.innerHTML = html;
+}
+
+document.getElementById("maxLabel").textContent = MAX_CONTAS;
+buildRarityTable();
+calcRarity();
+calcRoutes();
+
+document.getElementById("catches").addEventListener("input", calcRarity);
+document.querySelectorAll(".route input, .shared input").forEach(function(inp){
+  inp.addEventListener("input", calcRoutes);
+});
+</script>
+</body>
+</html>

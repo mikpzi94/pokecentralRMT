@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PokeCentral — RMT no Poke Idle World, dentro das regras</title>
+<meta name="description" content="A central de RMT do Poke Idle World: calculadoras grátis pra saber se o farm compensa e uma vitrine de Pokémon pra você começar já produzindo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12100c; --panel:#1c1812; --panel2:#26201a; --panel3:#332a20;
+    --line:#4a3c28; --line2:#6b5637;
+    --gold:#f0b429; --green:#8fc45a; --red:#d4593f; --blue:#4a90c2; --purple:#a878c4;
+    --text:#f2e8d5; --muted:#a89880; --faint:#736450;
+    --px:'Press Start 2P',monospace;
+    --mono:'IBM Plex Mono',monospace;
+  }
+  /* ---------- menu ---------- */
+  .nav{
+    display:flex;gap:2px;flex-wrap:wrap;align-items:stretch;
+    border:2px solid var(--line);background:var(--panel);
+    margin:14px 0 22px;
+  }
+  .nav a{
+    font-family:var(--px);font-size:8px;letter-spacing:.05em;
+    color:var(--muted);text-decoration:none;padding:12px 13px;
+    border-right:2px solid var(--line);display:flex;align-items:center;
+  }
+  .nav a:last-child{border-right:none;}
+  .nav a:hover{background:var(--panel2);color:var(--gold);}
+  .nav a.on{background:var(--panel2);color:var(--gold);box-shadow:inset 0 -3px 0 var(--gold);}
+  .nav a.home{color:var(--gold);}
+  .nav a.wa{margin-left:auto;color:var(--green);border-right:none;border-left:2px solid var(--line);}
+  .nav a.wa:hover{background:var(--green);color:var(--bg);}
+  @media(max-width:620px){
+    .nav a{font-size:7px;padding:10px;}
+    .nav a.wa{margin-left:0;}
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--bg);
+    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 3px);
+    color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.7;
+    padding:0 16px 60px;
+  }
+  .wrap{max-width:940px;margin:0 auto;}
+  img{image-rendering:pixelated;}
+
+  .hud{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+    border:2px solid var(--line);border-top:none;background:var(--panel);
+    padding:8px 12px;margin-bottom:28px;
+    font-family:var(--px);font-size:8px;color:var(--faint);letter-spacing:.05em;
+  }
+  .hud .on{color:var(--green);}
+
+  header{
+    border:2px solid var(--line);background:var(--panel);
+    padding:22px;margin-bottom:26px;
+    display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap;
+  }
+  .brand-block{flex:1;min-width:250px;}
+  .brand{font-family:var(--px);font-size:clamp(17px,3.6vw,27px);line-height:1.35;margin:0 0 14px;}
+  .brand span{color:var(--gold);}
+  .tagline{
+    font-family:var(--mono);font-size:14px;color:var(--text);
+    margin:0 0 12px;border-left:3px solid var(--gold);padding-left:11px;line-height:1.6;
+  }
+  header p.sub{color:var(--muted);font-size:13px;margin:0;max-width:560px;}
+  .starter{display:flex;gap:2px;align-items:flex-end;}
+  .starter img{width:64px;height:64px;}
+
+  .ticker{
+    border:2px solid var(--line);background:var(--panel2);
+    padding:11px 14px;margin-bottom:34px;
+    display:flex;gap:20px;flex-wrap:wrap;align-items:center;
+    font-size:12.5px;color:var(--muted);
+  }
+  .ticker b{color:var(--gold);font-weight:500;}
+  .ticker .sep{color:var(--line2);}
+  .ticker .date{margin-left:auto;color:var(--faint);font-size:11.5px;}
+
+  .sec-head{display:flex;align-items:center;gap:10px;margin:0 0 4px;}
+  .sec-head h2{font-family:var(--px);font-size:12px;margin:0;letter-spacing:.02em;}
+  .sec-head .rule{flex:1;height:2px;background:var(--line);}
+  .sec-desc{color:var(--faint);font-size:12.5px;margin:0 0 16px;}
+  section{margin-bottom:38px;}
+
+  .menu{border:2px solid var(--line);background:var(--panel);}
+  .item{
+    display:flex;gap:16px;align-items:center;
+    padding:16px 18px;border-bottom:2px solid var(--line);
+    text-decoration:none;color:inherit;
+  }
+  .item:last-child{border-bottom:none;}
+  .item:hover{background:var(--panel2);}
+  .item:hover .item-name{color:var(--tint,var(--gold));}
+  .item:hover .cursor{opacity:1;}
+  .cursor{font-family:var(--px);font-size:10px;color:var(--tint,var(--gold));opacity:0;transition:opacity .1s;width:14px;flex-shrink:0;}
+  .item-sprite{
+    width:56px;height:56px;flex-shrink:0;background:var(--panel2);
+    border:2px solid var(--line);display:flex;align-items:center;justify-content:center;
+  }
+  .item-sprite img{width:48px;height:48px;}
+  .item-body{flex:1;min-width:0;}
+  .item-name{font-family:var(--px);font-size:11px;margin-bottom:7px;line-height:1.5;}
+  .item-desc{color:var(--muted);font-size:12.5px;line-height:1.6;}
+  .item-tag{
+    font-family:var(--px);font-size:7px;letter-spacing:.08em;
+    color:var(--tint,var(--gold));border:2px solid var(--tint,var(--gold));
+    padding:4px 6px;flex-shrink:0;align-self:flex-start;
+  }
+
+  .panel{border:2px solid var(--line);background:var(--panel);padding:20px;}
+  .pitch{
+    border:2px solid var(--green);background:rgba(143,196,90,.07);
+    padding:13px 15px;margin-bottom:20px;font-size:12.5px;color:var(--muted);
+  }
+  .pitch b{color:var(--green);}
+  .pitch .txt-hi{color:var(--text);}
+  .shelf-row{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+    background:var(--panel2);border:2px solid var(--line);padding:12px 14px;margin-bottom:20px;
+  }
+  .shelf-row b{font-family:var(--px);font-size:9.5px;line-height:1.5;}
+  .shelf-row small{display:block;color:var(--muted);font-size:12px;margin-top:6px;}
+  .badge{
+    font-family:var(--px);font-size:8px;padding:7px 9px;text-decoration:none;white-space:nowrap;
+    border:2px solid var(--green);color:var(--green);
+  }
+  .badge:hover{background:var(--green);color:var(--bg);}
+  .btn-wa{
+    display:inline-block;background:var(--green);color:#12100c;text-decoration:none;
+    border:2px solid var(--green);padding:13px 20px;font-family:var(--px);font-size:10px;
+  }
+  .btn-wa:hover{background:var(--bg);color:var(--green);}
+
+  .rules{border:2px solid var(--gold);background:var(--panel);padding:18px 20px;}
+  .rules ul{margin:0;padding-left:20px;color:var(--muted);font-size:13px;line-height:1.9;}
+  .rules li::marker{color:var(--gold);}
+  .rules b{color:var(--text);}
+  .disclaimer{font-size:12px;color:var(--faint);line-height:1.7;margin:16px 0 0;padding-top:14px;border-top:2px solid var(--line);}
+
+  footer{border:2px solid var(--line);background:var(--panel);padding:16px 18px;color:var(--faint);font-size:12px;line-height:1.9;}
+  footer a{color:var(--muted);}
+  footer a:hover{color:var(--gold);}
+  footer b{color:var(--text);}
+
+  @media(max-width:560px){
+    .item{gap:11px;padding:14px;}
+    .item-sprite{width:44px;height:44px;}
+    .item-sprite img{width:38px;height:38px;}
+    .item-name{font-size:9.5px;}
+    .item-tag{display:none;}
+    .starter{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav">
+    <a class="home" href="/index.html">▪ POKECENTRAL</a>
+    <a href="/rentabilidade.html">QUANTO RENDE</a>
+    <a href="/preco.html">QUANTO VALE</a>
+    <a href="/vitrine.html">À VENDA</a>
+    <a href="/leilao.html">Leilão</a>
+    <!-- TROQUE o número -->
+    <a class="wa" href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Vim%20pelo%20PokeCentral." target="_blank" rel="noopener">WHATSAPP</a>
+  </nav>
+  <div class="hud">
+    <span>POKECENTRAL v1</span>
+    <span class="on">● BETA DO JOGO — TUDO RESETA</span>
+    <span>LIMITE 4 CONTAS/IP</span>
+  </div>
+
+  <header>
+    <div class="brand-block">
+      <h1 class="brand">Poke<span>Central</span></h1>
+      <p class="tagline">A central de RMT do Poke Idle World<br>calcule seu lucro, comece com os melhores Pokémon.</p>
+      <p class="sub">
+        Ferramentas grátis pra saber se o seu farm compensa antes de gastar a hora, e uma vitrine pra quem quer pular a fila.
+        Tudo dentro das regras — sem promessa de mudar de vida, é um extra jogando.
+      </p>
+    </div>
+    <div class="starter">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" alt="Charizard">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/239.png" alt="Elekid">
+    </div>
+  </header>
+
+  <!-- ATUALIZE esta faixa quando os preços mudarem -->
+  <div class="ticker">
+    <span>Melhor spot: <b>Elekid ~650k/h</b></span>
+    <span class="sep">│</span>
+    <span>Diamante no mercado: <b>~600k moeda</b></span>
+    <span class="sep">│</span>
+    <span>Diamante entre players: <b>R$0,18–0,20</b></span>
+    <span class="date">atualizado 18/07</span>
+  </div>
+
+  <section>
+    <div class="sec-head"><h2>Ferramentas</h2><div class="rule"></div></div>
+    <p class="sec-desc">Grátis. Rodam no seu navegador — nada é enviado pra lugar nenhum.</p>
+    <div class="menu">
+
+      <a class="item" href="/rentabilidade" style="--tint:var(--gold)">
+        <div class="cursor">▶</div>
+        <div class="item-sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/76.png" alt=""></div>
+        <div class="item-body">
+          <div class="item-name">Calculadora de rentabilidade</div>
+          <div class="item-desc">Compara as 3 rotas de RMT em R$/hora por conta: flip de diamante, lendário IV baixo e lendário IV alto upado. Diz qual rende mais com os preços de hoje.</div>
+        </div>
+        <div class="item-tag">DECISÃO</div>
+      </a>
+
+      <a class="item" href="/preco" style="--tint:var(--blue)">
+        <div class="cursor">▶</div>
+        <div class="item-sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/123.png" alt=""></div>
+        <div class="item-body">
+          <div class="item-name">Calculadora de preço</div>
+          <div class="item-desc">Quanto cobrar por um lendário, com base em IV, nível e demanda da espécie. Devolve preço de venda rápida, preço justo e teto de leilão.</div>
+        </div>
+        <div class="item-tag">PREÇO</div>
+      </a>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Loja</h2><div class="rule"></div></div>
+    <p class="sec-desc">Print real de cada Pokémon. Preço acertado antes, entrega no jogo.</p>
+    <div class="panel">
+
+      <div class="pitch">
+        <b>▸ Por que comprar em vez de farmar?</b><br>
+        É <span class="txt-hi">atalho de tempo</span>, não investimento: um lendário bom pode custar 20+ horas de farm pra sair.
+        Comprando, você começa produzindo hoje. Lembrando que o jogo está em beta e
+        <span class="txt-hi">tudo reseta no lançamento</span> — compre pelo tempo que economiza agora, não pra guardar.
+      </div>
+
+      <div class="shelf-row">
+        <div><b>Vitrine de Pokémon</b><small>Lendários com print, IV e nível na descrição</small></div>
+        <a class="badge" href="/vitrine">VER VITRINE ▸</a>
+      </div>
+
+      <!-- TROQUE o número: DDI+DDD, só números -->
+      <a class="btn-wa" href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Vim%20pelo%20PokeCentral%20e%20queria%20saber%20mais." target="_blank" rel="noopener">FALAR NO WHATSAPP</a>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Regras</h2><div class="rule"></div></div>
+    <p class="sec-desc">O que a comunidade reporta hoje. Ainda estou levantando as fontes oficiais de cada item.</p>
+    <div class="rules">
+      <ul>
+        <li>RMT parece ser <b>liberado</b> no jogo.</li>
+        <li>Multi-conta liberado, mas com <b>limite de 4 contas por IP</b>.</li>
+        <li><b>VPN</b> parece ser passível de ban — não recomendo arriscar.</li>
+        <li>Jogo em <b>beta: tudo reseta no lançamento</b>, exceto diamante da loja oficial, que volta com +25%. Ou seja: não acumule estoque, gire rápido.</li>
+      </ul>
+      <p class="disclaimer">
+        Essas regras vieram de informação da comunidade, não de fonte oficial confirmada. Antes de investir tempo ou dinheiro,
+        confirme no Discord/suporte oficial do jogo. Em qualquer negociação P2P: use intermediário confiável e confirme o
+        pagamento antes de entregar — Pix tem estorno e print se falsifica.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <b>PokeCentral</b> — feito por um jogador, pra jogadores. Sem vínculo com os desenvolvedores do Poke Idle World.<br>
+    Crédito às ferramentas da comunidade:
+    <a href="https://piwtools.vercel.app/" target="_blank" rel="noopener">piwtools</a> (Rakupo / gcanivel) ·
+    <a href="https://poke-idle-dicas.vercel.app/" target="_blank" rel="noopener">poke-idle-dicas</a><br>
+    Jogo oficial: <a href="https://poke.idleworld.online/play" target="_blank" rel="noopener">poke.idleworld.online</a> ·
+    Sprites: <a href="https://github.com/PokeAPI/sprites" target="_blank" rel="noopener">PokeAPI</a>
+  </footer>
+
+</div>
+
+</body>
+</html>
