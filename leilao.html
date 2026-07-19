@@ -1,13 +1,12 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
-<link rel="apple-touch-icon" href="/favicon.png">
-<meta name="theme-color" content="#f0b429">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Leilão — PokeCentral</title>
 <meta name="description" content="Leilão de Pokémon do Poke Idle World: lances públicos e imutáveis, cronômetro ao vivo e regras à vista.">
+<link rel="icon" type="image/png" href="/favicon.png">
+<meta name="theme-color" content="#f0b429">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -79,11 +78,11 @@
   .lote.fim{border-color:var(--line2);opacity:.9;}
   .lote-top{display:flex;flex-wrap:wrap;}
   .lote-img{
-    width:210px;flex-shrink:0;background:var(--panel2);border-right:2px solid var(--line);
-    display:flex;align-items:center;justify-content:center;position:relative;min-height:180px;overflow:hidden;
+    width:230px;flex-shrink:0;background:var(--panel2);border-right:2px solid var(--line);
+    display:flex;align-items:center;justify-content:center;position:relative;min-height:190px;overflow:hidden;
   }
-  .lote-img img{width:100%;height:100%;object-fit:cover;}
-  .lote-img img.sprite{width:auto;height:62%;object-fit:contain;}
+  .lote-img img{width:100%;height:100%;object-fit:contain;}
+  .lote-img img.sprite{width:auto;height:62%;}
   .lote-img .ph{font-family:var(--px);font-size:7px;color:var(--faint);}
   .iv-badge{position:absolute;top:0;right:0;font-family:var(--px);font-size:7px;padding:6px 7px;color:var(--bg);}
   .lote-info{flex:1;min-width:250px;padding:16px 18px;}
@@ -171,7 +170,7 @@
   .drop:hover,.drop.over{border-color:var(--gold);color:var(--gold);}
   .drop b{color:var(--muted);}
   .preview{display:flex;gap:14px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
-  .preview img{width:120px;height:96px;object-fit:cover;border:2px solid var(--line);}
+  .preview img{width:120px;height:96px;object-fit:contain;border:2px solid var(--line);background:var(--panel2);}
   .preview .info{font-size:12px;color:var(--muted);line-height:1.8;}
   .preview .info b{color:var(--green);}
   .btn{font-family:var(--px);font-size:8px;padding:10px 12px;cursor:pointer;background:transparent;border:2px solid var(--line2);color:var(--muted);}
@@ -329,7 +328,7 @@ var EXTENSAO_MIN = 5;             /* anti-sniping, em minutos */
 
 var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 var $ = function(id){ return document.getElementById(id); };
-var lotes = [], lances = [], sessao = null, arquivo = null;
+var lotes = [], lances = [], sessao = null, arquivo = null, estadoAberto = {};
 
 function brl(n){ return 'R$ ' + Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -344,8 +343,18 @@ function hora(d){
          String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
 }
 function aviso(el, txt, tipo){
+  if(!el) return;
   el.className = 'msg ' + (tipo||''); el.textContent = txt;
   if(tipo==='ok') setTimeout(function(){ el.textContent=''; }, 3000);
+}
+function textoTempo(resta){
+  var s = Math.floor(resta/1000),
+      d = Math.floor(s/86400), h = Math.floor(s%86400/3600),
+      mi = Math.floor(s%3600/60), ss = s%60;
+  return d>0 ? d+'d '+h+'h '+mi+'m' : (h>0 ? h+'h '+mi+'m '+ss+'s' : mi+'m '+ss+'s');
+}
+function classeTempo(resta){
+  return 'clock' + (resta < 15*60000 ? ' urgent' : (resta < 60*60000 ? ' soon' : ''));
 }
 function lerNomeArquivo(n){
   var arq = String(n||'').split('/').pop().replace(/\.(png|jpg|jpeg|webp|gif)$/i,'');
@@ -436,6 +445,10 @@ sb.auth.onAuthStateChange(function(_e, s){ sessao = s; renderMe(); mostrarAdmin(
 
 /* ---------- render público ---------- */
 function render(){
+  /* guarda o que estiver digitado antes de redesenhar */
+  var salvos = {}, focado = document.activeElement ? document.activeElement.id : null;
+  document.querySelectorAll('[id^="in-"]').forEach(function(i){ salvos[i.id] = i.value; });
+
   var agora = Date.now();
   if(!lotes.length){
     $('lotes').innerHTML = '<div class="empty">Nenhum lote aberto no momento.<br>Os leilões saem quando aparece um Pokémon bom demais pra ter preço de tabela.</div>';
@@ -446,20 +459,15 @@ function render(){
     var a = apurar(lote);
     var resta = a.fim - agora;
     var aberto = resta > 0;
+    estadoAberto[lote.id] = aberto;
 
     var img = lote.print
       ? '<img src="'+esc(lote.print)+'" alt="'+esc(lote.nome)+'" onerror="this.outerHTML=\'<span class=ph>SEM PRINT</span>\'">'
       : (lote.poke_id ? '<img class="sprite" src="'+spriteUrl(lote.poke_id)+'" alt="">' : '<span class="ph">SEM PRINT</span>');
 
-    var relogio;
-    if(!aberto) relogio = '<span class="clock over">ENCERRADO</span>';
-    else {
-      var s = Math.floor(resta/1000), d = Math.floor(s/86400),
-          h = Math.floor(s%86400/3600), mi = Math.floor(s%3600/60), ss = s%60;
-      var txt = d>0 ? d+'d '+h+'h '+mi+'m' : (h>0 ? h+'h '+mi+'m '+ss+'s' : mi+'m '+ss+'s');
-      var cls = resta < 15*60000 ? ' urgent' : (resta < 60*60000 ? ' soon' : '');
-      relogio = '<span class="clock'+cls+'">'+txt+'</span>';
-    }
+    var relogio = aberto
+      ? '<span class="'+classeTempo(resta)+'" id="clock-'+lote.id+'">'+textoTempo(resta)+'</span>'
+      : '<span class="clock over" id="clock-'+lote.id+'">ENCERRADO</span>';
 
     var area;
     if(!aberto){
@@ -521,6 +529,39 @@ function render(){
   document.querySelectorAll('[data-lance]').forEach(function(b){
     b.addEventListener('click', function(){ darLance(this.dataset.lance, this); });
   });
+
+  /* devolve o que estava digitado e o cursor */
+  Object.keys(salvos).forEach(function(k){
+    var el = document.getElementById(k);
+    if(el) el.value = salvos[k];
+  });
+  if(focado){
+    var f = document.getElementById(focado);
+    if(f && f.focus) f.focus();
+  }
+}
+
+/* ---------- cronômetro: mexe SÓ no relógio ---------- */
+function tick(){
+  var agora = Date.now(), virou = false;
+
+  lotes.forEach(function(lote){
+    var a = apurar(lote);
+    var resta = a.fim - agora;
+    var aberto = resta > 0;
+
+    if(estadoAberto[lote.id] !== undefined && estadoAberto[lote.id] !== aberto) virou = true;
+    estadoAberto[lote.id] = aberto;
+
+    var el = document.getElementById('clock-' + lote.id);
+    if(!el) return;
+
+    if(!aberto){ el.textContent = 'ENCERRADO'; el.className = 'clock over'; return; }
+    el.textContent = textoTempo(resta);
+    el.className = classeTempo(resta);
+  });
+
+  if(virou) render();   /* um lote encerrou: redesenha uma vez pra mostrar o vencedor */
 }
 
 /* ---------- dar lance ---------- */
@@ -528,7 +569,8 @@ function darLance(loteId, btn){
   var lote = lotes.filter(function(l){ return l.id === loteId; })[0];
   var a = apurar(lote);
   var msg = $('msg-'+loteId);
-  var valor = parseFloat($('in-'+loteId).value);
+  var campo = $('in-'+loteId);
+  var valor = parseFloat(campo.value);
 
   if(Date.now() > a.fim){ aviso(msg, 'esse leilão já encerrou', 'err'); return; }
   if(!valor){ aviso(msg, 'digite um valor', 'err'); return; }
@@ -549,7 +591,7 @@ function darLance(loteId, btn){
   }).then(function(r){
     btn.disabled = false;
     if(r.error){ aviso(msg, 'erro: '+r.error.message, 'err'); return; }
-    $('in-'+loteId).value = '';
+    campo.value = '';
     return carregar();
   });
 }
@@ -734,8 +776,8 @@ function renderAdmin(){
 
 /* ---------- ciclo ---------- */
 carregar();
-setInterval(render, 1000);      // cronômetro ao vivo
-setInterval(carregar, 15000);   // busca lances novos
+setInterval(tick, 1000);        /* só o relógio */
+setInterval(carregar, 15000);   /* busca lances novos */
 </script>
 </body>
 </html>
