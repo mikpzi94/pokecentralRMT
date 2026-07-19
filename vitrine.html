@@ -116,11 +116,24 @@
   .ed-title{font-family:var(--px);font-size:9px;color:var(--gold);margin:0 0 14px;}
   .ed-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:11px;align-items:end;margin-bottom:12px;}
   .ed-grid label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:5px;}
-  .ed-grid input{
+  .ed-grid input, .ed-grid select{
     width:100%;background:var(--panel2);border:2px solid var(--line);color:var(--text);
     font-family:var(--mono);font-size:12.5px;padding:8px 9px;outline:none;
   }
-  .ed-grid input:focus{border-color:var(--gold);}
+  .ed-grid input:focus, .ed-grid select:focus{border-color:var(--gold);}
+
+  .sug{border:2px solid var(--gold);background:rgba(240,180,41,.06);padding:13px 14px;}
+  .sug-head{font-family:var(--px);font-size:8px;letter-spacing:.05em;color:var(--gold);margin-bottom:11px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .sug-head span{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:0;}
+  .sug-chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .sug-chip{
+    display:flex;flex-direction:column;gap:3px;cursor:pointer;text-align:left;
+    background:var(--panel2);border:2px solid var(--line2);color:var(--text);padding:8px 12px;font-family:var(--mono);
+  }
+  .sug-chip span{font-size:10px;color:var(--muted);}
+  .sug-chip b{font-family:var(--px);font-size:11px;color:var(--gold);}
+  .sug-chip:hover{border-color:var(--gold);}
+  .sug-hint{font-size:11px;color:var(--faint);margin-top:10px;line-height:1.6;}
 
   .login-box{max-width:340px;margin:0 auto;}
   .login-box input{
@@ -283,8 +296,26 @@
           <div><label>Qualidade</label><input type="text" id="fQual" placeholder="1.70"></div>
           <div><label>IV</label><input type="number" id="fIv" max="192" placeholder="120"></div>
           <div><label>Nível</label><input type="number" id="fNivel" placeholder="100"></div>
+          <div><label>Demanda</label>
+            <select id="fDemanda">
+              <option value="1.0" selected>Normal</option>
+              <option value="0.7">Baixa</option>
+              <option value="1.3">Alta</option>
+              <option value="1.6">Muito alta</option>
+            </select>
+          </div>
+          <div><label>Shiny?</label>
+            <select id="fShiny"><option value="0" selected>Não</option><option value="1">Sim ✨</option></select>
+          </div>
           <div><label>Preço (R$)</label><input type="number" id="fPreco" step="0.5" placeholder="30"></div>
           <div><label>pokeId (opcional)</label><input type="number" id="fPokeId" placeholder="76"></div>
+          <div style="grid-column:1/-1">
+            <div class="sug" id="sugBox" style="display:none">
+              <div class="sug-head">💡 PREÇO SUGERIDO <span id="sugWhy"></span></div>
+              <div class="sug-chips" id="sugChips"></div>
+              <div class="sug-hint">Clique num preço pra usar no campo Preço. Baseado na calculadora — pode editar depois.</div>
+            </div>
+          </div>
           <div style="grid-column:1/-1"><label>Observação (opcional)</label><input type="text" id="fObs" placeholder="meta forte, ótimo pra farm de moeda"></div>
         </div>
         <button class="btn go" id="btnSalvar">+ PUBLICAR NA LOJA</button>
@@ -306,6 +337,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="pricing.js"></script>
 <script>
 /* ================= CONFIGURAÇÃO ================= */
 var SUPABASE_URL = 'https://gimluwxoaxfxpbcfosrj.supabase.co';
@@ -487,7 +519,40 @@ function usarArquivo(file){
   } else {
     $('prevInfo').innerHTML = esc(file.name)+'<br>Nome fora do padrão — preencha os campos na mão.';
   }
+  atualizarSugestao();
 }
+
+/* ---------- sugestão de preço (usa pricing.js) ---------- */
+function precoChip(label, valor){
+  return '<button type="button" class="sug-chip" data-preco="'+valor+'"><span>'+label+'</span><b>'+brl(valor)+'</b></button>';
+}
+function atualizarSugestao(){
+  var iv = parseFloat($('fIv').value);
+  if(!isFinite(iv) || iv <= 0){ $('sugBox').style.display = 'none'; return; }
+  var qual = parseFloat(String($('fQual').value).replace(',', '.'));
+  var pr = PokePrice.prices({
+    iv:     iv,
+    qual:   isFinite(qual) ? qual : PokePrice.CFG.QUAL_BASE,
+    level:  parseFloat($('fNivel').value) || 1,
+    demand: parseFloat($('fDemanda').value) || 1,
+    shiny:  $('fShiny').value === '1'
+  });
+  function r(n){ return Math.round(n*2)/2; }
+  $('sugWhy').textContent = (isFinite(qual) ? '' : '(qualidade em branco = padrão)');
+  $('sugChips').innerHTML =
+    precoChip('venda rápida', r(pr.fast)) +
+    precoChip('referência', r(pr.fair)) +
+    precoChip('flex', r(pr.flex));
+  $('sugChips').querySelectorAll('[data-preco]').forEach(function(b){
+    b.addEventListener('click', function(){
+      $('fPreco').value = this.dataset.preco;
+      aviso($('addMsg'), '✓ preço preenchido — edite se quiser', 'ok');
+    });
+  });
+  $('sugBox').style.display = 'block';
+}
+['fIv','fQual','fNivel'].forEach(function(id){ $(id).addEventListener('input', atualizarSugestao); });
+['fDemanda','fShiny'].forEach(function(id){ $(id).addEventListener('change', atualizarSugestao); });
 
 /* ---------- publicar ---------- */
 $('btnSalvar').addEventListener('click', function(){
@@ -522,6 +587,7 @@ $('btnSalvar').addEventListener('click', function(){
   }).then(function(r){
     if(r.error) throw r.error;
     ['fNome','fQual','fIv','fNivel','fPreco','fPokeId','fObs'].forEach(function(i){ $(i).value=''; });
+    $('fDemanda').value='1.0'; $('fShiny').value='0'; $('sugBox').style.display='none';
     arquivoSelecionado = null;
     $('preview').style.display = 'none';
     $('fileInput').value = '';
