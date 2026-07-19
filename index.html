@@ -233,11 +233,11 @@
 <div class="wrap">
 
   <nav class="nav">
-    <a class="home on" href="/index.html">▪ POKECENTRAL</a>
-    <a href="/rentabilidade.html">QUANTO RENDE</a>
-    <a href="/preco.html">QUANTO VALE</a>
-    <a href="/vitrine.html">LOJA</a>
-    <a href="/leilao.html">LEILAO</a>
+    <a class="home on" href="/">▪ POKECENTRAL</a>
+    <a href="/rentabilidade">QUANTO RENDE</a>
+    <a href="/preco">QUANTO VALE</a>
+    <a href="/loja">LOJA</a>
+    <a href="/leilao">LEILAO</a>
     <a class="wa" id="navWa" href="#" target="_blank" rel="noopener">WHATSAPP</a>
   </nav>
 
@@ -276,7 +276,7 @@
     <p class="sec-desc">Grátis. Rodam no seu navegador — nada é enviado pra lugar nenhum.</p>
     <div class="tools">
 
-      <a class="tool" href="/rentabilidade.html" style="--tint:var(--gold)">
+      <a class="tool" href="/rentabilidade" style="--tint:var(--gold)">
         <div class="tool-ico"><img src="icons/rende.png" alt=""></div>
         <div class="tool-body">
           <div class="tool-name">Quanto rende</div>
@@ -288,7 +288,7 @@
         </div>
       </a>
 
-      <a class="tool" href="/preco.html" style="--tint:var(--blue)">
+      <a class="tool" href="/preco" style="--tint:var(--blue)">
         <div class="tool-ico"><img src="icons/vale.png" alt=""></div>
         <div class="tool-body">
           <div class="tool-name">Quanto vale</div>
@@ -320,7 +320,7 @@
         <div class="mk-body" id="lojaBody">
           <div class="loading-note">buscando estoque…</div>
         </div>
-        <a class="mk-cta" href="/vitrine.html" id="lojaCta">VER TUDO ▸</a>
+        <a class="mk-cta" href="/loja" id="lojaCta">VER TUDO ▸</a>
       </div>
 
       <div class="mk" style="--tint:var(--purple)">
@@ -334,7 +334,7 @@
         <div class="mk-body" id="leilaoBody">
           <div class="loading-note">buscando lotes…</div>
         </div>
-        <a class="mk-cta" href="/leilao.html" id="leilaoCta">VER LEILÕES ▸</a>
+        <a class="mk-cta" href="/leilao" id="leilaoCta">VER LEILÕES ▸</a>
       </div>
 
     </div>
@@ -363,7 +363,7 @@
         pagamento antes de entregar — Pix tem estorno e print se falsifica.
       </p>
       <p style="margin:14px 0 0">
-        <a href="/negociar.html" style="font-family:var(--px);font-size:8px;color:var(--gold);text-decoration:none;border:2px solid var(--gold);padding:11px 14px;display:inline-block">▸ COMO NEGOCIAR SEM TOMAR GOLPE</a>
+        <a href="/negociar" style="font-family:var(--px);font-size:8px;color:var(--gold);text-decoration:none;border:2px solid var(--gold);padding:11px 14px;display:inline-block">▸ COMO NEGOCIAR SEM TOMAR GOLPE</a>
       </p>
     </div>
   </section>
@@ -459,7 +459,7 @@ sb.from('pokemons').select('*').eq('disponivel', true).order('criado_em', {ascen
         var img = p.print
           ? '<img src="'+esc(p.print)+'" alt="'+esc(p.nome)+'" onerror="this.outerHTML=\'<span class=ph>SEM PRINT</span>\'">'
           : (p.poke_id ? '<img class="sprite" src="'+spriteUrl(p.poke_id)+'" alt="">' : '<span class="ph">SEM PRINT</span>');
-        return '<a class="mini-card" href="/vitrine.html">'+
+        return '<a class="mini-card" href="/loja">'+
           '<div class="mini-img">'+img+'</div>'+
           '<div class="mini-body">'+
             '<div class="mini-name">'+esc(p.nome)+'</div>'+
