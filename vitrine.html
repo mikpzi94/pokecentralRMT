@@ -626,9 +626,10 @@ function renderTabela(){
       var k = this.dataset.k;
       var v = (k==='nome'||k==='qualidade') ? this.value : (parseFloat(this.value)||0);
       var patch = {}; patch[k] = v;
-      sb.from('pokemons').update(patch).eq('id', id).then(function(r){
-        if(r.error) aviso($('mgMsg'), 'erro ao salvar: '+r.error.message, 'err');
-        else { aviso($('mgMsg'), '✓ salvo', 'ok'); carregar(); }
+      sb.from('pokemons').update(patch).eq('id', id).select().then(function(r){
+        if(r.error){ aviso($('mgMsg'), 'erro ao salvar: '+r.error.message, 'err'); return; }
+        if(!r.data || !r.data.length){ aviso($('mgMsg'), 'não salvou — RLS não permitiu editar com essa conta.', 'err'); return; }
+        aviso($('mgMsg'), '✓ salvo', 'ok'); carregar();
       });
     });
   });
@@ -637,9 +638,10 @@ function renderTabela(){
     btn.addEventListener('click', function(){
       var id = this.closest('tr').dataset.id;
       var item = lista.filter(function(x){ return x.id === id; })[0];
-      sb.from('pokemons').update({ disponivel: item.disponivel === false }).eq('id', id).then(function(r){
-        if(r.error) aviso($('mgMsg'), 'erro: '+r.error.message, 'err');
-        else carregar().then(renderTabela);
+      sb.from('pokemons').update({ disponivel: item.disponivel === false }).eq('id', id).select().then(function(r){
+        if(r.error){ aviso($('mgMsg'), 'erro: '+r.error.message, 'err'); return; }
+        if(!r.data || !r.data.length){ aviso($('mgMsg'), 'não salvou — RLS não permitiu update com essa conta.', 'err'); return; }
+        carregar().then(renderTabela);
       });
     });
   });
@@ -649,9 +651,10 @@ function renderTabela(){
       var id = this.closest('tr').dataset.id;
       var item = lista.filter(function(x){ return x.id === id; })[0];
       if(!confirm('Remover "'+item.nome+'" de vez?')) return;
-      sb.from('pokemons').delete().eq('id', id).then(function(r){
-        if(r.error) aviso($('mgMsg'), 'erro: '+r.error.message, 'err');
-        else carregar().then(renderTabela);
+      sb.from('pokemons').delete().eq('id', id).select().then(function(r){
+        if(r.error){ aviso($('mgMsg'), 'erro: '+r.error.message, 'err'); return; }
+        if(!r.data || !r.data.length){ aviso($('mgMsg'), 'não apagou — a política RLS não deixou apagar com essa conta. Confira as policies de DELETE da tabela pokemons no Supabase.', 'err'); return; }
+        carregar().then(renderTabela);
       });
     });
   });
