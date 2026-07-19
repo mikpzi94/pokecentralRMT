@@ -53,10 +53,29 @@
   }
   .back:hover{color:var(--gold);}
 
-  header{border:2px solid var(--line);background:var(--panel);padding:20px;margin-bottom:26px;}
+  header{border:2px solid var(--line);background:var(--panel);padding:20px;margin-bottom:16px;}
   h1{font-family:var(--px);font-size:clamp(13px,2.6vw,17px);margin:0 0 12px;line-height:1.5;}
   h1 span{color:var(--gold);}
   header p{color:var(--muted);font-size:13px;margin:0;max-width:660px;}
+
+  /* ---------- headline / risco / toolbar ---------- */
+  .headline{
+    border:2px solid var(--gold);background:rgba(240,180,41,.07);
+    padding:16px 18px;margin-bottom:14px;font-size:14px;color:var(--text);line-height:1.65;
+  }
+  .headline b{color:var(--gold);}
+  .headline .big{font-family:var(--px);font-size:15px;color:var(--gold);white-space:nowrap;}
+  .risk-note{
+    border:2px solid var(--red);background:rgba(212,89,63,.07);color:var(--muted);
+    padding:11px 14px;margin-bottom:16px;font-size:12px;line-height:1.6;
+  }
+  .risk-note b{color:var(--red);}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:26px;}
+  .toolbar button{
+    font-family:var(--px);font-size:8px;padding:10px 12px;cursor:pointer;
+    background:transparent;border:2px solid var(--line2);color:var(--muted);
+  }
+  .toolbar button:hover{border-color:var(--gold);color:var(--gold);}
 
   .sec-head{display:flex;align-items:center;gap:10px;margin:0 0 4px;}
   .sec-head h2{font-family:var(--px);font-size:11px;margin:0;}
@@ -71,6 +90,7 @@
     font-family:var(--mono);font-size:13px;padding:9px 10px;outline:none;
   }
   input[type=number]:focus{border-color:var(--gold);}
+  input::placeholder{color:var(--faint);}
 
   table.tb{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:14px;}
   table.tb th{
@@ -93,14 +113,19 @@
 
   .routes{display:grid;grid-template-columns:repeat(auto-fit,minmax(228px,1fr));gap:16px;}
   .route{border:2px solid var(--line);border-top:4px solid var(--tint);background:var(--panel);padding:16px;display:flex;flex-direction:column;}
-  .route-tag{font-family:var(--px);font-size:7px;letter-spacing:.1em;color:var(--tint);margin-bottom:8px;}
+  .route-tag{font-family:var(--px);font-size:7px;letter-spacing:.1em;color:var(--tint);margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .route-badge{font-family:var(--px);font-size:7px;color:var(--green);}
+  .route-badge:empty{display:none;}
   .route-title{font-family:var(--px);font-size:10px;line-height:1.6;margin:0 0 12px;}
   .route .note{color:var(--faint);font-size:11.5px;line-height:1.6;margin:0 0 14px;}
   .route input{margin-bottom:11px;}
   .out{margin-top:auto;padding-top:13px;border-top:2px solid var(--line);}
+  .route-speed{font-size:11px;margin-bottom:8px;min-height:16px;}
+  .out-big{font-family:var(--px);font-size:13px;color:var(--tint);margin-bottom:10px;line-height:1.4;}
+  .out-big .per{font-family:var(--mono);font-size:11px;color:var(--muted);}
   .out-line{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);margin-bottom:5px;}
   .out-line b{color:var(--text);font-weight:500;}
-  .out-big{font-family:var(--px);font-size:11px;color:var(--tint);margin-top:9px;line-height:1.5;}
+  .out-line .spec{color:var(--faint);}
 
   .rank-1{color:var(--green);}
   .reco-title{font-family:var(--px);font-size:8px;color:var(--gold);margin:18px 0 8px;letter-spacing:.04em;}
@@ -111,7 +136,7 @@
   .reco-total{font-family:var(--px);font-size:9.5px;color:var(--green);margin-top:12px;line-height:1.6;}
   .foot-note{color:var(--faint);font-size:11.5px;line-height:1.7;margin-top:14px;}
 
-  
+
 </style>
 </head>
 <body>
@@ -121,9 +146,8 @@
     <a class="home" href="/index.html">▪ POKECENTRAL</a>
     <a href="/rentabilidade.html">QUANTO RENDE</a>
     <a href="/preco.html">QUANTO VALE</a>
-    <a href="/vitrine.html">À VENDA</a>
-    <a href="/leilao.html">Leilão</a>
-    <!-- TROQUE o número -->
+    <a href="/vitrine.html">LOJA</a>
+    <a href="/leilao.html">LEILAO</a>
     <a class="wa" href="https://wa.me/5511959404657?text=Ol%C3%A1!%20Vim%20pelo%20PokeCentral." target="_blank" rel="noopener">WHATSAPP</a>
   </nav>
 
@@ -137,6 +161,19 @@
     </p>
   </header>
 
+  <div class="headline" id="headline">Preencha os campos abaixo com o que você vê no jogo hoje — a calculadora responde aqui quanto renderia no seu caso.</div>
+
+  <div class="risk-note">
+    ⚠ <b>Antes de começar:</b> RMT é <b>permitido</b> neste jogo — pode farmar e vender tranquilo. O cuidado real é o limite de
+    <b>4 contas por IP</b> hoje: o ideal é não passar disso pra evitar possível ban. E o jogo está em <b>beta e reseta tudo no lançamento</b>
+    — trate como grana de curto prazo. Os números aqui são estimativa, não promessa.
+  </div>
+
+  <div class="toolbar">
+    <button type="button" id="btnShare">🔗 copiar meu cenário</button>
+    <button type="button" id="btnClear">limpar campos</button>
+  </div>
+
   <section>
     <div class="sec-head"><h2>1. Qualidade por hora</h2><div class="rule"></div></div>
     <p class="sec-desc">
@@ -146,7 +183,7 @@
     <div class="panel">
       <div style="max-width:240px">
         <label for="catches">Capturas por hora</label>
-        <input type="number" id="catches" value="8.16" step="0.01">
+        <input type="number" id="catches" placeholder="ex: 8.16" step="0.01">
       </div>
       <table class="tb">
         <thead>
@@ -168,11 +205,11 @@
       <div class="shared-grid">
         <div>
           <label for="hpd">Horas de farm por dia (por conta)</label>
-          <input type="number" id="hpd" value="20" step="1">
+          <input type="number" id="hpd" placeholder="ex: 20" step="1">
         </div>
         <div>
           <label for="accts">Contas ativas (limite: <span id="maxLabel">4</span> por IP)</label>
-          <input type="number" id="accts" value="4" step="1" min="0">
+          <input type="number" id="accts" placeholder="ex: 4" step="1" min="0">
         </div>
       </div>
       <div class="acc-warn" id="accWarn"></div>
@@ -182,66 +219,70 @@
     <div class="routes">
 
       <div class="route" style="--tint:var(--gold)">
-        <div class="route-tag">ROTA 01</div>
+        <div class="route-tag">ROTA 01 <span class="route-badge" id="r1-badge"></span></div>
         <div class="route-title">Farm + flip de diamante</div>
         <p class="note">Farma moeda, compra diamante de outro player com essa moeda e revende por dinheiro real abaixo da loja oficial.</p>
         <label for="r1-gph">Moeda farmada / hora (por conta)</label>
-        <input type="number" id="r1-gph" value="650000" step="1000">
+        <input type="number" id="r1-gph" placeholder="ex: 650000" step="1000">
         <label for="r1-dcost">Preço do diamante no mercado (moeda)</label>
-        <input type="number" id="r1-dcost" value="600000" step="1000">
+        <input type="number" id="r1-dcost" placeholder="ex: 600000" step="1000">
         <label for="r1-dprice">Preço de venda do diamante (R$)</label>
-        <input type="number" id="r1-dprice" value="0.19" step="0.01">
+        <input type="number" id="r1-dprice" placeholder="ex: 0.19" step="0.01">
         <div class="out">
-          <div class="out-line"><span>R$/h (todas)</span><b id="r1-rph">-</b></div>
-          <div class="out-line"><span>R$/dia (todas)</span><b id="r1-rpd">-</b></div>
-          <div class="out-big" id="r1-rpm">-</div>
+          <div class="route-speed" id="r1-speed"></div>
+          <div class="out-big"><b id="r1-rpd">—</b> <span class="per">/ dia (todas)</span></div>
+          <div class="out-line"><span>por hora</span><b id="r1-rph">—</b></div>
+          <div class="out-line"><span>por mês <span class="spec">(se segurar)</span></span><b id="r1-rpm">—</b></div>
         </div>
       </div>
 
       <div class="route" style="--tint:var(--red)">
-        <div class="route-tag">ROTA 02</div>
+        <div class="route-tag">ROTA 02 <span class="route-badge" id="r2-badge"></span></div>
         <div class="route-title">Lendário IV baixo — venda direta</div>
         <p class="note">Caça o lendário, não gasta tempo upando e vende assim mesmo. Vale menos, mas gira rápido — o que combina com beta que reseta.</p>
         <label for="r2-hrs">Horas médias até pegar 1 vendável</label>
-        <input type="number" id="r2-hrs" value="6" step="0.5">
+        <input type="number" id="r2-hrs" placeholder="ex: 6" step="0.5">
         <label for="r2-price">Preço médio de venda (R$)</label>
-        <input type="number" id="r2-price" value="5" step="0.5">
+        <input type="number" id="r2-price" placeholder="ex: 5" step="0.5">
         <div class="out">
-          <div class="out-line"><span>R$/h (todas)</span><b id="r2-rph">-</b></div>
-          <div class="out-line"><span>R$/dia (todas)</span><b id="r2-rpd">-</b></div>
-          <div class="out-big" id="r2-rpm">-</div>
+          <div class="route-speed" id="r2-speed"></div>
+          <div class="out-big"><b id="r2-rpd">—</b> <span class="per">/ dia (todas)</span></div>
+          <div class="out-line"><span>por hora</span><b id="r2-rph">—</b></div>
+          <div class="out-line"><span>por mês <span class="spec">(se segurar)</span></span><b id="r2-rpm">—</b></div>
         </div>
       </div>
 
       <div class="route" style="--tint:var(--green)">
-        <div class="route-tag">ROTA 03</div>
+        <div class="route-tag">ROTA 03 <span class="route-badge" id="r3-badge"></span></div>
         <div class="route-title">Lendário IV alto — upar até 100</div>
         <p class="note">Espera um IV mais alto e investe tempo upando até 100 antes de vender. Preço bem melhor, ciclo bem mais longo.</p>
         <label for="r3-hrs">Horas médias até pegar 1 com IV alto</label>
-        <input type="number" id="r3-hrs" value="12" step="0.5">
+        <input type="number" id="r3-hrs" placeholder="ex: 12" step="0.5">
         <label for="r3-up">Horas de up até o nível 100</label>
-        <input type="number" id="r3-up" value="24" step="0.5">
+        <input type="number" id="r3-up" placeholder="ex: 24" step="0.5">
         <label for="r3-price">Preço médio de venda (R$)</label>
-        <input type="number" id="r3-price" value="35" step="1">
+        <input type="number" id="r3-price" placeholder="ex: 35" step="1">
         <div class="out">
-          <div class="out-line"><span>R$/h (todas)</span><b id="r3-rph">-</b></div>
-          <div class="out-line"><span>R$/dia (todas)</span><b id="r3-rpd">-</b></div>
-          <div class="out-big" id="r3-rpm">-</div>
+          <div class="route-speed" id="r3-speed"></div>
+          <div class="out-big"><b id="r3-rpd">—</b> <span class="per">/ dia (todas)</span></div>
+          <div class="out-line"><span>por hora</span><b id="r3-rph">—</b></div>
+          <div class="out-line"><span>por mês <span class="spec">(se segurar)</span></span><b id="r3-rpm">—</b></div>
         </div>
       </div>
 
       <div class="route" style="--tint:var(--purple)">
-        <div class="route-tag">ROTA 04</div>
+        <div class="route-tag">ROTA 04 <span class="route-badge" id="r4-badge"></span></div>
         <div class="route-title">Venda direta de moeda</div>
         <p class="note">Sem caçar nem comprar diamante — vende a moeda farmada direto por dinheiro real.</p>
         <label for="r4-gph">Moeda farmada / hora (por conta)</label>
-        <input type="number" id="r4-gph" value="650000" step="1000">
+        <input type="number" id="r4-gph" placeholder="ex: 650000" step="1000">
         <label for="r4-price">Preço por 1 milhão de moeda (R$)</label>
-        <input type="number" id="r4-price" value="0.20" step="0.01">
+        <input type="number" id="r4-price" placeholder="ex: 0.20" step="0.01">
         <div class="out">
-          <div class="out-line"><span>R$/h (todas)</span><b id="r4-rph">-</b></div>
-          <div class="out-line"><span>R$/dia (todas)</span><b id="r4-rpd">-</b></div>
-          <div class="out-big" id="r4-rpm">-</div>
+          <div class="route-speed" id="r4-speed"></div>
+          <div class="out-big"><b id="r4-rpd">—</b> <span class="per">/ dia (todas)</span></div>
+          <div class="out-line"><span>por hora</span><b id="r4-rph">—</b></div>
+          <div class="out-line"><span>por mês <span class="spec">(se segurar)</span></span><b id="r4-rpm">—</b></div>
         </div>
       </div>
 
@@ -269,7 +310,7 @@
     </p>
   </section>
 
-  
+
 
 </div>
 
@@ -278,6 +319,9 @@
    Mude aqui se a regra do jogo mudar. */
 var MAX_CONTAS = 4;
 /* ==================================================== */
+
+var LS_KEY = "pc_rent_v1";
+var FIELDS = ["catches","hpd","accts","r1-gph","r1-dcost","r1-dprice","r2-hrs","r2-price","r3-hrs","r3-up","r3-price","r4-gph","r4-price"];
 
 function fmt(n,d){
   if(!isFinite(n)) return "0";
@@ -318,8 +362,8 @@ function buildRarityTable(){
       '<td><span class="dot" style="background:'+r.color+'"></span>'+r.name+'</td>'+
       '<td>'+r.range+'</td>'+
       '<td class="num">'+fmt(r.pct,5)+'%</td>'+
-      '<td class="num" data-out="'+r.name+'-count">0</td>'+
-      '<td class="num" data-out="'+r.name+'-time">-</td>';
+      '<td class="num" data-out="'+r.name+'-count">—</td>'+
+      '<td class="num" data-out="'+r.name+'-time">—</td>';
     body.appendChild(tr);
   });
 }
@@ -327,15 +371,19 @@ function buildRarityTable(){
 function calcRarity(){
   var c = val("catches");
   RARITIES.forEach(function(r){
+    var cEl = document.querySelector('[data-out="'+r.name+'-count"]');
+    var tEl = document.querySelector('[data-out="'+r.name+'-time"]');
+    if(c <= 0){ cEl.textContent = "—"; tEl.textContent = "—"; return; }
     var count = c * r.pct / 100;
-    document.querySelector('[data-out="'+r.name+'-count"]').textContent = fmt(count, count < 1 ? 4 : 2);
-    document.querySelector('[data-out="'+r.name+'-time"]').textContent = count > 0 ? "1 a cada " + formatTime(1/count) : "-";
+    cEl.textContent = fmt(count, count < 1 ? 4 : 2);
+    tEl.textContent = count > 0 ? "1 a cada " + formatTime(1/count) : "—";
   });
 }
 
 function checkAccounts(accts){
   var warn = document.getElementById("accWarn");
   var ok = document.getElementById("accOk");
+  if(accts <= 0){ warn.className = "acc-warn"; ok.textContent = ""; return; }
   if(accts > MAX_CONTAS){
     warn.className = "acc-warn show";
     warn.innerHTML = "⚠ Você colocou <b>"+accts+"</b> contas, mas o limite reportado é <b>"+MAX_CONTAS+" por IP</b>. "+
@@ -363,22 +411,59 @@ function calcRoutes(){
   writeRoute("r3", r3, hpd, accts);
   writeRoute("r4", r4, hpd, accts);
 
+  writeSpeed("r1", 0, true);
+  writeSpeed("r2", val("r2-hrs"), false);
+  writeSpeed("r3", val("r3-hrs") + val("r3-up"), false);
+  writeSpeed("r4", 0, true);
+
   var routes = [
-    {name:"Rota 01 — Flip de diamante", perAcct:r1},
-    {name:"Rota 02 — Lendário IV baixo", perAcct:r2},
-    {name:"Rota 03 — Lendário IV alto (up 100)", perAcct:r3},
-    {name:"Rota 04 — Venda direta de moeda", perAcct:r4}
+    {name:"Rota 01 — Flip de diamante", perAcct:r1, prefix:"r1"},
+    {name:"Rota 02 — Lendário IV baixo", perAcct:r2, prefix:"r2"},
+    {name:"Rota 03 — Lendário IV alto (up 100)", perAcct:r3, prefix:"r3"},
+    {name:"Rota 04 — Venda direta de moeda", perAcct:r4, prefix:"r4"}
   ];
 
+  markBest(routes);
+  writeHeadline(routes, accts, hpd);
   buildSummary(routes, hpd);
   buildRecommendation(routes, accts, hpd);
 }
 
 function writeRoute(prefix, perAcct, hpd, accts){
   var rph = perAcct * accts;
-  document.getElementById(prefix+"-rph").textContent = brl(rph);
-  document.getElementById(prefix+"-rpd").textContent = brl(rph * hpd);
-  document.getElementById(prefix+"-rpm").textContent = brl(rph * hpd * 30) + " / mês";
+  var ok = perAcct > 0 && accts > 0;
+  document.getElementById(prefix+"-rpd").textContent = ok ? brl(rph * hpd) : "—";
+  document.getElementById(prefix+"-rph").textContent = ok ? brl(rph) : "—";
+  document.getElementById(prefix+"-rpm").textContent = ok ? brl(rph * hpd * 30) : "—";
+}
+
+function writeSpeed(prefix, cycleHours, continuo){
+  var el = document.getElementById(prefix+"-speed");
+  if(continuo){ el.innerHTML = '<span style="color:var(--green)">⚡ gira rápido — saca quando quiser</span>'; return; }
+  if(!isFinite(cycleHours) || cycleHours <= 0){ el.innerHTML = ""; return; }
+  var color = cycleHours <= 12 ? "var(--green)" : (cycleHours <= 24 ? "var(--gold)" : "var(--red)");
+  var label = cycleHours <= 12 ? "ciclo curto" : (cycleHours <= 24 ? "ciclo médio" : "ciclo longo");
+  el.innerHTML = '<span style="color:'+color+'">🕒 '+label+' — 1º R$ em ~'+formatTime(cycleHours)+'</span>';
+}
+
+function markBest(routes){
+  routes.forEach(function(r){ document.getElementById(r.prefix+"-badge").textContent = ""; });
+  var best = null;
+  routes.forEach(function(r){ if(r.perAcct > 0 && (!best || r.perAcct > best.perAcct)) best = r; });
+  if(best) document.getElementById(best.prefix+"-badge").textContent = "★ MELHOR AGORA";
+}
+
+function writeHeadline(routes, accts, hpd){
+  var el = document.getElementById("headline");
+  var sorted = routes.slice().sort(function(a,b){ return b.perAcct - a.perAcct; });
+  var best = sorted[0];
+  if(!best || best.perAcct <= 0 || accts <= 0 || hpd <= 0){
+    el.innerHTML = "Preencha os campos abaixo com o que você vê no jogo hoje — a calculadora responde aqui quanto renderia no seu caso.";
+    return;
+  }
+  var perDay = best.perAcct * accts * hpd;
+  el.innerHTML = "Com <b>"+fmt(accts)+"</b> conta(s) jogando <b>"+fmt(hpd)+"h/dia</b>, na melhor rota (<b>"+best.name+"</b>) você tiraria "+
+                 "<span class='big'>"+brl(perDay)+"</span> por dia.";
 }
 
 function buildSummary(routes, hpd){
@@ -386,12 +471,13 @@ function buildSummary(routes, hpd){
   var body = document.getElementById("summary-body");
   body.innerHTML = "";
   sorted.forEach(function(row, i){
-    var cls = i===0 ? "rank-1" : "";
+    var ok = row.perAcct > 0;
+    var cls = (i===0 && ok) ? "rank-1" : "";
     var tr = document.createElement("tr");
     tr.innerHTML =
-      '<td class="'+cls+'">'+(i===0 ? "▶ " : "")+row.name+'</td>'+
-      '<td class="num '+cls+'">'+brl(row.perAcct)+'</td>'+
-      '<td class="num '+cls+'">'+brl(row.perAcct * hpd * 30)+'</td>';
+      '<td class="'+cls+'">'+((i===0 && ok) ? "▶ " : "")+row.name+'</td>'+
+      '<td class="num '+cls+'">'+(ok ? brl(row.perAcct) : "—")+'</td>'+
+      '<td class="num '+cls+'">'+(ok ? brl(row.perAcct * hpd * 30) : "—")+'</td>';
     body.appendChild(tr);
   });
 }
@@ -406,6 +492,10 @@ function buildRecommendation(routes, accts, hpd){
 
   var sorted = routes.slice().sort(function(a,b){ return b.perAcct - a.perAcct; });
   var best = sorted[0], second = sorted[1];
+  if(!best || best.perAcct <= 0){
+    box.innerHTML = '<p class="foot-note" style="margin:0">Preencha os preços das rotas pra ver a melhor divisão das contas.</p>';
+    return;
+  }
   var optimalMonth = best.perAcct * accts * hpd * 30;
 
   var html = '<div class="reco-title">ALOCAÇÃO ÓTIMA (com os valores atuais)</div>';
@@ -429,8 +519,52 @@ function buildRecommendation(routes, accts, hpd){
   box.innerHTML = html;
 }
 
+/* ---------- persistência + compartilhamento ---------- */
+function saveState(){
+  var o = {};
+  FIELDS.forEach(function(id){ o[id] = document.getElementById(id).value; });
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(o)); }catch(e){}
+}
+function loadState(){
+  var params = new URLSearchParams(location.search);
+  var used = false;
+  FIELDS.forEach(function(id){
+    if(params.has(id)){ document.getElementById(id).value = params.get(id); used = true; }
+  });
+  if(used){ saveState(); return; }
+  try{
+    var raw = localStorage.getItem(LS_KEY);
+    if(!raw) return;
+    var o = JSON.parse(raw);
+    FIELDS.forEach(function(id){ if(o[id] != null) document.getElementById(id).value = o[id]; });
+  }catch(e){}
+}
+function copiarCenario(){
+  var params = new URLSearchParams();
+  FIELDS.forEach(function(id){
+    var v = document.getElementById(id).value;
+    if(v !== "") params.set(id, v);
+  });
+  var url = location.origin + location.pathname + "?" + params.toString();
+  var btn = document.getElementById("btnShare");
+  function ok(){ btn.textContent = "✓ link copiado!"; setTimeout(function(){ btn.textContent = "🔗 copiar meu cenário"; }, 2000); }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(ok).catch(function(){ prompt("Copie o link do seu cenário:", url); });
+  } else {
+    prompt("Copie o link do seu cenário:", url);
+  }
+}
+function limparCampos(){
+  FIELDS.forEach(function(id){ document.getElementById(id).value = ""; });
+  try{ localStorage.removeItem(LS_KEY); }catch(e){}
+  calcRarity();
+  calcRoutes();
+}
+
+/* ---------- init ---------- */
 document.getElementById("maxLabel").textContent = MAX_CONTAS;
 buildRarityTable();
+loadState();
 calcRarity();
 calcRoutes();
 
@@ -438,6 +572,11 @@ document.getElementById("catches").addEventListener("input", calcRarity);
 document.querySelectorAll(".route input, .shared input").forEach(function(inp){
   inp.addEventListener("input", calcRoutes);
 });
+FIELDS.forEach(function(id){
+  document.getElementById(id).addEventListener("input", saveState);
+});
+document.getElementById("btnShare").addEventListener("click", copiarCenario);
+document.getElementById("btnClear").addEventListener("click", limparCampos);
 </script>
 </body>
 </html>

@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" href="/favicon.png">
+<meta name="theme-color" content="#f0b429">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Como negociar com segurança — PokeCentral</title>
+<meta name="description" content="Como comprar e vender Pokémon do Poke Idle World sem tomar golpe: o passo a passo de uma negociação segura e os sinais de golpe pra desconfiar.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12100c; --panel:#1c1812; --panel2:#26201a; --panel3:#332a20;
+    --line:#4a3c28; --line2:#6b5637;
+    --gold:#f0b429; --green:#8fc45a; --red:#d4593f; --blue:#4a90c2; --purple:#a878c4;
+    --text:#f2e8d5; --muted:#a89880; --faint:#736450;
+    --px:'Press Start 2P',monospace; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--bg);
+    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 3px);
+    color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.7;padding:0 16px 60px;
+  }
+  .wrap{max-width:900px;margin:0 auto;}
+
+  .nav{
+    display:flex;gap:2px;flex-wrap:wrap;align-items:stretch;
+    border:2px solid var(--line);background:var(--panel);margin:14px 0 22px;
+  }
+  .nav a{
+    font-family:var(--px);font-size:8px;letter-spacing:.05em;
+    color:var(--muted);text-decoration:none;padding:12px 13px;
+    border-right:2px solid var(--line);display:flex;align-items:center;
+  }
+  .nav a:last-child{border-right:none;}
+  .nav a:hover{background:var(--panel2);color:var(--gold);}
+  .nav a.on{background:var(--panel2);color:var(--gold);box-shadow:inset 0 -3px 0 var(--gold);}
+  .nav a.home{color:var(--gold);}
+  .nav a.wa{margin-left:auto;color:var(--green);border-right:none;border-left:2px solid var(--line);}
+  .nav a.wa:hover{background:var(--green);color:var(--bg);}
+  @media(max-width:620px){ .nav a{font-size:7px;padding:10px;} .nav a.wa{margin-left:0;} }
+
+  .back{display:inline-block;font-family:var(--px);font-size:8px;color:var(--faint);text-decoration:none;padding:14px 0 12px;}
+  .back:hover{color:var(--gold);}
+
+  header{border:2px solid var(--line);background:var(--panel);padding:20px;margin-bottom:24px;}
+  h1{font-family:var(--px);font-size:clamp(13px,2.6vw,17px);margin:0 0 12px;line-height:1.5;}
+  h1 span{color:var(--gold);}
+  header p{color:var(--muted);font-size:13px;margin:0;max-width:680px;}
+
+  .sec-head{display:flex;align-items:center;gap:10px;margin:0 0 14px;}
+  .sec-head h2{font-family:var(--px);font-size:11px;margin:0;}
+  .sec-head .rule{flex:1;height:2px;background:var(--line);}
+  section{margin-bottom:34px;}
+
+  ol.steps{list-style:none;counter-reset:s;margin:0;padding:0;}
+  ol.steps li{
+    counter-increment:s;position:relative;border:2px solid var(--line);background:var(--panel);
+    padding:14px 16px 14px 56px;margin-bottom:12px;font-size:13px;color:var(--muted);line-height:1.65;
+  }
+  ol.steps li::before{
+    content:counter(s);position:absolute;left:14px;top:13px;
+    font-family:var(--px);font-size:12px;color:var(--bg);background:var(--gold);
+    width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  }
+  ol.steps b{color:var(--text);}
+
+  ul.flags{list-style:none;margin:0;padding:0;}
+  ul.flags li{
+    border:2px solid var(--line);border-left:4px solid var(--red);background:var(--panel);
+    padding:12px 14px;margin-bottom:10px;font-size:13px;color:var(--muted);line-height:1.6;
+  }
+  ul.flags li b{color:var(--red);}
+
+  .guard{border:2px solid var(--green);background:rgba(143,196,90,.06);padding:16px 18px;}
+  .guard h3{font-family:var(--px);font-size:9px;color:var(--green);margin:0 0 12px;letter-spacing:.04em;}
+  .guard ul{list-style:none;margin:0;padding:0;}
+  .guard li{padding:8px 0;border-top:2px solid var(--line);font-size:12.5px;color:var(--muted);line-height:1.6;}
+  .guard li:first-child{border-top:none;}
+  .guard li b{color:var(--text);}
+  .guard a{color:var(--green);}
+
+  .cta{
+    display:flex;gap:12px;flex-wrap:wrap;margin-top:24px;
+  }
+  .cta a{
+    font-family:var(--px);font-size:8px;letter-spacing:.04em;text-decoration:none;padding:13px 16px;
+    border:2px solid var(--line2);color:var(--text);
+  }
+  .cta a:hover{border-color:var(--gold);color:var(--gold);}
+  .cta a.wa{border-color:var(--green);color:var(--green);}
+  .cta a.wa:hover{background:var(--green);color:var(--bg);}
+
+  .foot-note{color:var(--faint);font-size:11.5px;line-height:1.7;margin-top:26px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav">
+    <a class="home" href="/index.html">▪ POKECENTRAL</a>
+    <a href="/rentabilidade.html">QUANTO RENDE</a>
+    <a href="/preco.html">QUANTO VALE</a>
+    <a href="/vitrine.html">LOJA</a>
+    <a href="/leilao.html">LEILAO</a>
+    <a class="wa" href="https://wa.me/5511959404657?text=Ol%C3%A1!%20Vim%20pelo%20PokeCentral." target="_blank" rel="noopener">WHATSAPP</a>
+  </nav>
+
+  <a class="back" href="/">◀ VOLTAR PRO HUB</a>
+
+  <header>
+    <h1>Como negociar com <span>segurança</span></h1>
+    <p>
+      Comprar e vender item de jogo por dinheiro real funciona — mas é onde mais tem golpe. Esta página mostra
+      como uma negociação séria acontece e quais são os sinais de que tem coisa errada. Vale pra negociar comigo
+      <b>ou com qualquer pessoa</b>.
+    </p>
+  </header>
+
+  <section>
+    <div class="sec-head"><h2>Como funciona uma negociação</h2><div class="rule"></div></div>
+    <ol class="steps">
+      <li><b>Combina tudo antes, por escrito.</b> Item, preço, forma de pagamento e quem envia o quê. Nada de "a gente vê na hora" — o combinado fica registrado no chat.</li>
+      <li><b>Valor alto? Usa um intermediário (MM) confiável.</b> Um mediador que a comunidade reconhece segura o pagamento e/ou o item até os dois lados cumprirem. Ele é quem elimina o risco — não a "confiança na palavra".</li>
+      <li><b>Define quem envia primeiro e cumpre.</b> Sem intermediário, alguém precisa dar o primeiro passo — combine isso claramente. Com intermediário, ninguém precisa arriscar: ele libera quando os dois entregam.</li>
+      <li><b>Print de tudo.</b> Da combinação, do pagamento e da entrega. Se der problema, é a sua prova — e some com "não foi isso que a gente falou".</li>
+      <li><b>Confere o handle real.</b> Golpista se passa por gente conhecida com nome quase igual. Confirma o usuário do Discord de verdade antes de mandar qualquer coisa.</li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Sinais de golpe — desconfie</h2><div class="rule"></div></div>
+    <ul class="flags">
+      <li><b>"Paga por fora do intermediário."</b> O golpe mais comum. Quem foge do mediador é porque quer poder sumir. Negociação séria não tem medo de MM.</li>
+      <li><b>Pressa artificial.</b> "É só agora", "tem outro comprador esperando". Pressa serve pra você não pensar. Quem é reto te dá tempo.</li>
+      <li><b>Preço bom demais pra ser verdade.</b> Geralmente é. Compara com a <a href="/preco.html" style="color:var(--gold)">calculadora de preço</a> antes.</li>
+      <li><b>Conta nova, sem histórico, ou nome "parecido" com o de alguém conhecido.</b> Impersonação é clássico. Cadê os vouches? Cadê o histórico?</li>
+      <li><b>Pede senha, código de login ou dado sensível.</b> Ninguém precisa disso pra te vender um Pokémon. Nunca entregue acesso à sua conta.</li>
+      <li><b>Muda a combinação na hora H.</b> Combinaram X, na entrega virou Y. Para tudo — negocia do zero ou desiste.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Suas garantias aqui</h2><div class="rule"></div></div>
+    <div class="guard">
+      <h3>▸ Por que o PokeCentral é seguro pra você</h3>
+      <ul>
+        <li><b>Leilão com lances públicos e imutáveis.</b> Cada lance fica gravado no banco com horário do servidor — ninguém edita nem apaga, <b>nem eu</b>. Lance fora da regra aparece riscado, não some. Nada é escondido. <a href="/leilao.html">Ver o leilão ▸</a></li>
+        <li><b>Preços com ressalva honesta.</b> A calculadora fala quando um preço é validado pelo mercado e quando é estimativa. Você não paga por "achismo disfarçado de tabela".</li>
+        <li><b>Reputação à vista.</b> Vendas fechadas e recomendações ficam públicas no nosso Discord — quem comprou fala, com o próprio nome. Reputação não se inventa.</li>
+        <li><b>Intermediário pra valores altos.</b> Se o negócio for grande, a gente usa MM sem drama. Prefiro perder a venda a te deixar exposto.</li>
+      </ul>
+    </div>
+
+    <div class="cta">
+      <a class="wa" href="https://wa.me/5511959404657?text=Ol%C3%A1!%20Quero%20negociar%20com%20seguran%C3%A7a%20pelo%20PokeCentral." target="_blank" rel="noopener">FALAR NO WHATSAPP</a>
+      <a href="/vitrine.html">VER A LOJA</a>
+      <a href="/leilao.html">VER O LEILAO</a>
+    </div>
+  </section>
+
+  <p class="foot-note">
+    Nenhuma regra elimina 100% do risco em negociação P2P — mas seguir os passos acima elimina quase todo. Na dúvida, use intermediário
+    e confirme o pagamento antes de entregar. O jogo está em beta e reseta no lançamento: gire rápido, não acumule.
+  </p>
+
+</div>
+</body>
+</html>
