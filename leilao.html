@@ -1,10 +1,13 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" href="/favicon.png">
+<meta name="theme-color" content="#f0b429">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Leilão — PokeCentral</title>
-<meta name="description" content="Leilão de Pokémon do Poke Idle World: lances públicos e imutáveis, cronômetro e regras à vista.">
+<meta name="description" content="Leilão de Pokémon do Poke Idle World: lances públicos e imutáveis, cronômetro ao vivo e regras à vista.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -51,7 +54,6 @@
   .rules li::marker{color:var(--gold);}
   .rules b{color:var(--text);}
 
-  /* sessão do participante */
   .me{
     display:flex;gap:12px;align-items:center;flex-wrap:wrap;
     border:2px solid var(--line);background:var(--panel);padding:12px 15px;margin-bottom:22px;font-size:12.5px;color:var(--muted);
@@ -94,8 +96,10 @@
   .bid-val{font-family:var(--px);font-size:14px;color:var(--gold);}
   .bid-val.small{font-size:9px;color:var(--muted);}
   .clock{font-family:var(--px);font-size:11px;color:var(--green);}
-  .clock.urgent{color:var(--red);}
+  .clock.soon{color:var(--gold);}
+  .clock.urgent{color:var(--red);animation:pisca 1s steps(2) infinite;}
   .clock.over{color:var(--faint);}
+  @keyframes pisca{50%{opacity:.45;}}
 
   .bid-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
   .bid-form input{
@@ -148,6 +152,18 @@
     font-family:var(--mono);font-size:12.5px;padding:8px 9px;outline:none;
   }
   .ed-grid input:focus{border-color:var(--gold);}
+
+  .dur-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
+  .dur{
+    font-family:var(--px);font-size:7.5px;padding:9px 10px;cursor:pointer;
+    background:transparent;border:2px solid var(--line);color:var(--muted);
+  }
+  .dur:hover{border-color:var(--gold);color:var(--gold);}
+  .dur.on{background:var(--gold);color:var(--bg);border-color:var(--gold);}
+  .dur-row input{width:170px;}
+  .dur-out{font-size:11.5px;color:var(--faint);margin-bottom:8px;}
+  .dur-out b{color:var(--gold);}
+
   .login-box{max-width:340px;margin:0 auto;}
   .login-box input{width:100%;background:var(--panel2);border:2px solid var(--line);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px;outline:none;margin-bottom:10px;}
   .login-box input:focus{border-color:var(--gold);}
@@ -262,16 +278,31 @@
           <div><label>Lance inicial (R$)</label><input type="number" id="lInicial" step="0.5" placeholder="30"></div>
           <div><label>Incremento (R$)</label><input type="number" id="lIncr" step="0.5" value="2"></div>
           <div><label>Reserva (opcional)</label><input type="number" id="lReserva" step="0.5" placeholder="vazio = sem reserva"></div>
-          <div><label>Encerra em</label><input type="datetime-local" id="lFim"></div>
           <div><label>pokeId (opcional)</label><input type="number" id="lPokeId" placeholder="76"></div>
+
+          <div style="grid-column:1/-1">
+            <label>Duração do leilão</label>
+            <div class="dur-row">
+              <button type="button" class="dur" data-h="6">6H</button>
+              <button type="button" class="dur" data-h="12">12H</button>
+              <button type="button" class="dur" data-h="24">24H</button>
+              <button type="button" class="dur" data-h="48">48H</button>
+              <button type="button" class="dur" data-h="72">3 DIAS</button>
+              <input type="number" id="lHoras" min="1" step="1" placeholder="ou digite as horas">
+            </div>
+            <div class="dur-out" id="durOut"></div>
+            <input type="datetime-local" id="lFim">
+          </div>
+
           <div style="grid-column:1/-1"><label>Observação</label><input type="text" id="lObs" placeholder="meta forte, já no nível 100"></div>
         </div>
+
         <button class="btn go" id="btnCriar">+ ABRIR LEILÃO</button>
         <div class="msg" id="admMsg"></div>
       </div>
 
       <div class="ed-panel">
-        <div class="ed-title">LOTES ABERTOS</div>
+        <div class="ed-title">LOTES</div>
         <table class="mg">
           <thead><tr><th>Nome</th><th>IV</th><th>Encerra</th><th>Lances</th><th></th></tr></thead>
           <tbody id="mgBody"></tbody>
@@ -292,13 +323,13 @@
 /* ================= CONFIGURAÇÃO ================= */
 var SUPABASE_URL = 'https://gimluwxoaxfxpbcfosrj.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpbWx1d3hvYXhmeHBiY2Zvc3JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MDIxMzYsImV4cCI6MjA5OTk3ODEzNn0.uT05zvrnqU_sLnVQBFpHkw7TJL-WBUDaSqJ26RVPaSE';
-var WHATSAPP = '5511959404657';   /* <-- TROQUE PELO SEU NÚMERO */
+var WHATSAPP = '5511999999999';   /* <-- TROQUE PELO SEU NÚMERO */
 var EXTENSAO_MIN = 5;             /* anti-sniping, em minutos */
 /* =============================================== */
 
 var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 var $ = function(id){ return document.getElementById(id); };
-var lotes = [], lances = [], sessao = null, arquivo = null, tickTimer = null;
+var lotes = [], lances = [], sessao = null, arquivo = null;
 
 function brl(n){ return 'R$ ' + Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -318,15 +349,16 @@ function aviso(el, txt, tipo){
 }
 function lerNomeArquivo(n){
   var arq = String(n||'').split('/').pop().replace(/\.(png|jpg|jpeg|webp|gif)$/i,'');
-  var m = arq.match(/^(.+?)Q(\d{2,4})IV(\d{1,3})(?:N(\d{1,3}))?$/);
+  var m = arq.match(/^([A-Za-z .'-]+?)Q?(\d{2,4})IV(\d{1,3})(?:N(\d{1,4}))?$/i);
   if(!m) return null;
   var q = m[2];
-  return { nome:m[1].replace(/([a-z])([A-Z])/g,'$1 $2').trim(),
-           qualidade:(q.length>=4?+q/1000:+q/100).toFixed(2), iv:+m[3], nivel:m[4]?+m[4]:null };
+  var nome = m[1].replace(/([a-z])([A-Z])/g,'$1 $2').trim();
+  nome = nome.charAt(0).toUpperCase() + nome.slice(1);
+  return { nome:nome, qualidade:(q.length>=4?+q/1000:+q/100).toFixed(2), iv:+m[3], nivel:m[4]?+m[4]:null };
 }
 $('navWa').href = 'https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent('Olá! Vim pelo leilão do PokeCentral.');
 
-/* ---------- apuração (mesma regra pra todo mundo) ---------- */
+/* ---------- apuração ---------- */
 function apurar(lote){
   var ext = EXTENSAO_MIN * 60000;
   var fim = new Date(lote.fim).getTime();
@@ -399,13 +431,8 @@ function renderMe(){
   }
 }
 
-sb.auth.getSession().then(function(r){
-  sessao = r.data.session;
-  renderMe(); mostrarAdmin();
-});
-sb.auth.onAuthStateChange(function(_e, s){
-  sessao = s; renderMe(); mostrarAdmin(); render();
-});
+sb.auth.getSession().then(function(r){ sessao = r.data.session; renderMe(); mostrarAdmin(); });
+sb.auth.onAuthStateChange(function(_e, s){ sessao = s; renderMe(); mostrarAdmin(); render(); });
 
 /* ---------- render público ---------- */
 function render(){
@@ -430,7 +457,8 @@ function render(){
       var s = Math.floor(resta/1000), d = Math.floor(s/86400),
           h = Math.floor(s%86400/3600), mi = Math.floor(s%3600/60), ss = s%60;
       var txt = d>0 ? d+'d '+h+'h '+mi+'m' : (h>0 ? h+'h '+mi+'m '+ss+'s' : mi+'m '+ss+'s');
-      relogio = '<span class="clock'+(resta < 15*60000 ? ' urgent':'')+'">'+txt+'</span>';
+      var cls = resta < 15*60000 ? ' urgent' : (resta < 60*60000 ? ' soon' : '');
+      relogio = '<span class="clock'+cls+'">'+txt+'</span>';
     }
 
     var area;
@@ -540,11 +568,7 @@ function mostrarAdmin(){
     $('loginPanel').style.display = 'none';
     $('areaAdmin').style.display = 'block';
     $('admEmail').textContent = sessao.user.email;
-    if(!$('lFim').value){
-      var d = new Date(Date.now()+48*3600000); d.setMinutes(0,0,0);
-      $('lFim').value = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+
-                        String(d.getDate()).padStart(2,'0')+'T'+String(d.getHours()).padStart(2,'0')+':00';
-    }
+    if(!$('lFim').value) aplicarDuracao(48);
     renderAdmin();
   } else {
     $('loginPanel').style.display = 'block';
@@ -564,6 +588,48 @@ $('btnLogin').addEventListener('click', function(){
 $('senha').addEventListener('keydown', function(e){ if(e.key==='Enter') $('btnLogin').click(); });
 $('btnSair').addEventListener('click', function(){ sb.auth.signOut(); });
 
+/* ---------- duração ---------- */
+function aplicarDuracao(horas){
+  if(!horas || horas <= 0) return;
+  var d = new Date(Date.now() + horas*3600000);
+  d.setSeconds(0,0);
+  $('lFim').value = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+
+                    String(d.getDate()).padStart(2,'0')+'T'+
+                    String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  mostrarFim();
+}
+
+function mostrarFim(){
+  var v = $('lFim').value;
+  if(!v){ $('durOut').textContent = ''; return; }
+  var d = new Date(v);
+  var dias = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'][d.getDay()];
+  var horas = Math.round((d.getTime() - Date.now())/3600000);
+  $('durOut').innerHTML = 'encerra <b>' + dias + ', ' +
+    String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' às '+
+    String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+'</b>' +
+    (horas > 0 ? ' · daqui a ~'+horas+'h' : ' · <span style="color:var(--red)">no passado!</span>');
+}
+
+document.querySelectorAll('.dur').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('.dur').forEach(function(x){ x.classList.remove('on'); });
+    this.classList.add('on');
+    $('lHoras').value = '';
+    aplicarDuracao(parseInt(this.dataset.h));
+  });
+});
+$('lHoras').addEventListener('input', function(){
+  document.querySelectorAll('.dur').forEach(function(x){ x.classList.remove('on'); });
+  aplicarDuracao(parseFloat(this.value));
+});
+$('lFim').addEventListener('input', function(){
+  document.querySelectorAll('.dur').forEach(function(x){ x.classList.remove('on'); });
+  $('lHoras').value = '';
+  mostrarFim();
+});
+
+/* ---------- upload ---------- */
 $('drop').addEventListener('click', function(){ $('fileInput').click(); });
 $('drop').addEventListener('dragover', function(e){ e.preventDefault(); this.classList.add('over'); });
 $('drop').addEventListener('dragleave', function(){ this.classList.remove('over'); });
@@ -590,12 +656,14 @@ function usarArquivo(file){
   }
 }
 
+/* ---------- criar lote ---------- */
 $('btnCriar').addEventListener('click', function(){
   var btn = this;
   var nome = $('lNome').value.trim();
   var inicial = parseFloat($('lInicial').value) || 0;
   var fim = $('lFim').value;
-  if(!nome || !inicial || !fim){ aviso($('admMsg'), 'preencha nome, lance inicial e encerramento', 'err'); return; }
+  if(!nome || !inicial || !fim){ aviso($('admMsg'), 'preencha nome, lance inicial e duração', 'err'); return; }
+  if(new Date(fim).getTime() <= Date.now()){ aviso($('admMsg'), 'a data de encerramento já passou', 'err'); return; }
 
   btn.disabled = true;
   aviso($('admMsg'), 'criando…', '');
@@ -622,8 +690,10 @@ $('btnCriar').addEventListener('click', function(){
     });
   }).then(function(r){
     if(r.error) throw r.error;
-    ['lNome','lQual','lIv','lNivel','lInicial','lReserva','lPokeId','lObs'].forEach(function(i){ $(i).value=''; });
+    ['lNome','lQual','lIv','lNivel','lInicial','lReserva','lPokeId','lObs','lHoras'].forEach(function(i){ $(i).value=''; });
+    document.querySelectorAll('.dur').forEach(function(x){ x.classList.remove('on'); });
     arquivo = null; $('preview').style.display='none'; $('fileInput').value='';
+    aplicarDuracao(48);
     aviso($('admMsg'), '✓ leilão aberto', 'ok');
     btn.disabled = false;
     return carregar();
@@ -641,9 +711,10 @@ function renderAdmin(){
   }
   body.innerHTML = lotes.map(function(l){
     var n = lances.filter(function(b){ return b.lote_id===l.id; }).length;
+    var aberto = new Date(l.fim).getTime() > Date.now();
     return '<tr data-id="'+l.id+'">'+
       '<td>'+esc(l.nome)+'</td><td>'+esc(l.iv)+'</td>'+
-      '<td style="color:var(--muted)">'+hora(new Date(l.fim))+'</td>'+
+      '<td style="color:'+(aberto?'var(--green)':'var(--faint)')+'">'+hora(new Date(l.fim))+'</td>'+
       '<td>'+n+'</td>'+
       '<td style="width:1%"><button class="mini rm" data-a="del">APAGAR</button></td></tr>';
   }).join('');
@@ -663,8 +734,8 @@ function renderAdmin(){
 
 /* ---------- ciclo ---------- */
 carregar();
-tickTimer = setInterval(render, 1000);          // cronômetro
-setInterval(carregar, 15000);                    // busca lances novos
+setInterval(render, 1000);      // cronômetro ao vivo
+setInterval(carregar, 15000);   // busca lances novos
 </script>
 </body>
 </html>
