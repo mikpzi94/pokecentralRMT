@@ -478,14 +478,14 @@ function nomeDiscord(s){
   return m.full_name || m.name || m.user_name || m.preferred_username || (s && s.user ? s.user.email : '') || 'anônimo';
 }
 
-/* login com Discord — permissão mínima (só nome/avatar, sem e-mail) */
+/* login com Discord — o Supabase usa o e-mail como id da conta, então o scope é identify + email */
 function entrarComDiscord(){
   sb.auth.signInWithOAuth({
     provider: 'discord',
-    options: { redirectTo: location.href, scopes: 'identify' }
+    options: { redirectTo: location.href, scopes: 'identify email' }
   });
 }
-var TRUST_LOGIN = '<div class="trust-login">🔒 <b>Seguro:</b> ao entrar, o Discord mostra que o site pede só <b>seu nome e foto</b> — nunca sua senha, suas mensagens ou seus servidores. É só pra registrar quem deu cada lance. Você revoga quando quiser em <b>Discord › Configurações › Aplicativos Autorizados</b>.</div>';
+var TRUST_LOGIN = '<div class="trust-login">🔒 <b>Seguro:</b> o Discord pede só <b>seu nome, foto e e-mail</b> — nunca sua senha, suas mensagens ou seus servidores (a própria tela do Discord confirma isso). O e-mail serve só pra identificar sua conta: <b>não mando spam nem repasso pra ninguém</b>. É tudo pra registrar quem deu cada lance, e você revoga quando quiser em <b>Discord › Configurações › Aplicativos Autorizados</b>.</div>';
 
 function renderMe(){
   var el = $('me');
