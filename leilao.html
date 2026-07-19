@@ -64,6 +64,11 @@
     background:transparent;border:2px solid var(--discord);color:var(--discord);
   }
   .btn-discord:hover{background:var(--discord);color:var(--bg);}
+  .trust-login{
+    flex-basis:100%;font-size:11.5px;color:var(--faint);line-height:1.65;
+    border-top:2px solid var(--line);padding-top:10px;margin-top:4px;
+  }
+  .trust-login b{color:var(--text);}
   .me input{
     background:var(--panel2);border:2px solid var(--line);color:var(--text);
     font-family:var(--mono);font-size:12px;padding:7px 9px;outline:none;width:150px;
@@ -112,6 +117,17 @@
   }
   .bid-btn:hover{background:var(--green);color:var(--bg);}
   .bid-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  .quick-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;}
+  .quick-bid, .buy-now{
+    font-family:var(--px);font-size:8px;letter-spacing:.03em;padding:9px 12px;cursor:pointer;
+  }
+  .quick-bid{background:var(--panel3);border:2px solid var(--line2);color:var(--text);}
+  .quick-bid:hover{border-color:var(--green);color:var(--green);}
+  .buy-now{background:var(--gold);border:2px solid var(--gold);color:var(--bg);}
+  .buy-now:hover{background:transparent;color:var(--gold);}
+  .quick-bid:disabled, .buy-now:disabled{opacity:.4;cursor:not-allowed;}
+
   .min-note{font-size:11.5px;color:var(--faint);margin-top:9px;}
   .min-note b{color:var(--gold);}
   .bid-msg{font-size:12px;margin-top:9px;}
@@ -146,11 +162,24 @@
   .ed-title{font-family:var(--px);font-size:9px;color:var(--gold);margin:0 0 14px;}
   .ed-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;align-items:end;margin-bottom:12px;}
   .ed-grid label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:5px;}
-  .ed-grid input{
+  .ed-grid input, .ed-grid select{
     width:100%;background:var(--panel2);border:2px solid var(--line);color:var(--text);
     font-family:var(--mono);font-size:12.5px;padding:8px 9px;outline:none;
   }
-  .ed-grid input:focus{border-color:var(--gold);}
+  .ed-grid input:focus, .ed-grid select:focus{border-color:var(--gold);}
+
+  .sug{border:2px solid var(--gold);background:rgba(240,180,41,.06);padding:13px 14px;}
+  .sug-head{font-family:var(--px);font-size:8px;letter-spacing:.05em;color:var(--gold);margin-bottom:11px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .sug-head span{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:0;}
+  .sug-vals{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:12.5px;color:var(--muted);margin-bottom:12px;}
+  .sug-vals b{color:var(--text);}
+  .sug-vals .big{color:var(--gold);}
+  .btn-sug{
+    font-family:var(--px);font-size:8px;letter-spacing:.05em;cursor:pointer;
+    background:var(--gold);color:var(--bg);border:2px solid var(--gold);padding:9px 13px;
+  }
+  .btn-sug:hover{background:transparent;color:var(--gold);}
+  .sug-hint{font-size:11px;color:var(--faint);margin-top:9px;line-height:1.6;}
 
   .dur-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
   .dur{
@@ -223,7 +252,7 @@
       <li>Encerrado o prazo, o maior lance válido ganha. <b>Eu chamo o vencedor</b> pelo Discord.</li>
       <li>O vencedor tem <b>24 horas</b> pra fechar. Passou, passo pro segundo colocado.</li>
       <li>Lance é compromisso. Quem der calote não participa dos próximos.</li>
-      <li>Se o lote tiver <b>reserva</b> (preço mínimo), está escrito no lote. Não existe reserva escondida aqui.</li>
+      <li>Se o lote tiver <b>⚡ Compre já</b>, quem pagar esse valor <b>arremata na hora</b> e encerra o leilão — não precisa esperar o prazo.</li>
     </ol>
   </div>
 
@@ -274,9 +303,30 @@
           <div><label>Qualidade</label><input type="text" id="lQual" placeholder="1.70"></div>
           <div><label>IV</label><input type="number" id="lIv" max="192" placeholder="170"></div>
           <div><label>Nível</label><input type="number" id="lNivel" placeholder="100"></div>
+          <div><label>Demanda</label>
+            <select id="lDemanda">
+              <option value="1.0" selected>Normal</option>
+              <option value="0.7">Baixa</option>
+              <option value="1.3">Alta</option>
+              <option value="1.6">Muito alta</option>
+            </select>
+          </div>
+          <div><label>Shiny?</label>
+            <select id="lShiny"><option value="0" selected>Não</option><option value="1">Sim ✨</option></select>
+          </div>
+
+          <div style="grid-column:1/-1">
+            <div class="sug" id="sugBox" style="display:none">
+              <div class="sug-head">💡 PREÇO SUGERIDO <span id="sugWhy"></span></div>
+              <div class="sug-vals" id="sugVals"></div>
+              <button type="button" class="btn-sug" id="btnSug">usar sugestão ▸</button>
+              <div class="sug-hint">Preenche lance inicial, incremento e compre já com base na calculadora. Você pode editar tudo depois.</div>
+            </div>
+          </div>
+
           <div><label>Lance inicial (R$)</label><input type="number" id="lInicial" step="0.5" placeholder="30"></div>
           <div><label>Incremento (R$)</label><input type="number" id="lIncr" step="0.5" value="2"></div>
-          <div><label>Reserva (opcional)</label><input type="number" id="lReserva" step="0.5" placeholder="vazio = sem reserva"></div>
+          <div><label>Compre já (opcional)</label><input type="number" id="lPrecoJa" step="0.5" placeholder="vazio = sem arremate"></div>
           <div><label>pokeId (opcional)</label><input type="number" id="lPokeId" placeholder="76"></div>
 
           <div style="grid-column:1/-1">
@@ -318,6 +368,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="pricing.js"></script>
 <script>
 /* ================= CONFIGURAÇÃO ================= */
 var SUPABASE_URL = 'https://gimluwxoaxfxpbcfosrj.supabase.co';
@@ -328,7 +379,7 @@ var EXTENSAO_MIN = 5;             /* anti-sniping, em minutos */
 
 var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 var $ = function(id){ return document.getElementById(id); };
-var lotes = [], lances = [], sessao = null, arquivo = null, estadoAberto = {};
+var lotes = [], lances = [], sessao = null, arquivo = null, estadoAberto = {}, sugAtual = null;
 
 function brl(n){ return 'R$ ' + Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -375,19 +426,28 @@ function apurar(lote){
     .map(function(b){ return { ref:b, data:new Date(b.criado_em), valor:Number(b.valor) }; })
     .sort(function(a,b){ return a.data - b.data; });
 
-  var validos = [], atual = 0;
+  var precoJa = Number(lote.preco_ja) || 0;   /* 0 = sem "compre já" */
+  var validos = [], atual = 0, arrematado = false;
   meus.forEach(function(b){
+    if(arrematado){ b.ok=false; b.motivo='após arremate'; return; }
     if(b.data.getTime() > fim){ b.ok=false; b.motivo='fora do prazo'; return; }
     var minimo = validos.length===0 ? Number(lote.lance_inicial) : atual + Number(lote.incremento);
     if(b.valor >= minimo){
       b.ok = true; atual = b.valor; validos.push(b);
-      if(b.data.getTime() > fim - ext) fim = b.data.getTime() + ext;
+      if(precoJa && b.valor >= precoJa){        /* compre já: fecha na hora */
+        arrematado = true; fim = b.data.getTime();
+      } else if(b.data.getTime() > fim - ext){  /* anti-sniping normal */
+        fim = b.data.getTime() + ext;
+      }
     } else { b.ok=false; b.motivo='abaixo do mínimo'; }
   });
 
-  return { fim:fim, todos:meus, validos:validos, atual:atual,
+  var proximo = validos.length ? atual + Number(lote.incremento) : Number(lote.lance_inicial);
+  return { fim:fim, todos:meus, validos:validos, atual:atual, arrematado:arrematado,
+           precoJa: precoJa,
+           jaAtivo: precoJa > 0 && !arrematado && proximo <= precoJa,
            lider: validos.length ? validos[validos.length-1] : null,
-           proximo: validos.length ? atual + Number(lote.incremento) : Number(lote.lance_inicial) };
+           proximo: proximo };
 }
 
 /* ---------- carregar ---------- */
@@ -418,6 +478,15 @@ function nomeDiscord(s){
   return m.full_name || m.name || m.user_name || m.preferred_username || (s && s.user ? s.user.email : '') || 'anônimo';
 }
 
+/* login com Discord — permissão mínima (só nome/avatar, sem e-mail) */
+function entrarComDiscord(){
+  sb.auth.signInWithOAuth({
+    provider: 'discord',
+    options: { redirectTo: location.href, scopes: 'identify' }
+  });
+}
+var TRUST_LOGIN = '<div class="trust-login">🔒 <b>Seguro:</b> ao entrar, o Discord mostra que o site pede só <b>seu nome e foto</b> — nunca sua senha, suas mensagens ou seus servidores. É só pra registrar quem deu cada lance. Você revoga quando quiser em <b>Discord › Configurações › Aplicativos Autorizados</b>.</div>';
+
 function renderMe(){
   var el = $('me');
   if(sessao && !ehDono(sessao)){
@@ -433,10 +502,9 @@ function renderMe(){
     el.innerHTML = 'você está logado como <b style="color:var(--green)">dono do site</b> — pra dar lance, saia e entre com Discord.';
   } else {
     el.innerHTML = 'Pra dar lance você precisa entrar com Discord. Seu nome fica visível na lista de lances. ' +
-                   '<button class="btn-discord" id="btnDiscord" style="margin-left:auto">ENTRAR COM DISCORD</button>';
-    $('btnDiscord').addEventListener('click', function(){
-      sb.auth.signInWithOAuth({ provider:'discord', options:{ redirectTo: location.href } });
-    });
+                   '<button class="btn-discord" id="btnDiscord" style="margin-left:auto">ENTRAR COM DISCORD</button>' +
+                   TRUST_LOGIN;
+    $('btnDiscord').addEventListener('click', entrarComDiscord);
   }
 }
 
@@ -476,13 +544,20 @@ function render(){
       area = '<div class="bid-form">'+
         '<input type="number" step="0.5" id="in-'+lote.id+'" placeholder="'+a.proximo.toFixed(2)+'">'+
         '<button class="bid-btn" data-lance="'+lote.id+'">DAR LANCE ▸</button></div>'+
-        '<div class="min-note">Mínimo agora: <b>'+brl(a.proximo)+'</b></div>'+
+        '<div class="quick-row">'+
+          '<button class="quick-bid" data-quick="'+lote.id+'">▲ lance mínimo · '+brl(a.proximo)+'</button>'+
+          (a.jaAtivo ? '<button class="buy-now" data-buynow="'+lote.id+'">⚡ COMPRE JÁ · '+brl(a.precoJa)+'</button>' : '')+
+        '</div>'+
+        '<div class="min-note">Mínimo agora: <b>'+brl(a.proximo)+'</b>'+
+          (a.jaAtivo ? ' · ou arremate na hora por <b>'+brl(a.precoJa)+'</b>' : '')+'</div>'+
         '<div class="bid-msg" id="msg-'+lote.id+'"></div>';
     } else if(sessao && ehDono(sessao)){
       area = '<div class="locked-note">Você é o dono — não dá pra dar lance no próprio leilão por aqui.</div>';
     } else {
       area = '<button class="btn-discord" data-login="1">ENTRAR COM DISCORD PRA DAR LANCE</button>'+
-             '<div class="min-note">Mínimo agora: <b>'+brl(a.proximo)+'</b></div>';
+             '<div class="min-note">Mínimo agora: <b>'+brl(a.proximo)+'</b>'+
+               (a.jaAtivo ? ' · compre já por <b>'+brl(a.precoJa)+'</b>' : '')+'</div>'+
+             TRUST_LOGIN;
     }
 
     var linhas = a.todos.slice().reverse().map(function(b){
@@ -500,19 +575,19 @@ function render(){
         '<div class="lote-info">'+
           '<div class="lote-nome">'+esc(lote.nome)+'</div>'+
           '<div class="lote-meta">Nível '+esc(lote.nivel)+(lote.qualidade?' · Qualidade '+esc(lote.qualidade):'')+
-            ' · inicial '+brl(lote.lance_inicial)+' · incremento '+brl(lote.incremento)+
-            (lote.reserva?' · <b style="color:var(--gold)">reserva '+brl(lote.reserva)+'</b>':'')+'</div>'+
+            ' · incremento mínimo '+brl(lote.incremento)+'</div>'+
           (lote.obs?'<div class="lote-obs">'+esc(lote.obs)+'</div>':'')+
           '<div class="bid-now">'+
-            '<div><div class="bid-lbl">LANCE ATUAL</div>'+
-              (a.atual?'<div class="bid-val">'+brl(a.atual)+'</div>':'<div class="bid-val small">nenhum ainda</div>')+'</div>'+
+            '<div><div class="bid-lbl">'+(a.atual?'LANCE ATUAL':'COMEÇA EM')+'</div>'+
+              '<div class="bid-val">'+brl(a.atual || lote.lance_inicial)+'</div></div>'+
+            (a.precoJa?'<div><div class="bid-lbl">⚡ COMPRE JÁ</div><div class="bid-val" style="color:var(--green)">'+brl(a.precoJa)+'</div></div>':'')+
             '<div><div class="bid-lbl">'+(aberto?'TERMINA EM':'STATUS')+'</div>'+relogio+'</div>'+
             '<div><div class="bid-lbl">LANCES</div><div class="bid-val small">'+a.validos.length+' válido(s)</div></div>'+
           '</div>'+
           area+
           (!aberto && a.lider
             ? '<div class="winner"><b>Arrematado por '+esc(a.lider.ref.nome_discord)+'</b> — '+brl(a.lider.valor)+
-              (lote.reserva && a.lider.valor < Number(lote.reserva) ? ' <span style="color:var(--red)">(abaixo da reserva — não fechado)</span>':'')+
+              (a.arrematado ? ' <span style="color:var(--green)">⚡ (compre já)</span>':'')+
               '<br>Entro em contato pelo Discord.</div>' : '')+
           (!aberto && !a.lider ? '<div class="winner" style="border-color:var(--line)"><b style="color:var(--muted)">Encerrado sem lances.</b></div>':'')+
         '</div>'+
@@ -522,12 +597,16 @@ function render(){
   }).join('');
 
   document.querySelectorAll('[data-login]').forEach(function(b){
-    b.addEventListener('click', function(){
-      sb.auth.signInWithOAuth({ provider:'discord', options:{ redirectTo: location.href } });
-    });
+    b.addEventListener('click', entrarComDiscord);
   });
   document.querySelectorAll('[data-lance]').forEach(function(b){
     b.addEventListener('click', function(){ darLance(this.dataset.lance, this); });
+  });
+  document.querySelectorAll('[data-quick]').forEach(function(b){
+    b.addEventListener('click', function(){ darLanceRapido(this.dataset.quick, this); });
+  });
+  document.querySelectorAll('[data-buynow]').forEach(function(b){
+    b.addEventListener('click', function(){ comprarJa(this.dataset.buynow, this); });
   });
 
   /* devolve o que estava digitado e o cursor */
@@ -565,15 +644,14 @@ function tick(){
 }
 
 /* ---------- dar lance ---------- */
-function darLance(loteId, btn){
+function enviarLance(loteId, valor, btn){
   var lote = lotes.filter(function(l){ return l.id === loteId; })[0];
+  if(!lote) return;
   var a = apurar(lote);
   var msg = $('msg-'+loteId);
-  var campo = $('in-'+loteId);
-  var valor = parseFloat(campo.value);
 
   if(Date.now() > a.fim){ aviso(msg, 'esse leilão já encerrou', 'err'); return; }
-  if(!valor){ aviso(msg, 'digite um valor', 'err'); return; }
+  if(!valor || isNaN(valor)){ aviso(msg, 'digite um valor', 'err'); return; }
   if(valor < a.proximo){ aviso(msg, 'mínimo agora é '+brl(a.proximo), 'err'); return; }
 
   var nick = (localStorage.getItem('pc_nick')||'').trim();
@@ -591,9 +669,29 @@ function darLance(loteId, btn){
   }).then(function(r){
     btn.disabled = false;
     if(r.error){ aviso(msg, 'erro: '+r.error.message, 'err'); return; }
-    campo.value = '';
+    var campo = $('in-'+loteId); if(campo) campo.value = '';
     return carregar();
   });
+}
+
+function darLance(loteId, btn){
+  var campo = $('in-'+loteId);
+  enviarLance(loteId, parseFloat(campo.value), btn);
+}
+
+function darLanceRapido(loteId, btn){
+  var lote = lotes.filter(function(l){ return l.id === loteId; })[0];
+  if(!lote) return;
+  enviarLance(loteId, apurar(lote).proximo, btn);
+}
+
+function comprarJa(loteId, btn){
+  var lote = lotes.filter(function(l){ return l.id === loteId; })[0];
+  if(!lote) return;
+  var pj = Number(lote.preco_ja) || 0;
+  if(!pj) return;
+  if(!confirm('Arrematar "'+lote.nome+'" agora por '+brl(pj)+'? Isso encerra o leilão na hora e você leva.')) return;
+  enviarLance(loteId, pj, btn);
 }
 
 /* ---------- admin ---------- */
@@ -696,7 +794,44 @@ function usarArquivo(file){
   } else {
     $('prevInfo').innerHTML = esc(file.name)+'<br>Nome fora do padrão — preencha na mão.';
   }
+  atualizarSugestao();
 }
+
+/* ---------- sugestão de preço (usa pricing.js) ---------- */
+function roundHalf(n){ return Math.round(n*2)/2; }
+
+function atualizarSugestao(){
+  var iv = parseFloat($('lIv').value);
+  if(!isFinite(iv) || iv <= 0){ $('sugBox').style.display = 'none'; sugAtual = null; return; }
+
+  var qual = parseFloat(String($('lQual').value).replace(',', '.'));
+  var a = PokePrice.auction({
+    iv:     iv,
+    qual:   isFinite(qual) ? qual : PokePrice.CFG.QUAL_BASE,
+    level:  parseFloat($('lNivel').value) || 1,
+    demand: parseFloat($('lDemanda').value) || 1,
+    shiny:  $('lShiny').value === '1'
+  });
+  sugAtual = a;
+
+  $('sugWhy').textContent = 'justo ≈ ' + brl(roundHalf(a.fair)) + (isFinite(qual) ? '' : ' · (qualidade em branco = padrão)');
+  $('sugVals').innerHTML =
+    '<span>Lance inicial: <b class="big">' + brl(roundHalf(a.inicial)) + '</b></span>' +
+    '<span>Incremento: <b>' + brl(a.incremento) + '</b></span>' +
+    '<span>⚡ Compre já: <b>' + brl(roundHalf(a.arremate)) + '</b></span>';
+  $('sugBox').style.display = 'block';
+}
+
+$('btnSug').addEventListener('click', function(){
+  if(!sugAtual) return;
+  $('lInicial').value = roundHalf(sugAtual.inicial);
+  $('lIncr').value    = sugAtual.incremento;
+  $('lPrecoJa').value = roundHalf(sugAtual.arremate);
+  aviso($('admMsg'), '✓ valores preenchidos pela sugestão — edite se quiser', 'ok');
+});
+
+['lIv','lQual','lNivel'].forEach(function(id){ $(id).addEventListener('input', atualizarSugestao); });
+['lDemanda','lShiny'].forEach(function(id){ $(id).addEventListener('change', atualizarSugestao); });
 
 /* ---------- criar lote ---------- */
 $('btnCriar').addEventListener('click', function(){
@@ -727,12 +862,14 @@ $('btnCriar').addEventListener('click', function(){
       obs: $('lObs').value.trim() || null,
       lance_inicial: inicial,
       incremento: parseFloat($('lIncr').value) || 1,
-      reserva: parseFloat($('lReserva').value) || null,
+      preco_ja: parseFloat($('lPrecoJa').value) || null,
       fim: new Date(fim).toISOString()
     });
   }).then(function(r){
     if(r.error) throw r.error;
-    ['lNome','lQual','lIv','lNivel','lInicial','lReserva','lPokeId','lObs','lHoras'].forEach(function(i){ $(i).value=''; });
+    ['lNome','lQual','lIv','lNivel','lInicial','lPrecoJa','lPokeId','lObs','lHoras'].forEach(function(i){ $(i).value=''; });
+    $('lDemanda').value = '1.0'; $('lShiny').value = '0';
+    $('sugBox').style.display = 'none'; sugAtual = null;
     document.querySelectorAll('.dur').forEach(function(x){ x.classList.remove('on'); });
     arquivo = null; $('preview').style.display='none'; $('fileInput').value='';
     aplicarDuracao(48);

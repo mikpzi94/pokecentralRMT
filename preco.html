@@ -80,6 +80,24 @@
   input:focus,select:focus{border-color:var(--gold);}
   .note{color:var(--faint);font-size:11.5px;line-height:1.7;margin:12px 0 0;}
 
+  details{border:2px solid var(--line);background:var(--panel2);margin-top:16px;}
+  details.help-box{border-color:var(--blue);}
+  summary{
+    font-family:var(--px);font-size:8px;letter-spacing:.05em;color:var(--muted);
+    padding:13px 14px;cursor:pointer;list-style:none;user-select:none;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::before{content:"\25B8  ";color:var(--gold);}
+  details[open] summary::before{content:"\25BE  ";}
+  details.help-box summary{color:var(--blue);}
+  details.help-box summary::before{color:var(--blue);}
+  summary:hover{color:var(--text);}
+  .box-inner{padding:6px 16px 16px;}
+  .help-body{font-size:12.5px;color:var(--muted);line-height:1.7;}
+  .help-body p{margin:0 0 12px;}
+  .help-body p:last-child{margin-bottom:0;}
+  .help-body b{color:var(--text);}
+
   .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:20px;}
   .pcard{border:2px solid var(--line);border-top:4px solid var(--tint);background:var(--panel2);padding:16px;}
   .pcard-tag{font-family:var(--px);font-size:7px;letter-spacing:.1em;color:var(--tint);margin-bottom:8px;}
@@ -126,7 +144,8 @@
     <h1>Calculadora de <span>preço</span></h1>
     <p>
       Sugere um preço de venda pra um lendário com base no <b>IV</b> (0 a 192 — quanto maior, mais raro),
-      na <b>demanda</b> pela espécie e no <b>nível</b> — um Pokémon já upado poupa tempo de quem compra, então vale mais que um igual no nível 1.
+      na <b>qualidade</b> (multiplicador de poder sorteado na captura), na <b>demanda</b> pela espécie e no <b>nível</b> —
+      um Pokémon já upado poupa tempo de quem compra, então vale mais que um igual no nível 1. Marque <b>shiny</b> pra somar o prêmio de status.
     </p>
     <p>
       A base é o que já foi observado no mercado (IV 100 ≈ R$3, IV 120 ≈ R$8), projetado numa curva de raridade até 192.
@@ -141,14 +160,18 @@
 
   <div class="panel">
     <p class="note" style="margin-top:0">
-      Digite o IV e o nível, escolha o quanto a espécie é procurada e, se quiser, ajuste os dois fatores de crescimento.
-      A calculadora devolve 3 sugestões de preço.
+      Copia os números que aparecem no status do seu Pokémon (IV, qualidade, nível), escolhe a demanda e marca se é shiny.
+      A calculadora devolve 3 sugestões de preço. Não sabe o que é cada campo? Abre a ajuda logo abaixo.
     </p>
 
     <div class="grid main">
       <div>
         <label for="p-iv">IV do Pokémon (0 – 192)</label>
         <input type="number" id="p-iv" value="120" min="0" max="192" step="1">
+      </div>
+      <div>
+        <label for="p-qual">Qualidade DESTE Pokémon</label>
+        <input type="number" id="p-qual" value="1.75" min="0.8" step="0.01">
       </div>
       <div>
         <label for="p-level">Nível atual</label>
@@ -163,26 +186,59 @@
           <option value="1.6">Muito alta / muito cobiçado</option>
         </select>
       </div>
-    </div>
-
-    <div class="adv-head">AJUSTE FINO (OPCIONAL)</div>
-
-    <div class="grid adv">
       <div>
-        <label for="p-tailgrowth">Crescimento acima do IV 150 (%/10 pts)</label>
-        <input type="number" id="p-tailgrowth" value="15" min="0" step="1">
-      </div>
-      <div>
-        <label for="p-levelvalue">Bônus de nível (R$/10 níveis)</label>
-        <input type="number" id="p-levelvalue" value="0.5" min="0" step="0.1">
+        <label for="p-shiny">Shiny?</label>
+        <select id="p-shiny">
+          <option value="0" selected>Não</option>
+          <option value="1">Sim ✨</option>
+        </select>
       </div>
     </div>
 
-    <p class="note">
-      Abaixo de IV 150 a curva segue a proporção observada no mercado (~63% a cada 10 pontos).
-      Acima disso ela desacelera pra taxa que você definir aqui. O bônus de nível é um ajuste simples e editável,
-      não uma regressão — os dados de fórum são ruidosos (misturam espécies, lotes e shiny). Recalibre pelo que você vender de verdade.
-    </p>
+    <details class="help-box">
+      <summary>Não sabe o que preencher? Abre aqui</summary>
+      <div class="box-inner help-body">
+        <p><b>IV (0 – 192):</b> o "potencial genético" do bicho — aparece no status dele no jogo. Quanto maior, mais raro e mais caro. É só copiar o número.</p>
+        <p><b>Qualidade:</b> aquele multiplicador tipo <b>1.75</b> ou <b>2.03</b> que veio no sorteio da captura (deixa os stats maiores). Também está no status. Copia o valor exato que o jogo mostra.</p>
+        <p><b>Nível:</b> o nível atual. Já veio upado? Vale um pouco mais, porque poupa tempo de quem compra.</p>
+        <p><b>Demanda:</b> a espécie é cobiçada? Um Mewtwo/Dragonite puxa "alta"; um Pokémon comum, "normal". Na dúvida, deixa "normal".</p>
+        <p><b>Shiny:</b> a versão de cor diferente, que brilha ✨. Se for, marca "Sim" — ela soma um prêmio de status por cima do preço.</p>
+        <p style="color:var(--faint)">Exemplo: um Raichu shiny com qualidade 2.03, IV 138 e nível 1 → IV <b>138</b>, Qualidade <b>2.03</b>, Nível <b>1</b>, Shiny <b>Sim</b>. Pronto.</p>
+      </div>
+    </details>
+
+    <details class="adv-box">
+      <summary>Calibração avançada — mexe só se souber o que faz</summary>
+      <div class="box-inner">
+        <div class="grid adv">
+          <div>
+            <label for="p-tailgrowth">Crescimento acima do IV 150 (%/10 pts)</label>
+            <input type="number" id="p-tailgrowth" value="15" min="0" step="1">
+          </div>
+          <div>
+            <label for="p-levelvalue">Bônus de nível (R$/10 níveis)</label>
+            <input type="number" id="p-levelvalue" value="0.5" min="0" step="0.1">
+          </div>
+          <div>
+            <label for="p-qualbase">Qualidade-base da curva</label>
+            <input type="number" id="p-qualbase" value="1.75" min="0.8" step="0.01">
+          </div>
+          <div>
+            <label for="p-qualweight">Peso da qualidade</label>
+            <input type="number" id="p-qualweight" value="1" min="0" step="0.1">
+          </div>
+          <div>
+            <label for="p-shinymult">Prêmio do shiny (multiplicador)</label>
+            <input type="number" id="p-shinymult" value="2.5" min="1" step="0.1">
+          </div>
+        </div>
+        <p class="note" style="margin-top:14px">
+          Estes valores calibram a curva inteira, não um Pokémon só. <b>Qualidade-base</b> = a qualidade que os preços de referência assumem (1.75);
+          nela, o preço é o "normal". <b>Peso</b> = quão forte a qualidade mexe no preço. <b>Prêmio do shiny</b> = quanto um shiny vale a mais —
+          um chute sem âncora de mercado. Recalibre pelo que você vender de verdade.
+        </p>
+      </div>
+    </details>
 
     <div class="cards">
       <div class="pcard" style="--tint:var(--green)">
@@ -228,8 +284,9 @@
 
 </div>
 
+<script src="pricing.js"></script>
 <script>
-var BREAKPOINT_IV = 150;
+var BREAKPOINT_IV = PokePrice.CFG.BREAKPOINT_IV;
 
 function fmt(n,d){
   if(!isFinite(n)) return "0";
@@ -239,60 +296,69 @@ function brl(n){ return "R$ " + fmt(n,2); }
 function roundHalf(n){ return Math.round(n*2)/2; }
 function brlRounded(n){ return brl(roundHalf(n)); }
 
-function basePrice(iv, tailGrowthPct){
-  var priceAt150 = 3 * Math.pow(8/3, (BREAKPOINT_IV-100)/20);
-  if(iv <= BREAKPOINT_IV) return 3 * Math.pow(8/3, (iv-100)/20);
-  return priceAt150 * Math.pow(1 + (tailGrowthPct||0)/100, (iv-BREAKPOINT_IV)/10);
+/* lê o formulário e monta os parâmetros pra PokePrice */
+function lerParams(){
+  var shinyOn = document.getElementById("p-shiny").value === "1";
+  return {
+    iv:          parseFloat(document.getElementById("p-iv").value) || 0,
+    qual:        parseFloat(document.getElementById("p-qual").value) || PokePrice.CFG.QUAL_BASE,
+    level:       parseFloat(document.getElementById("p-level").value) || 1,
+    demand:      parseFloat(document.getElementById("p-demand").value) || 1,
+    shiny:       shinyOn,
+    tail:        parseFloat(document.getElementById("p-tailgrowth").value),
+    levelPerTen: parseFloat(document.getElementById("p-levelvalue").value),
+    qualBase:    parseFloat(document.getElementById("p-qualbase").value),
+    qualPeso:    parseFloat(document.getElementById("p-qualweight").value),
+    shinyMult:   parseFloat(document.getElementById("p-shinymult").value)
+  };
 }
 
 function calcPrice(){
-  var iv = parseFloat(document.getElementById("p-iv").value) || 0;
-  var level = parseFloat(document.getElementById("p-level").value) || 1;
-  var demand = parseFloat(document.getElementById("p-demand").value) || 1;
-  var tail = parseFloat(document.getElementById("p-tailgrowth").value) || 0;
-  var perTen = parseFloat(document.getElementById("p-levelvalue").value) || 0;
+  var p = lerParams();
+  var pr = PokePrice.prices(p);
 
-  var levelBonus = (Math.max(level,1) / 10) * perTen;
-  var fair = basePrice(iv, tail) * demand + levelBonus;
-
-  document.getElementById("p-fast").textContent = brlRounded(fair * 0.8);
-  document.getElementById("p-fair").textContent = brlRounded(fair);
-  document.getElementById("p-flex").textContent = brlRounded(fair * 1.25);
+  document.getElementById("p-fast").textContent = brlRounded(pr.fast);
+  document.getElementById("p-fair").textContent = brlRounded(pr.fair);
+  document.getElementById("p-flex").textContent = brlRounded(pr.flex);
 
   var n = document.getElementById("p-note");
-  if(iv > BREAKPOINT_IV){
+  if(p.iv > BREAKPOINT_IV){
     n.textContent = "Acima de IV " + BREAKPOINT_IV + " o preço cresce mais devagar (taxa reduzida por causa do beta/reset). Considere leilão informal em vez de fixar e esperar.";
-  } else if(iv > 120){
+  } else if(p.iv > 120){
     n.textContent = "Faixa extrapolada (acima do que já se viu vender) — ponto de partida, não preço confirmado.";
-  } else if(iv >= 100){
+  } else if(p.iv >= 100){
     n.textContent = "Faixa já observada e validada no mercado.";
   } else {
     n.textContent = "Abaixo de IV 100 não há âncora de mercado observada — a curva funciona, mas com bem mais incerteza.";
   }
+  if(p.shiny){
+    n.textContent += " Shiny ligado: o multiplicador de status é chute (sem âncora) — recalibre na primeira venda shiny real.";
+  }
 
-  buildPriceTable(demand, iv, tail, levelBonus);
+  buildPriceTable(p);
 }
 
-function buildPriceTable(demand, currentIv, tail, levelBonus){
+function buildPriceTable(p){
   var body = document.getElementById("p-table-body");
   body.innerHTML = "";
   [100,110,120,130,140,150,160,170,180,192].forEach(function(ivPoint){
-    var fair = basePrice(ivPoint, tail) * demand + (levelBonus||0);
+    var pr = PokePrice.prices(Object.assign({}, p, {iv:ivPoint}));
     var tr = document.createElement("tr");
-    if(Math.abs(ivPoint - currentIv) <= 5) tr.className = "hl";
+    if(Math.abs(ivPoint - p.iv) <= 5) tr.className = "hl";
     tr.innerHTML =
       '<td>IV ' + ivPoint + '</td>' +
-      '<td class="num">' + brlRounded(fair*0.8) + '</td>' +
-      '<td class="num">' + brlRounded(fair) + '</td>' +
-      '<td class="num">' + brlRounded(fair*1.25) + '</td>';
+      '<td class="num">' + brlRounded(pr.fast) + '</td>' +
+      '<td class="num">' + brlRounded(pr.fair) + '</td>' +
+      '<td class="num">' + brlRounded(pr.flex) + '</td>';
     body.appendChild(tr);
   });
 }
 
-["p-iv","p-level","p-tailgrowth","p-levelvalue"].forEach(function(id){
+["p-iv","p-qual","p-level","p-tailgrowth","p-levelvalue","p-qualbase","p-qualweight","p-shinymult"].forEach(function(id){
   document.getElementById(id).addEventListener("input", calcPrice);
 });
 document.getElementById("p-demand").addEventListener("change", calcPrice);
+document.getElementById("p-shiny").addEventListener("change", calcPrice);
 calcPrice();
 </script>
 </body>
