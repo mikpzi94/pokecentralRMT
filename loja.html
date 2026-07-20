@@ -849,7 +849,7 @@ var abaAdmin = 'loja';
 function aplicarPapel(session){
   $('userEmail').textContent = ehAdmin ? session.user.email : nomeDiscord(session);
   $('addTitle').textContent  = ehAdmin ? 'ADICIONAR POKÉMON (OFICIAL)' : 'ANUNCIAR MEU POKÉMON';
-  $('btnSalvar').textContent = ehAdmin ? '+ PUBLICAR NA LOJA' : '+ ENVIAR PRA APROVAÇÃO';
+  $('btnSalvar').textContent = ehAdmin ? '+ PUBLICAR NA LOJA' : '+ PUBLICAR MEU ANÚNCIO';
   $('wrapContato').style.display = ehAdmin ? 'none' : 'block';
   $('fotoReq').style.display = ehAdmin ? 'none' : 'block';
   if(!ehAdmin) aplicarTipoContato();
@@ -1191,17 +1191,21 @@ $('btnSalvar').addEventListener('click', function(){
       reg.vendedor_nome = nomeDiscord(sessaoAtual);
       reg.vendedor_contato = contato;
     }
-    return sb.from('pokemons').insert(reg);
+    return sb.from('pokemons').insert(reg).select();
   }).then(function(r){
     if(r.error) throw r.error;
     if(!ehAdmin && cTipo==='wa'){ try { localStorage.setItem('pc_wa', cRaw.replace(/\D/g,'')); } catch(e){} }   /* guarda o número pros próximos */
+    var novoStatus = (r.data && r.data[0] && r.data[0].status) || 'pendente';
     ['fNome','fQual','fIv','fNivel','fPreco','fPokeId','fObs','fContato'].forEach(function(i){ $(i).value=''; });
     $('fDemanda').value='1.0'; $('fShiny').value='0'; $('sugBox').style.display='none';
     if(!ehAdmin) aplicarTipoContato();   /* recoloca o número salvo no campo */
     arquivoSelecionado = null; cropState = {};
     $('preview').style.display = 'none';
     $('fileInput').value = '';
-    aviso($('addMsg'), ehAdmin ? '✓ publicado na loja' : '✓ enviado! agora é só aguardar a aprovação (você recebe assim que sair no ar)', 'ok');
+    aviso($('addMsg'),
+      ehAdmin ? '✓ publicado na loja'
+      : (novoStatus === 'aprovado' ? '✓ publicado! seu anúncio já está no ar 🎉'
+         : '✓ enviado! passou pra revisão manual — sai no ar assim que for aprovado'), 'ok');
     btn.disabled = false;
     return carregar();
   }).catch(function(e){
@@ -1275,6 +1279,8 @@ function renderTabela(){
       acoes = '';   /* pendente/rejeitado do vendedor: só editar/apagar */
     }
     if(ehAdmin && !oficial && p.user_id){
+      var clV = contatoLink(p.vendedor_contato);
+      if(clV) acoes += '<a class="mini" href="'+esc(clV)+'" target="_blank" rel="noopener" style="text-decoration:none;border-color:var(--green);color:var(--green)" title="falar com o vendedor">💬 falar</a>';
       acoes += '<button class="mini rm" data-banir="'+esc(p.user_id)+'" data-vnome="'+esc(p.vendedor_nome||'')+'" title="banir vendedor">🚫</button>';
     }
     return '<tr class="'+(p.disponivel===false?'off':'')+'" data-id="'+p.id+'">'+
