@@ -605,14 +605,16 @@ $('btnSalvar').addEventListener('click', function(){
 /* ---------- catálogo ---------- */
 function renderTabela(){
   var body = $('mgBody');
-  if(!lista.length){
+  var visiveis = lista.filter(function(p){ return p.status !== 'rejeitado'; });   /* rejeitado não polui o painel */
+  if(!visiveis.length){
     body.innerHTML = '<tr><td colspan="6" style="color:var(--faint);padding:14px 6px">nenhum item ainda</td></tr>';
+    $('pendCount').innerHTML = '';
     return;
   }
-  var pend = lista.filter(function(p){ return p.status==='pendente'; }).length;
+  var pend = visiveis.filter(function(p){ return p.status==='pendente'; }).length;
   $('pendCount').innerHTML = pend ? '<span style="color:var(--gold)">· ⏳ '+pend+' pra aprovar</span>' : '';
 
-  var ordenada = lista.slice().sort(function(a,b){
+  var ordenada = visiveis.slice().sort(function(a,b){
     return (a.status==='pendente'?0:1) - (b.status==='pendente'?0:1);   /* pendentes no topo */
   });
 
