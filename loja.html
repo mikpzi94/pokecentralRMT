@@ -298,8 +298,8 @@
   <header>
     <h1>Pokémon <span>à venda</span></h1>
     <p>
-      Cada anúncio tem <b>print real</b> do Pokémon no jogo — não é sprite genérico, é a prova do que você está comprando.
-      Estoque de 1 por Pokémon: se sumiu da lista, foi vendido.
+      Duas lojas num lugar só: a <b>Oficial</b> (Pokémon do próprio PokeCentral) e a de <b>Jogadores</b> (vendedores da comunidade).
+      Todo anúncio tem <b>print real</b> do jogo — nada de sprite genérico. Cada Pokémon é único: sumiu da lista, foi vendido.
     </p>
   </header>
 
@@ -315,11 +315,7 @@
     <span class="hi">tudo reseta no lançamento</span> — compre pelo tempo que economiza agora, não pra guardar.
   </div>
 
-  <div class="steps">
-    <div class="step"><div class="step-n">01</div><p>Você clica no Pokémon e me chama no <b>WhatsApp</b>. A mensagem já vai pronta perguntando se ainda está disponível.</p></div>
-    <div class="step"><div class="step-n">02</div><p>Confirmo o estoque e combinamos <b>preço e forma de pagamento</b> antes de qualquer coisa.</p></div>
-    <div class="step"><div class="step-n">03</div><p>Pagamento confirmado, faço a <b>entrega no jogo</b> na hora. Sem intermediário, a não ser que você prefira usar um.</p></div>
-  </div>
+  <div class="steps" id="steps"></div>
 
   <div class="sec-head">
     <h2>Disponíveis</h2><span class="count" id="count"></span><div class="rule"></div>
@@ -706,9 +702,27 @@ function cardHtml(p){
     '</div></div>';
 }
 
+function renderSteps(){
+  var passos = (aba === 'jogadores')
+    ? [
+        'Clica no anúncio e fala <b>direto com o vendedor</b> (WhatsApp ou Discord).',
+        'Combinem <b>preço, pagamento e entrega</b> entre vocês.',
+        'O <b>PokeCentral não intermedia</b> essas vendas — vale usar um intermediário. <a href="/negociar">como negociar sem golpe →</a>'
+      ]
+    : [
+        'Clica no Pokémon e me chama no <b>WhatsApp</b> — a mensagem já vai pronta.',
+        'Confirmo o estoque e combinamos <b>preço e forma de pagamento</b>.',
+        'Pago, faço a <b>entrega no jogo</b> na hora. Sem intermediário, a não ser que você prefira.'
+      ];
+  $('steps').innerHTML = passos.map(function(t, i){
+    return '<div class="step"><div class="step-n">0'+(i+1)+'</div><p>'+t+'</p></div>';
+  }).join('');
+}
+
 function render(){
   $('loading').style.display = 'none';
   $('grid').style.display = 'grid';
+  renderSteps();
 
   var termo = ($('search').value||'').toLowerCase();
   var ordem = $('sortSel').value;
@@ -737,7 +751,7 @@ function render(){
     $('carregarMais').style.display = 'none';
     $('grid').innerHTML = '<div class="empty">' +
       (aba === 'jogadores'
-        ? 'Ainda não há anúncios de jogadores.<br>Em breve vendedores da comunidade poderão anunciar aqui. 🧑'
+        ? 'Ainda não tem anúncio de jogador aqui. 🧑<br>Seja o primeiro — anuncie o teu de graça.<br><br><a href="#" onclick="abrirPainel();return false;">quero anunciar →</a>'
         : (termo || ivMin || qualMin
             ? 'Nenhum Pokémon com esses filtros.'
             : 'Nenhum Pokémon à venda no momento.<br>Me chama no WhatsApp que eu te aviso quando entrar algo — ou encomendo o que você procura.<br><br>' +
@@ -1576,6 +1590,7 @@ function abrirProdutoDaURL(){
   if(pid) mostrarProduto(pid);
 }
 
+renderSteps();   /* mostra os passos já no carregamento, antes do estoque chegar */
 carregar().then(abrirProdutoDaURL);
 </script>
 </body>
