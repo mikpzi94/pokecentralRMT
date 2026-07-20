@@ -41,17 +41,27 @@ create table if not exists denuncias (
   vendedor_nome text,
   anuncio_nome  text,
   motivo        text,
+  quem_id       uuid,          -- quem denunciou (precisa estar logado)
+  quem_nome     text,          -- nome de quem denunciou (pra detectar abuso)
   resolvido     boolean default false,
   criado_em     timestamptz default now()
 );
+-- caso a tabela já existisse de uma execução anterior:
+alter table denuncias add column if not exists quem_id   uuid;
+alter table denuncias add column if not exists quem_nome text;
 alter table denuncias enable row level security;
 
+-- 1 denúncia por pessoa por anúncio (anti-spam)
+create unique index if not exists idx_denuncia_unica on denuncias (anuncio_id, quem_id);
+
 drop policy if exists "denuncias_insert_publico" on denuncias;
+drop policy if exists "denuncias_insert_logado"  on denuncias;
 drop policy if exists "denuncias_admin_select"   on denuncias;
 drop policy if exists "denuncias_admin_update"   on denuncias;
-create policy "denuncias_insert_publico" on denuncias for insert with check (true);   -- qualquer um pode denunciar
-create policy "denuncias_admin_select"   on denuncias for select using (is_admin());  -- só você lê
-create policy "denuncias_admin_update"   on denuncias for update using (is_admin());  -- marcar resolvido
+create policy "denuncias_insert_logado" on denuncias for insert
+  with check (auth.uid() is not null and quem_id = auth.uid());   -- só logado, e no próprio nome
+create policy "denuncias_admin_select"  on denuncias for select using (is_admin());  -- só você lê
+create policy "denuncias_admin_update"  on denuncias for update using (is_admin());  -- marcar resolvido
 
 -- =====================================================================
 -- (OPCIONAL) Ping no Discord quando chega denúncia.

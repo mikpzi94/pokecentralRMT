@@ -874,6 +874,12 @@ function renderTabela(){
 
 /* ---------- denúncias + banimento (B2) ---------- */
 function denunciar(id){
+  if(!sessaoAtual || !sessaoAtual.user){
+    if(confirm('Pra denunciar você precisa entrar com Discord — isso evita denúncia falsa. Entrar agora?')){
+      sb.auth.signInWithOAuth({ provider:'discord', options:{ redirectTo: location.href, scopes:'identify email' } });
+    }
+    return;
+  }
   var p = lista.filter(function(x){ return String(x.id)===String(id); })[0];
   if(!p) return;
   var motivo = prompt('Por que está denunciando "'+p.nome+'"? (golpe, print falso, preço absurdo…)', '');
@@ -883,9 +889,16 @@ function denunciar(id){
     vendedor_id: p.user_id || null,
     vendedor_nome: p.vendedor_nome || null,
     anuncio_nome: p.nome || null,
+    quem_id: sessaoAtual.user.id,
+    quem_nome: nomeDiscord(sessaoAtual),
     motivo: motivo || 'não especificado'
   }).then(function(r){
-    alert(r.error ? 'erro ao denunciar: '+r.error.message : 'Denúncia enviada — vou revisar. Obrigado! 🙏');
+    if(r.error){
+      if(/duplicate|unique|already/i.test(r.error.message)) alert('Você já denunciou este anúncio. Obrigado! 🙏');
+      else alert('erro ao denunciar: '+r.error.message);
+      return;
+    }
+    alert('Denúncia enviada — vou revisar. Obrigado! 🙏');
   });
 }
 
@@ -908,7 +921,8 @@ function renderDenuncias(){
   body.innerHTML = denuncias.map(function(d){
     return '<div class="den-item">'+
       '<div><b>'+esc(d.anuncio_nome||'?')+'</b> · vendedor: <b style="color:var(--pink)">'+esc(d.vendedor_nome||'?')+'</b></div>'+
-      '<div style="color:var(--muted);font-size:12px;margin:5px 0">motivo: '+esc(d.motivo||'—')+'</div>'+
+      '<div style="color:var(--muted);font-size:12px;margin:5px 0">motivo: '+esc(d.motivo||'—')+
+        '<br><span style="color:var(--faint)">denunciado por: '+esc(d.quem_nome||'?')+'</span></div>'+
       '<div class="den-acoes">'+
         (d.vendedor_id ? '<button class="mini rm" data-banir="'+esc(d.vendedor_id)+'" data-vnome="'+esc(d.vendedor_nome||'')+'">🚫 BANIR VENDEDOR</button>' : '')+
         '<button class="mini" data-resolver="'+d.id+'">✓ resolver</button>'+
