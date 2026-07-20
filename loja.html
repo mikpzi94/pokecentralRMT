@@ -828,6 +828,27 @@ function atualizarSugestao(){
 ['fIv','fQual','fNivel'].forEach(function(id){ $(id).addEventListener('input', atualizarSugestao); });
 ['fDemanda','fShiny'].forEach(function(id){ $(id).addEventListener('change', atualizarSugestao); });
 
+/* ---------- compressão de imagem (protege storage/banda) ---------- */
+function comprimirImagem(file, maxDim, qualidade){
+  return new Promise(function(resolve){
+    if(!file || !/^image\//.test(file.type) || /gif/i.test(file.type)){ resolve(file); return; }
+    var img = new Image();
+    img.onload = function(){
+      var escala = Math.min(1, maxDim / Math.max(img.width, img.height));
+      var cw = Math.round(img.width*escala), ch = Math.round(img.height*escala);
+      var canvas = document.createElement('canvas');
+      canvas.width = cw; canvas.height = ch;
+      canvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
+      canvas.toBlob(function(blob){
+        URL.revokeObjectURL(img.src);
+        resolve((blob && blob.size < file.size) ? blob : file);   /* se não reduziu, usa o original */
+      }, 'image/jpeg', qualidade);
+    };
+    img.onerror = function(){ resolve(file); };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 /* ---------- publicar ---------- */
 $('btnSalvar').addEventListener('click', function(){
   var btn = this;
@@ -841,11 +862,13 @@ $('btnSalvar').addEventListener('click', function(){
   aviso($('addMsg'), 'enviando…', '');
 
   var etapa = arquivoSelecionado
-    ? sb.storage.from('prints').upload('loja/'+Date.now()+'-'+arquivoSelecionado.name, arquivoSelecionado, {upsert:true})
-        .then(function(up){
-          if(up.error) throw up.error;
-          return sb.storage.from('prints').getPublicUrl(up.data.path).data.publicUrl;
-        })
+    ? comprimirImagem(arquivoSelecionado, 1200, 0.72).then(function(blob){
+        var base = arquivoSelecionado.name.replace(/\.\w+$/, '');
+        return sb.storage.from('prints').upload('loja/'+Date.now()+'-'+base+'.jpg', blob, {upsert:true, contentType:'image/jpeg'});
+      }).then(function(up){
+        if(up.error) throw up.error;
+        return sb.storage.from('prints').getPublicUrl(up.data.path).data.publicUrl;
+      })
     : Promise.resolve(null);
 
   etapa.then(function(url){
@@ -897,7 +920,8 @@ function renderTabela(){
   } else {
     meus = lista.filter(function(p){ return p.user_id === meuUid; });
     var ativos = lista.filter(function(p){ return p.user_id===meuUid && (p.status==='pendente'||p.status==='aprovado') && p.disponivel!==false; }).length;
-    $('pendCount').innerHTML = '<span style="color:var(--faint)">· '+ativos+'/5 slots</span>';
+    var limite = confiaveis[meuUid] ? 5 : 3;
+    $('pendCount').innerHTML = '<span style="color:var(--faint)">· '+ativos+'/'+limite+' slots'+(confiaveis[meuUid]?' <span style="color:var(--green)">✔</span>':'')+'</span>';
   }
 
   if(!meus.length){
