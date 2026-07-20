@@ -91,13 +91,18 @@
   }
   .card-cta:hover{background:var(--green);color:var(--bg);}
 
-  .shop-tabs{display:flex;gap:8px;margin-bottom:16px;}
+  .shop-tabs{display:flex;gap:10px;margin-bottom:18px;}
   .shop-tab{
-    font-family:var(--px);font-size:8.5px;letter-spacing:.03em;cursor:pointer;
-    background:var(--panel);border:2px solid var(--line);color:var(--muted);padding:11px 15px;
+    flex:1;font-family:var(--px);font-size:11px;letter-spacing:.04em;cursor:pointer;
+    background:var(--panel);border:2px solid var(--line);color:var(--muted);
+    padding:17px 14px;text-align:center;line-height:1.5;transition:all .12s;
   }
-  .shop-tab:hover{color:var(--gold);}
-  .shop-tab.on{background:var(--panel2);color:var(--gold);border-color:var(--gold);}
+  .shop-tab:hover{border-color:var(--line2);color:var(--gold);}
+  .shop-tab.on{
+    background:var(--panel2);color:var(--gold);border-color:var(--gold);
+    box-shadow:inset 0 -4px 0 var(--gold);
+  }
+  @media(max-width:480px){ .shop-tab{font-size:9px;padding:14px 8px;} }
   .comunidade-aviso{
     border:2px solid var(--gold);background:rgba(240,180,41,.07);color:var(--muted);
     padding:11px 14px;margin-bottom:16px;font-size:12px;line-height:1.6;
@@ -111,6 +116,12 @@
     background:transparent;border:2px solid var(--line2);color:var(--muted);padding:12px 22px;
   }
   .load-more:hover{border-color:var(--gold);color:var(--gold);}
+
+  .btn-discord{
+    font-family:var(--px);font-size:9px;letter-spacing:.03em;padding:13px 12px;cursor:pointer;
+    background:#5865F2;border:2px solid #5865F2;color:#fff;
+  }
+  .btn-discord:hover{background:transparent;color:#7d8ff5;border-color:#7d8ff5;}
 
   .empty{border:2px dashed var(--line);padding:34px 20px;text-align:center;color:var(--faint);font-size:12.5px;line-height:1.8;grid-column:1/-1;}
   .empty a{color:var(--green);}
@@ -295,11 +306,18 @@
 
     <!-- login -->
     <div class="ed-panel" id="loginPanel">
-      <div class="ed-title">ENTRAR</div>
+      <div class="ed-title">VENDER NA LOJA</div>
       <div class="login-box">
-        <input type="email" id="email" placeholder="e-mail" autocomplete="username">
-        <input type="password" id="senha" placeholder="senha" autocomplete="current-password">
-        <button class="btn go" id="btnLogin" style="width:100%">ENTRAR</button>
+        <p style="font-size:12.5px;color:var(--muted);margin:0 0 12px;line-height:1.6">Entre com Discord pra anunciar seus Pokémon. Cada anúncio passa por <b>aprovação</b> antes de ir pro ar — é o que mantém a loja confiável.</p>
+        <button class="btn-discord" id="btnDiscord" style="width:100%">ENTRAR COM DISCORD</button>
+        <details style="margin-top:14px">
+          <summary style="font-size:11px;color:var(--faint);cursor:pointer;list-style:none">▸ sou o dono do site</summary>
+          <div style="margin-top:10px">
+            <input type="email" id="email" placeholder="e-mail" autocomplete="username">
+            <input type="password" id="senha" placeholder="senha" autocomplete="current-password">
+            <button class="btn go" id="btnLogin" style="width:100%">ENTRAR</button>
+          </div>
+        </details>
         <div class="msg" id="loginMsg"></div>
       </div>
     </div>
@@ -308,7 +326,7 @@
     <div id="areaAdmin" style="display:none">
 
       <div class="ed-panel">
-        <div class="ed-title">ADICIONAR POKÉMON</div>
+        <div class="ed-title" id="addTitle">ADICIONAR POKÉMON</div>
         <div class="who">logado como <b id="userEmail"></b> <button class="btn sair" id="btnSair" style="margin-left:10px">SAIR</button></div>
 
         <div class="drop" id="drop">
@@ -347,6 +365,7 @@
               <div class="sug-hint">Clique num preço pra usar no campo Preço. Baseado na calculadora — pode editar depois.</div>
             </div>
           </div>
+          <div id="wrapContato" style="grid-column:1/-1;display:none"><label>Seu contato (WhatsApp com DDD ou @Discord)</label><input type="text" id="fContato" placeholder="ex: 11 98888-7777 ou @seuuser"></div>
           <div style="grid-column:1/-1"><label>Observação (opcional)</label><input type="text" id="fObs" placeholder="meta forte, ótimo pra farm de moeda"></div>
         </div>
         <button class="btn go" id="btnSalvar">+ PUBLICAR NA LOJA</button>
@@ -354,7 +373,7 @@
       </div>
 
       <div class="ed-panel">
-        <div class="ed-title">CATÁLOGO <span id="pendCount"></span></div>
+        <div class="ed-title"><span id="catTitle">CATÁLOGO</span> <span id="pendCount"></span></div>
         <table class="mg">
           <thead><tr><th>Nome</th><th>Qual.</th><th>IV</th><th>Nv</th><th>R$</th><th></th></tr></thead>
           <tbody id="mgBody"></tbody>
@@ -543,13 +562,34 @@ $('editToggle').addEventListener('click', function(){
   if(!aberto) p.scrollIntoView({behavior:'smooth'});
 });
 
+var ehAdmin = false, meuUid = null, sessaoAtual = null;
+
+function nomeDiscord(s){
+  var m = (s && s.user && s.user.user_metadata) || {};
+  return m.full_name || m.name || m.user_name || m.preferred_username || (s && s.user ? s.user.email : '') || 'vendedor';
+}
+
+function aplicarPapel(session){
+  $('userEmail').textContent = ehAdmin ? session.user.email : nomeDiscord(session);
+  $('addTitle').textContent  = ehAdmin ? 'ADICIONAR POKÉMON (OFICIAL)' : 'ANUNCIAR MEU POKÉMON';
+  $('catTitle').textContent  = ehAdmin ? 'FILA DE MODERAÇÃO' : 'MEUS ANÚNCIOS';
+  $('btnSalvar').textContent = ehAdmin ? '+ PUBLICAR NA LOJA' : '+ ENVIAR PRA APROVAÇÃO';
+  $('wrapContato').style.display = ehAdmin ? 'none' : 'block';
+}
+
 function mostrarSessao(session){
+  sessaoAtual = session;
   if(session && session.user){
-    $('loginPanel').style.display = 'none';
-    $('areaAdmin').style.display = 'block';
-    $('userEmail').textContent = session.user.email;
-    renderTabela();
+    meuUid = session.user.id;
+    sb.rpc('is_admin').then(function(r){
+      ehAdmin = !!(r && r.data);
+      $('loginPanel').style.display = 'none';
+      $('areaAdmin').style.display = 'block';
+      aplicarPapel(session);
+      carregar();
+    });
   } else {
+    ehAdmin = false; meuUid = null;
     $('loginPanel').style.display = 'block';
     $('areaAdmin').style.display = 'none';
   }
@@ -557,6 +597,10 @@ function mostrarSessao(session){
 
 sb.auth.getSession().then(function(r){ mostrarSessao(r.data.session); });
 sb.auth.onAuthStateChange(function(_e, session){ mostrarSessao(session); });
+
+$('btnDiscord').addEventListener('click', function(){
+  sb.auth.signInWithOAuth({ provider:'discord', options:{ redirectTo: location.href, scopes:'identify email' } });
+});
 
 $('btnLogin').addEventListener('click', function(){
   var btn = this; btn.disabled = true;
@@ -638,6 +682,8 @@ $('btnSalvar').addEventListener('click', function(){
   var nome = $('fNome').value.trim();
   var preco = parseFloat($('fPreco').value) || 0;
   if(!nome || !preco){ aviso($('addMsg'), 'preencha ao menos nome e preço', 'err'); return; }
+  var contato = $('fContato').value.trim();
+  if(!ehAdmin && !contato){ aviso($('addMsg'), 'informe seu contato pra o comprador te achar', 'err'); return; }
 
   btn.disabled = true;
   aviso($('addMsg'), 'enviando…', '');
@@ -651,7 +697,7 @@ $('btnSalvar').addEventListener('click', function(){
     : Promise.resolve(null);
 
   etapa.then(function(url){
-    return sb.from('pokemons').insert({
+    var reg = {
       nome: nome,
       qualidade: $('fQual').value.trim() || null,
       iv: parseInt($('fIv').value) || null,
@@ -661,17 +707,22 @@ $('btnSalvar').addEventListener('click', function(){
       poke_id: parseInt($('fPokeId').value) || null,
       obs: $('fObs').value.trim() || null,
       disponivel: true
-    });
+    };
+    if(!ehAdmin){
+      reg.vendedor_nome = nomeDiscord(sessaoAtual);
+      reg.vendedor_contato = contato;
+    }
+    return sb.from('pokemons').insert(reg);
   }).then(function(r){
     if(r.error) throw r.error;
-    ['fNome','fQual','fIv','fNivel','fPreco','fPokeId','fObs'].forEach(function(i){ $(i).value=''; });
+    ['fNome','fQual','fIv','fNivel','fPreco','fPokeId','fObs','fContato'].forEach(function(i){ $(i).value=''; });
     $('fDemanda').value='1.0'; $('fShiny').value='0'; $('sugBox').style.display='none';
     arquivoSelecionado = null;
     $('preview').style.display = 'none';
     $('fileInput').value = '';
-    aviso($('addMsg'), '✓ publicado na loja', 'ok');
+    aviso($('addMsg'), ehAdmin ? '✓ publicado na loja' : '✓ enviado! agora é só aguardar a aprovação (você recebe assim que sair no ar)', 'ok');
     btn.disabled = false;
-    return carregar().then(renderTabela);
+    return carregar();
   }).catch(function(e){
     aviso($('addMsg'), 'erro: '+(e.message||e), 'err');
     btn.disabled = false;
@@ -681,16 +732,24 @@ $('btnSalvar').addEventListener('click', function(){
 /* ---------- catálogo ---------- */
 function renderTabela(){
   var body = $('mgBody');
-  var visiveis = lista.filter(function(p){ return p.status !== 'rejeitado'; });   /* rejeitado não polui o painel */
-  if(!visiveis.length){
-    body.innerHTML = '<tr><td colspan="6" style="color:var(--faint);padding:14px 6px">nenhum item ainda</td></tr>';
-    $('pendCount').innerHTML = '';
+  var meus = ehAdmin
+    ? lista.filter(function(p){ return p.status !== 'rejeitado'; })    /* dono: tudo menos rejeitado */
+    : lista.filter(function(p){ return p.user_id === meuUid; });        /* vendedor: só os meus (com rejeitado + motivo) */
+
+  if(ehAdmin){
+    var pend = meus.filter(function(p){ return p.status==='pendente'; }).length;
+    $('pendCount').innerHTML = pend ? '<span style="color:var(--gold)">· ⏳ '+pend+' pra aprovar</span>' : '';
+  } else {
+    var ativos = lista.filter(function(p){ return p.user_id===meuUid && (p.status==='pendente'||p.status==='aprovado') && p.disponivel!==false; }).length;
+    $('pendCount').innerHTML = '<span style="color:var(--faint)">· '+ativos+'/5 slots</span>';
+  }
+
+  if(!meus.length){
+    body.innerHTML = '<tr><td colspan="6" style="color:var(--faint);padding:14px 6px">'+(ehAdmin?'nenhum item':'você ainda não anunciou nada')+'</td></tr>';
     return;
   }
-  var pend = visiveis.filter(function(p){ return p.status==='pendente'; }).length;
-  $('pendCount').innerHTML = pend ? '<span style="color:var(--gold)">· ⏳ '+pend+' pra aprovar</span>' : '';
 
-  var ordenada = visiveis.slice().sort(function(a,b){
+  var ordenada = meus.slice().sort(function(a,b){
     return (a.status==='pendente'?0:1) - (b.status==='pendente'?0:1);   /* pendentes no topo */
   });
 
@@ -698,14 +757,20 @@ function renderTabela(){
     var oficial = !p.user_id || p.user_id === OWNER_ID;
     var tag = p.status==='pendente' ? '<span style="color:var(--gold);font-size:10px"> ⏳ pendente</span>'
             : p.status==='rejeitado' ? '<span style="color:var(--red);font-size:10px"> ✕ rejeitado</span>' : '';
-    var origem = oficial ? '' : '<span style="color:var(--pink);font-size:10px" title="anúncio de jogador"> 🧑</span>';
-    var acoes = (p.status==='pendente')
-      ? (p.print ? '<a class="mini" href="'+esc(p.print)+'" target="_blank" style="text-decoration:none" title="ver print">🖼</a>' : '')+
+    var motivo = (p.status==='rejeitado' && p.motivo_rejeicao) ? '<div style="font-size:10px;color:var(--red)">motivo: '+esc(p.motivo_rejeicao)+'</div>' : '';
+    var origem = (ehAdmin && !oficial) ? '<span style="color:var(--pink);font-size:10px" title="anúncio de jogador"> 🧑</span>' : '';
+    var acoes;
+    if(ehAdmin && p.status==='pendente'){
+      acoes = (p.print ? '<a class="mini" href="'+esc(p.print)+'" target="_blank" style="text-decoration:none" title="ver print">🖼</a>' : '')+
         '<button class="mini" data-a="aprovar" style="border-color:var(--green);color:var(--green)">✓ APROVAR</button>'+
-        '<button class="mini rm" data-a="rejeitar">REJEITAR</button>'
-      : '<button class="mini" data-a="toggle">'+(p.disponivel===false?'REATIVAR':'VENDIDO')+'</button>';
+        '<button class="mini rm" data-a="rejeitar">REJEITAR</button>';
+    } else if(p.status==='aprovado'){
+      acoes = '<button class="mini" data-a="toggle">'+(p.disponivel===false?'REATIVAR':'VENDIDO')+'</button>';
+    } else {
+      acoes = '';   /* pendente/rejeitado do vendedor: só editar/apagar */
+    }
     return '<tr class="'+(p.disponivel===false?'off':'')+'" data-id="'+p.id+'">'+
-      '<td><input data-k="nome" value="'+esc(p.nome)+'">'+tag+origem+'</td>'+
+      '<td><input data-k="nome" value="'+esc(p.nome)+'">'+tag+origem+motivo+'</td>'+
       '<td style="width:58px"><input data-k="qualidade" value="'+esc(p.qualidade||'')+'"></td>'+
       '<td style="width:56px"><input data-k="iv" type="number" value="'+esc(p.iv)+'"></td>'+
       '<td style="width:56px"><input data-k="nivel" type="number" value="'+esc(p.nivel)+'"></td>'+
