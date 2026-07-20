@@ -424,7 +424,7 @@
           <div>
             <div class="cropbox" id="cropBox"><img id="cropImg" alt="" draggable="false"></div>
             <input type="range" id="cropZoom" min="1" max="4" step="0.01" value="1" style="width:180px;margin-top:8px;display:block">
-            <div style="font-size:10.5px;color:var(--faint);max-width:180px;margin-top:2px;line-height:1.5">arraste a imagem e use o zoom — <b style="color:var(--muted)">só o que fica no quadrado vira o anúncio</b> (recorte a tela do jogo)</div>
+            <div style="font-size:10.5px;color:var(--faint);max-width:180px;margin-top:2px;line-height:1.5">começa com a imagem inteira. <b style="color:var(--muted)">zoom −</b> pra ver tudo, <b style="color:var(--muted)">zoom +</b> pra cortar/focar, arraste pra reposicionar. O que estiver no quadrado vira o anúncio.</div>
           </div>
           <div class="info" id="prevInfo"></div>
         </div>
@@ -938,16 +938,20 @@ function usarArquivo(file){
 }
 
 /* ---------- recorte quadrado da foto ---------- */
+var CROP_BG = '#26201a';   /* fundo do card, pras bordas quando a imagem não é quadrada */
 function iniciarCropper(url){
   var img = $('cropImg');
   img.onload = function(){
     var box = $('cropBox').clientWidth || 180;
     var natW = img.naturalWidth, natH = img.naturalHeight;
     if(!natW || !natH){ cropState = {}; return; }
-    var minScale = box / Math.min(natW, natH);   /* cobre o quadrado */
-    cropState = { natW:natW, natH:natH, boxSize:box, minScale:minScale, scale:minScale,
-                  tx:(box - natW*minScale)/2, ty:(box - natH*minScale)/2, dragging:false };
-    $('cropZoom').value = 1;
+    var fitScale = box / Math.max(natW, natH);     /* imagem INTEIRA cabe no quadrado (começa assim) */
+    var coverScale = box / Math.min(natW, natH);   /* preenche o quadrado */
+    cropState = { natW:natW, natH:natH, boxSize:box, minScale:fitScale, scale:fitScale, tx:0, ty:0, dragging:false };
+    var z = $('cropZoom');
+    z.min = 1; z.step = 0.01;
+    z.max = Math.max(2, (coverScale/fitScale) * 2.2).toFixed(2);   /* afasta até ver tudo, aproxima bem além do cover */
+    z.value = 1;
     aplicarCrop();
   };
   img.src = url;
@@ -955,22 +959,22 @@ function iniciarCropper(url){
 function aplicarCrop(){
   var s = cropState; if(!s.natW) return;
   var w = s.natW*s.scale, h = s.natH*s.scale;
-  s.tx = Math.min(0, Math.max(s.boxSize - w, s.tx));   /* imagem sempre cobre o quadrado */
-  s.ty = Math.min(0, Math.max(s.boxSize - h, s.ty));
+  s.tx = (w <= s.boxSize) ? (s.boxSize - w)/2 : Math.min(0, Math.max(s.boxSize - w, s.tx));   /* menor: centraliza · maior: limita pan */
+  s.ty = (h <= s.boxSize) ? (s.boxSize - h)/2 : Math.min(0, Math.max(s.boxSize - h, s.ty));
   $('cropImg').style.transform = 'translate('+s.tx+'px,'+s.ty+'px) scale('+s.scale+')';
 }
 function gerarRecorte(){
   return new Promise(function(resolve){
     var s = cropState;
     if(!s.natW){ resolve(null); return; }
-    var out = 900, sSize = s.boxSize/s.scale;
-    var sx = Math.max(0, Math.min((0 - s.tx)/s.scale, s.natW - sSize));
-    var sy = Math.max(0, Math.min((0 - s.ty)/s.scale, s.natH - sSize));
+    var out = 900, k = out/s.boxSize;
     var canvas = document.createElement('canvas');
     canvas.width = out; canvas.height = out;
-    try { canvas.getContext('2d').drawImage($('cropImg'), sx, sy, sSize, sSize, 0, 0, out, out); }
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = CROP_BG; ctx.fillRect(0, 0, out, out);   /* preenche as bordas */
+    try { ctx.drawImage($('cropImg'), s.tx*k, s.ty*k, s.natW*s.scale*k, s.natH*s.scale*k); }
     catch(e){ resolve(null); return; }
-    canvas.toBlob(function(blob){ resolve(blob); }, 'image/jpeg', 0.82);
+    canvas.toBlob(function(blob){ resolve(blob); }, 'image/jpeg', 0.85);
   });
 }
 $('cropZoom').addEventListener('input', function(){
@@ -999,7 +1003,8 @@ $('cropBox').addEventListener('pointercancel', fimDrag);
 $('cropBox').addEventListener('wheel', function(e){
   if(!cropState.natW) return;
   e.preventDefault();
-  var z = Math.min(4, Math.max(1, parseFloat($('cropZoom').value) + (e.deltaY < 0 ? 0.12 : -0.12)));
+  var zmax = parseFloat($('cropZoom').max) || 4;
+  var z = Math.min(zmax, Math.max(1, parseFloat($('cropZoom').value) + (e.deltaY < 0 ? 0.12 : -0.12)));
   $('cropZoom').value = z;
   $('cropZoom').dispatchEvent(new Event('input'));
 }, {passive:false});
