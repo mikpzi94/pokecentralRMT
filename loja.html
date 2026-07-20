@@ -323,7 +323,7 @@
       </div>
 
       <div class="ed-panel">
-        <div class="ed-title">CATÁLOGO</div>
+        <div class="ed-title">CATÁLOGO <span id="pendCount"></span></div>
         <table class="mg">
           <thead><tr><th>Nome</th><th>Qual.</th><th>IV</th><th>Nv</th><th>R$</th><th></th></tr></thead>
           <tbody id="mgBody"></tbody>
@@ -348,6 +348,7 @@ var WHATSAPP = '5511994309545';   /* <-- TROQUE PELO SEU NÚMERO */
 var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 var $ = function(id){ return document.getElementById(id); };
 var lista = [];
+var OWNER_ID = 'd3607434-85a0-46eb-8a17-16dd3d0b247a';   /* dono = anúncio oficial */
 var arquivoSelecionado = null;
 
 /* ---------- helpers ---------- */
@@ -608,15 +609,30 @@ function renderTabela(){
     body.innerHTML = '<tr><td colspan="6" style="color:var(--faint);padding:14px 6px">nenhum item ainda</td></tr>';
     return;
   }
-  body.innerHTML = lista.map(function(p){
+  var pend = lista.filter(function(p){ return p.status==='pendente'; }).length;
+  $('pendCount').innerHTML = pend ? '<span style="color:var(--gold)">· ⏳ '+pend+' pra aprovar</span>' : '';
+
+  var ordenada = lista.slice().sort(function(a,b){
+    return (a.status==='pendente'?0:1) - (b.status==='pendente'?0:1);   /* pendentes no topo */
+  });
+
+  body.innerHTML = ordenada.map(function(p){
+    var oficial = !p.user_id || p.user_id === OWNER_ID;
+    var tag = p.status==='pendente' ? '<span style="color:var(--gold);font-size:10px"> ⏳ pendente</span>'
+            : p.status==='rejeitado' ? '<span style="color:var(--red);font-size:10px"> ✕ rejeitado</span>' : '';
+    var origem = oficial ? '' : '<span style="color:var(--pink);font-size:10px" title="anúncio de jogador"> 🧑</span>';
+    var acoes = (p.status==='pendente')
+      ? (p.print ? '<a class="mini" href="'+esc(p.print)+'" target="_blank" style="text-decoration:none" title="ver print">🖼</a>' : '')+
+        '<button class="mini" data-a="aprovar" style="border-color:var(--green);color:var(--green)">✓ APROVAR</button>'+
+        '<button class="mini rm" data-a="rejeitar">REJEITAR</button>'
+      : '<button class="mini" data-a="toggle">'+(p.disponivel===false?'REATIVAR':'VENDIDO')+'</button>';
     return '<tr class="'+(p.disponivel===false?'off':'')+'" data-id="'+p.id+'">'+
-      '<td><input data-k="nome" value="'+esc(p.nome)+'"></td>'+
+      '<td><input data-k="nome" value="'+esc(p.nome)+'">'+tag+origem+'</td>'+
       '<td style="width:58px"><input data-k="qualidade" value="'+esc(p.qualidade||'')+'"></td>'+
       '<td style="width:56px"><input data-k="iv" type="number" value="'+esc(p.iv)+'"></td>'+
       '<td style="width:56px"><input data-k="nivel" type="number" value="'+esc(p.nivel)+'"></td>'+
       '<td style="width:70px"><input data-k="preco" type="number" step="0.5" value="'+esc(p.preco)+'"></td>'+
-      '<td style="white-space:nowrap;width:1%">'+
-        '<button class="mini" data-a="toggle">'+(p.disponivel===false?'REATIVAR':'VENDIDO')+'</button>'+
+      '<td style="white-space:nowrap;width:1%">'+ acoes +
         '<button class="mini rm" data-a="del">X</button>'+
       '</td></tr>';
   }).join('');
@@ -655,7 +671,31 @@ function renderTabela(){
       sb.from('pokemons').delete().eq('id', id).select().then(function(r){
         if(r.error){ aviso($('mgMsg'), 'erro: '+r.error.message, 'err'); return; }
         if(!r.data || !r.data.length){ aviso($('mgMsg'), 'não apagou — a política RLS não deixou apagar com essa conta. Confira as policies de DELETE da tabela pokemons no Supabase.', 'err'); return; }
-        carregar().then(renderTabela);
+        carregar();
+      });
+    });
+  });
+
+  body.querySelectorAll('[data-a="aprovar"]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var id = this.closest('tr').dataset.id;
+      sb.from('pokemons').update({ status:'aprovado', motivo_rejeicao:null }).eq('id', id).select().then(function(r){
+        if(r.error){ aviso($('mgMsg'), 'erro: '+r.error.message, 'err'); return; }
+        if(!r.data || !r.data.length){ aviso($('mgMsg'), 'não aprovou — RLS bloqueou (você é admin?).', 'err'); return; }
+        aviso($('mgMsg'), '✓ aprovado — já está no ar', 'ok'); carregar();
+      });
+    });
+  });
+
+  body.querySelectorAll('[data-a="rejeitar"]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var id = this.closest('tr').dataset.id;
+      var item = lista.filter(function(x){ return x.id === id; })[0];
+      var motivo = prompt('Motivo da rejeição (o vendedor vê depois):', '');
+      if(motivo === null) return;
+      sb.from('pokemons').update({ status:'rejeitado', motivo_rejeicao: motivo || 'não especificado' }).eq('id', id).select().then(function(r){
+        if(r.error){ aviso($('mgMsg'), 'erro: '+r.error.message, 'err'); return; }
+        aviso($('mgMsg'), 'anúncio rejeitado', 'ok'); carregar();
       });
     });
   });
