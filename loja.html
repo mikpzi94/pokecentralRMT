@@ -38,6 +38,9 @@
   .nav a.home{color:var(--gold);}
   .nav a.wa{margin-left:auto;color:var(--green);border-right:none;border-left:2px solid var(--line);}
   .nav a.wa:hover{background:var(--green);color:var(--bg);}
+  .nav a.conta{color:#7d8ff5;border-left:2px solid var(--line);}
+  .nav a.conta:hover{background:#5865F2;color:#fff;}
+  .nav a.conta.logado{color:var(--gold);}
   @media(max-width:620px){ .nav a{font-size:7px;padding:10px;} .nav a.wa{margin-left:0;} }
 
   header{border:2px solid var(--line);background:var(--panel);padding:20px;margin-bottom:20px;}
@@ -257,6 +260,7 @@
     <a class="on" href="/loja">LOJA</a>
     <a href="/leilao">LEILAO</a>
     <a class="wa" id="navWa" href="#" target="_blank" rel="noopener">WHATSAPP</a>
+    <a class="conta" id="navConta" href="#">🎮 ENTRAR</a>
   </nav>
 
   <header>
@@ -339,9 +343,14 @@
 
     <!-- login -->
     <div class="ed-panel" id="loginPanel">
-      <div class="ed-title">VENDER NA LOJA</div>
+      <div class="ed-title">ENTRAR NA LOJA</div>
       <div class="login-box">
-        <p style="font-size:12.5px;color:var(--muted);margin:0 0 12px;line-height:1.6">Entre com Discord pra anunciar seus Pokémon. Cada anúncio passa por <b>aprovação</b> antes de ir pro ar — é o que mantém a loja confiável.</p>
+        <p style="font-size:12.5px;color:var(--muted);margin:0 0 8px;line-height:1.6">Entre com <b>Discord</b> pra:</p>
+        <ul style="margin:0 0 14px;padding:0;list-style:none;font-size:12.5px;color:var(--muted);line-height:1.95">
+          <li>🛒 anunciar seus Pokémon</li>
+          <li>⭐ avaliar vendedores</li>
+          <li>🚩 denunciar golpe</li>
+        </ul>
         <button class="btn-discord" id="btnDiscord" style="width:100%">ENTRAR COM DISCORD</button>
         <a href="/anunciar" style="display:block;text-align:center;margin-top:12px;font-size:11.5px;color:var(--green)">▸ primeira vez? veja como anunciar</a>
         <details style="margin-top:14px">
@@ -700,8 +709,28 @@ document.querySelectorAll('.atab').forEach(function(b){
   });
 });
 
+function abrirPainel(){
+  $('painel').style.display = 'block';
+  $('editToggle').textContent = '▪ fechar modo vendedor';
+  $('painel').scrollIntoView({ behavior:'smooth' });
+}
+function atualizarNavConta(session){
+  var el = $('navConta');
+  if(!el) return;
+  if(session && session.user){
+    el.classList.add('logado');
+    el.textContent = '👤 ' + (nomeDiscord(session).split(' ')[0] || 'conta');
+    el.onclick = function(e){ e.preventDefault(); abrirPainel(); };
+  } else {
+    el.classList.remove('logado');
+    el.textContent = '🎮 ENTRAR';
+    el.onclick = function(e){ e.preventDefault(); sb.auth.signInWithOAuth({ provider:'discord', options:{ redirectTo: location.href, scopes:'identify email' } }); };
+  }
+}
+
 function mostrarSessao(session){
   sessaoAtual = session;
+  atualizarNavConta(session);
   if(session && session.user){
     meuUid = session.user.id;
     sb.rpc('is_admin').then(function(r){
