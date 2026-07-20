@@ -71,6 +71,11 @@
   }
   .filters input{flex:1;min-width:150px;}
   .filters input:focus, .filters select:focus{border-color:var(--gold);}
+  #mgFiltros input, #mgFiltros select{
+    background:var(--panel2);border:2px solid var(--line);color:var(--text);
+    font-family:var(--mono);font-size:12px;padding:8px 9px;outline:none;
+  }
+  #mgFiltros input:focus, #mgFiltros select:focus{border-color:var(--gold);}
 
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:14px;}
   .card{border:2px solid var(--line);background:var(--panel);display:flex;flex-direction:column;}
@@ -113,6 +118,8 @@
   .comunidade-aviso b{color:var(--gold);}
   .comunidade-aviso a{color:var(--green);}
   .card-seller{font-size:11px;color:var(--pink);margin-bottom:1px;}
+  .seller-link{cursor:pointer;text-decoration:underline dotted;}
+  .seller-link:hover{color:var(--gold);}
   .card-contato{margin-top:auto;font-size:11.5px;color:var(--muted);border:2px solid var(--line);padding:9px 8px;text-align:center;line-height:1.5;}
   .load-more{
     display:block;margin:22px auto 0;font-family:var(--px);font-size:9px;cursor:pointer;
@@ -304,7 +311,7 @@
   </div>
 
   <div class="filters">
-    <input type="text" id="search" placeholder="buscar por nome...">
+    <input type="text" id="search" placeholder="buscar por nome ou vendedor...">
     <select id="sortSel">
       <option value="recent">mais recentes</option>
       <option value="priceAsc">menor preço</option>
@@ -318,6 +325,13 @@
       <option value="140">IV ≥ 140</option>
       <option value="160">IV ≥ 160</option>
       <option value="180">IV ≥ 180</option>
+    </select>
+    <select id="qualFilter">
+      <option value="0">qualquer qualidade</option>
+      <option value="1.3">Qualidade ≥ 1.3</option>
+      <option value="1.5">Qualidade ≥ 1.5</option>
+      <option value="1.7">Qualidade ≥ 1.7</option>
+      <option value="2.0">Qualidade ≥ 2.0</option>
     </select>
   </div>
 
@@ -442,6 +456,13 @@
 
       <div class="ed-panel" id="painelCatalogo">
         <div class="ed-title"><span id="catTitle">CATÁLOGO</span> <span id="pendCount"></span></div>
+        <div id="mgFiltros" style="display:none;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <input type="text" id="mgSearch" placeholder="filtrar por nome ou vendedor..." style="flex:1;min-width:150px">
+          <select id="mgSort">
+            <option value="pend">pendentes no topo</option>
+            <option value="vend">agrupar por vendedor</option>
+          </select>
+        </div>
         <table class="mg">
           <thead><tr><th>Nome</th><th>Qual.</th><th>IV</th><th>Nv</th><th>R$</th><th></th></tr></thead>
           <tbody id="mgBody"></tbody>
@@ -594,7 +615,7 @@ function cardHtml(p){
     '<div class="card-img">'+img+'<div class="iv-badge" style="background:'+ivColor(p.iv)+'">IV '+esc(p.iv)+'</div></div>'+
     '<div class="card-body">'+
       (ehOficial(p) ? '' :
-        '<div class="card-seller">🧑 '+esc(p.vendedor_nome || 'Vendedor')+
+        '<div class="card-seller">🧑 <span class="seller-link" data-seller="'+esc(p.vendedor_nome||'')+'" title="ver todos os anúncios deste vendedor">'+esc(p.vendedor_nome || 'Vendedor')+'</span>'+
           (confiaveis[p.user_id] ? ' <span class="selo-conf">✔ Confiável</span>' : '')+'</div>'+
         '<div class="card-rep" data-rev="'+esc(p.user_id||'')+'">'+
           (repInfo(p.user_id) ? '⭐ '+repInfo(p.user_id).media.toFixed(1)+' ('+repInfo(p.user_id).n+')' : 'sem avaliações')+' ›</div>')+
@@ -615,13 +636,18 @@ function render(){
   var termo = ($('search').value||'').toLowerCase();
   var ordem = $('sortSel').value;
   var ivMin = parseFloat($('ivFilter').value) || 0;
+  var qualMin = parseFloat($('qualFilter').value) || 0;
 
   var itens = lista.filter(function(p){
     return p.status === 'aprovado' && p.disponivel !== false &&
       (aba === 'oficial' ? ehOficial(p) : !ehOficial(p));
   });
-  if(termo) itens = itens.filter(function(p){ return String(p.nome||'').toLowerCase().indexOf(termo)>=0; });
+  if(termo) itens = itens.filter(function(p){
+    return String(p.nome||'').toLowerCase().indexOf(termo)>=0 ||
+           String(p.vendedor_nome||'').toLowerCase().indexOf(termo)>=0;
+  });
   if(ivMin) itens = itens.filter(function(p){ return (Number(p.iv)||0) >= ivMin; });
+  if(qualMin) itens = itens.filter(function(p){ return (parseFloat(String(p.qualidade).replace(',','.'))||0) >= qualMin; });
 
   if(ordem==='priceAsc') itens.sort(function(a,b){ return a.preco-b.preco; });
   else if(ordem==='priceDesc') itens.sort(function(a,b){ return b.preco-a.preco; });
@@ -635,7 +661,7 @@ function render(){
     $('grid').innerHTML = '<div class="empty">' +
       (aba === 'jogadores'
         ? 'Ainda não há anúncios de jogadores.<br>Em breve vendedores da comunidade poderão anunciar aqui. 🧑'
-        : (termo || ivMin
+        : (termo || ivMin || qualMin
             ? 'Nenhum Pokémon com esses filtros.'
             : 'Nenhum Pokémon à venda no momento.<br>Me chama no WhatsApp que eu te aviso quando entrar algo — ou encomendo o que você procura.<br><br>' +
               '<a href="'+waLink('Olá! Vi que a vitrine do PokeCentral está vazia. Estou procurando um Pokémon específico, dá pra encomendar?')+'" target="_blank" rel="noopener">falar no WhatsApp →</a>')) +
@@ -652,6 +678,16 @@ function render(){
     $('grid').querySelectorAll('[data-share]').forEach(function(b){
       b.addEventListener('click', function(){ copiarLinkProduto(this.dataset.share, this); });
     });
+    $('grid').querySelectorAll('[data-seller]').forEach(function(b){
+      b.addEventListener('click', function(){
+        if(aba !== 'jogadores'){
+          aba = 'jogadores';
+          document.querySelectorAll('.shop-tab').forEach(function(x){ x.classList.toggle('on', x.dataset.aba === 'jogadores'); });
+        }
+        $('search').value = this.dataset.seller;
+        mostrados = PAGINA; render();
+      });
+    });
   }
 
   var vendidos = lista.filter(function(p){ return ehOficial(p) && p.status === 'aprovado' && p.disponivel === false; });
@@ -666,7 +702,7 @@ function render(){
 }
 
 function resetRender(){ mostrados = PAGINA; render(); }
-['search','sortSel','ivFilter'].forEach(function(id){ $(id).addEventListener('input', resetRender); });
+['search','sortSel','ivFilter','qualFilter'].forEach(function(id){ $(id).addEventListener('input', resetRender); });
 
 document.querySelectorAll('.shop-tab').forEach(function(b){
   b.addEventListener('click', function(){
@@ -722,6 +758,7 @@ function aplicarAbaAdmin(){
   $('denunciasPanel').style.display = (abaAdmin==='denuncias') ? 'block' : 'none';
   $('reviewsPanel').style.display   = (abaAdmin==='reviews') ? 'block' : 'none';
   $('catTitle').textContent = (abaAdmin==='jogadores') ? 'MODERAÇÃO — JOGADORES' : 'MINHA LOJA';
+  $('mgFiltros').style.display = (abaAdmin==='jogadores') ? 'flex' : 'none';
   if(abaAdmin==='loja' || abaAdmin==='jogadores') renderTabela();
   if(abaAdmin==='denuncias') carregarDenuncias();
   if(abaAdmin==='reviews') renderReviewsAdmin();
@@ -735,6 +772,8 @@ document.querySelectorAll('.atab').forEach(function(b){
     aplicarAbaAdmin();
   });
 });
+$('mgSearch').addEventListener('input', renderTabela);
+$('mgSort').addEventListener('change', renderTabela);
 
 function abrirPainel(){
   $('painel').style.display = 'block';
@@ -951,13 +990,26 @@ function renderTabela(){
     $('pendCount').innerHTML = '<span style="color:var(--faint)">· '+ativos+'/'+limite+' slots'+(confiaveis[meuUid]?' <span style="color:var(--green)">✔</span>':'')+'</span>';
   }
 
+  /* busca da moderação (só admin/jogadores): filtra por nome ou vendedor */
+  var mgT = (ehAdmin && abaAdmin==='jogadores' && $('mgSearch') ? ($('mgSearch').value||'').toLowerCase() : '');
+  if(mgT) meus = meus.filter(function(p){
+    return String(p.nome||'').toLowerCase().indexOf(mgT)>=0 ||
+           String(p.vendedor_nome||'').toLowerCase().indexOf(mgT)>=0;
+  });
+
   if(!meus.length){
     body.innerHTML = '<tr><td colspan="6" style="color:var(--faint);padding:14px 6px">'+
-      (ehAdmin ? (abaAdmin==='jogadores' ? 'nenhum anúncio de jogador' : 'nenhum item na sua loja') : 'você ainda não anunciou nada')+'</td></tr>';
+      (mgT ? 'nenhum anúncio com esse filtro' :
+       (ehAdmin ? (abaAdmin==='jogadores' ? 'nenhum anúncio de jogador' : 'nenhum item na sua loja') : 'você ainda não anunciou nada'))+'</td></tr>';
     return;
   }
 
+  var modo = (ehAdmin && abaAdmin==='jogadores' && $('mgSort')) ? $('mgSort').value : 'pend';
   var ordenada = meus.slice().sort(function(a,b){
+    if(modo === 'vend'){   /* agrupa por vendedor, pendentes primeiro dentro de cada grupo */
+      var va = String(a.vendedor_nome||'~').toLowerCase(), vb = String(b.vendedor_nome||'~').toLowerCase();
+      if(va !== vb) return va < vb ? -1 : 1;
+    }
     return (a.status==='pendente'?0:1) - (b.status==='pendente'?0:1);   /* pendentes no topo */
   });
 
@@ -966,7 +1018,7 @@ function renderTabela(){
     var tag = p.status==='pendente' ? '<span style="color:var(--gold);font-size:10px"> ⏳ pendente</span>'
             : p.status==='rejeitado' ? '<span style="color:var(--red);font-size:10px"> ✕ rejeitado</span>' : '';
     var motivo = (p.status==='rejeitado' && p.motivo_rejeicao) ? '<div style="font-size:10px;color:var(--red)">motivo: '+esc(p.motivo_rejeicao)+'</div>' : '';
-    var origem = (ehAdmin && !oficial) ? '<span style="color:var(--pink);font-size:10px" title="anúncio de jogador"> 🧑</span>' : '';
+    var origem = (ehAdmin && !oficial) ? '<div style="color:var(--pink);font-size:10.5px;margin-top:2px" title="vendedor">🧑 '+esc(p.vendedor_nome||'?')+(p.vendedor_contato?' · <span style="color:var(--faint)">'+esc(p.vendedor_contato)+'</span>':'')+'</div>' : '';
     var acoes;
     if(ehAdmin && p.status==='pendente'){
       acoes = (p.print ? '<a class="mini" href="'+esc(p.print)+'" target="_blank" style="text-decoration:none" title="ver print">🖼</a>' : '')+
