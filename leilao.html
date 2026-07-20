@@ -528,6 +528,28 @@ function renderMe(){
 sb.auth.getSession().then(function(r){ sessao = r.data.session; renderMe(); mostrarAdmin(); });
 sb.auth.onAuthStateChange(function(_e, s){ sessao = s; renderMe(); mostrarAdmin(); render(); });
 
+/* ---------- compartilhar lote (link com preview /l/:id) ---------- */
+function copiarLinkLote(id, btn){
+  var url = location.origin + '/l/' + id;
+  function ok(){ var t = btn.textContent; btn.textContent = '✓ link copiado!'; setTimeout(function(){ btn.textContent = t; }, 2000); }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(ok).catch(function(){ prompt('Copie o link:', url); });
+  } else { prompt('Copie o link:', url); }
+}
+var jaScrollou = false;
+function scrollParaLote(){
+  if(jaScrollou) return;
+  var id = new URLSearchParams(location.search).get('l');
+  if(!id){ jaScrollou = true; return; }
+  var el = document.getElementById('lote-'+id);
+  if(el){
+    jaScrollou = true;
+    el.scrollIntoView({ behavior:'smooth', block:'center' });
+    el.style.outline = '3px solid var(--gold)';
+    setTimeout(function(){ el.style.outline = ''; }, 3000);
+  }
+}
+
 /* ---------- render público ---------- */
 function render(){
   /* guarda o que estiver digitado antes de redesenhar */
@@ -586,7 +608,7 @@ function render(){
         '<td class="when">'+hora(b.data)+'</td></tr>';
     }).join('');
 
-    return '<div class="lote'+(aberto?'':' fim')+'">'+
+    return '<div class="lote'+(aberto?'':' fim')+'" id="lote-'+lote.id+'">'+
       '<div class="lote-top">'+
         '<div class="lote-img">'+img+'<div class="iv-badge" style="background:'+ivColor(lote.iv)+'">IV '+esc(lote.iv)+'</div></div>'+
         '<div class="lote-info">'+
@@ -611,6 +633,7 @@ function render(){
         '</div>'+
       '</div>'+
       (a.todos.length ? '<div class="log"><div class="log-head"><span>HISTÓRICO DE LANCES</span><span>riscado = fora da regra</span></div><table class="bids">'+linhas+'</table></div>':'')+
+      '<button type="button" data-sharel="'+lote.id+'" style="display:block;width:100%;background:none;border:none;border-top:2px solid var(--line);color:var(--faint);font-family:var(--mono);font-size:11px;cursor:pointer;padding:11px">🔗 compartilhar este leilão</button>'+
     '</div>';
   }).join('');
 
@@ -626,6 +649,10 @@ function render(){
   document.querySelectorAll('[data-buynow]').forEach(function(b){
     b.addEventListener('click', function(){ comprarJa(this.dataset.buynow, this); });
   });
+  document.querySelectorAll('[data-sharel]').forEach(function(b){
+    b.addEventListener('click', function(){ copiarLinkLote(this.dataset.sharel, this); });
+  });
+  scrollParaLote();
 
   /* devolve o que estava digitado e o cursor */
   Object.keys(salvos).forEach(function(k){
