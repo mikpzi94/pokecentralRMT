@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" href="/favicon.png">
+<meta name="theme-color" content="#f0b429">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Como anunciar seu Pokémon — PokeCentral</title>
+<meta name="description" content="Passo a passo pra anunciar seu Pokémon na loja de jogadores do PokeCentral: como nomear a imagem, tirar o print, preencher os campos e como funciona a moderação.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12100c; --panel:#1c1812; --panel2:#26201a; --panel3:#332a20;
+    --line:#4a3c28; --line2:#6b5637;
+    --gold:#f0b429; --green:#8fc45a; --red:#d4593f; --blue:#4a90c2; --purple:#a878c4; --pink:#d9709b;
+    --text:#f2e8d5; --muted:#a89880; --faint:#736450;
+    --px:'Press Start 2P',monospace; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--bg);
+    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 3px);
+    color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.7;padding:0 16px 60px;
+  }
+  .wrap{max-width:900px;margin:0 auto;}
+
+  .nav{display:flex;gap:2px;flex-wrap:wrap;align-items:stretch;border:2px solid var(--line);background:var(--panel);margin:14px 0 22px;}
+  .nav a{font-family:var(--px);font-size:8px;letter-spacing:.05em;color:var(--muted);text-decoration:none;padding:12px 13px;border-right:2px solid var(--line);display:flex;align-items:center;}
+  .nav a:last-child{border-right:none;}
+  .nav a:hover{background:var(--panel2);color:var(--gold);}
+  .nav a.home{color:var(--gold);}
+  .nav a.wa{margin-left:auto;color:var(--green);border-right:none;border-left:2px solid var(--line);}
+  .nav a.wa:hover{background:var(--green);color:var(--bg);}
+  @media(max-width:620px){ .nav a{font-size:7px;padding:10px;} .nav a.wa{margin-left:0;} }
+
+  .back{display:inline-block;font-family:var(--px);font-size:8px;color:var(--faint);text-decoration:none;padding:14px 0 12px;}
+  .back:hover{color:var(--gold);}
+
+  header{border:2px solid var(--line);background:var(--panel);padding:20px;margin-bottom:24px;}
+  h1{font-family:var(--px);font-size:clamp(13px,2.6vw,17px);margin:0 0 12px;line-height:1.5;}
+  h1 span{color:var(--gold);}
+  header p{color:var(--muted);font-size:13px;margin:0;max-width:680px;}
+
+  .sec-head{display:flex;align-items:center;gap:10px;margin:0 0 14px;}
+  .sec-head h2{font-family:var(--px);font-size:11px;margin:0;}
+  .sec-head .rule{flex:1;height:2px;background:var(--line);}
+  section{margin-bottom:34px;}
+
+  ol.steps{list-style:none;counter-reset:s;margin:0;padding:0;}
+  ol.steps li{
+    counter-increment:s;position:relative;border:2px solid var(--line);background:var(--panel);
+    padding:14px 16px 14px 56px;margin-bottom:12px;font-size:13px;color:var(--muted);line-height:1.65;
+  }
+  ol.steps li::before{
+    content:counter(s);position:absolute;left:14px;top:13px;
+    font-family:var(--px);font-size:12px;color:var(--bg);background:var(--gold);
+    width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  }
+  ol.steps b{color:var(--text);}
+
+  .filecode{
+    border:2px solid var(--green);background:rgba(143,196,90,.06);padding:16px 18px;margin:16px 0;
+  }
+  .filecode .big{font-family:var(--px);font-size:clamp(9px,2.3vw,13px);color:var(--green);word-break:break-all;line-height:1.7;display:block;margin-bottom:14px;}
+  .filecode table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .filecode td{padding:6px 4px;border-top:2px solid var(--line);color:var(--muted);vertical-align:top;}
+  .filecode td:first-child{font-family:var(--px);font-size:9px;color:var(--gold);white-space:nowrap;width:1%;padding-right:14px;}
+  .filecode b{color:var(--text);}
+  .ex{color:var(--faint);font-size:12px;margin-top:12px;line-height:1.7;}
+  .ex code{color:var(--green);}
+
+  ul.tips{list-style:none;margin:0;padding:0;}
+  ul.tips li{border:2px solid var(--line);border-left:4px solid var(--green);background:var(--panel);padding:12px 14px;margin-bottom:10px;font-size:13px;color:var(--muted);line-height:1.6;}
+  ul.tips li b{color:var(--text);}
+
+  .mod{border:2px solid var(--gold);background:rgba(240,180,41,.07);padding:16px 18px;}
+  .mod h3{font-family:var(--px);font-size:9px;color:var(--gold);margin:0 0 12px;letter-spacing:.04em;}
+  .mod ul{list-style:none;margin:0;padding:0;}
+  .mod li{padding:8px 0;border-top:2px solid var(--line);font-size:12.5px;color:var(--muted);line-height:1.6;}
+  .mod li:first-child{border-top:none;}
+  .mod li b{color:var(--text);}
+
+  .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px;}
+  .cta a{font-family:var(--px);font-size:8px;letter-spacing:.04em;text-decoration:none;padding:13px 16px;border:2px solid var(--line2);color:var(--text);}
+  .cta a.main{border-color:var(--green);color:var(--green);}
+  .cta a.main:hover{background:var(--green);color:var(--bg);}
+  .cta a:hover{border-color:var(--gold);color:var(--gold);}
+
+  .foot-note{color:var(--faint);font-size:11.5px;line-height:1.7;margin-top:26px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav">
+    <a class="home" href="/">▪ POKECENTRAL</a>
+    <a href="/rentabilidade">QUANTO RENDE</a>
+    <a href="/preco">QUANTO VALE</a>
+    <a href="/loja">LOJA</a>
+    <a href="/leilao">LEILAO</a>
+    <a class="wa" href="https://wa.me/5511994309545?text=Ol%C3%A1!%20Vim%20pelo%20PokeCentral." target="_blank" rel="noopener">WHATSAPP</a>
+  </nav>
+
+  <a class="back" href="/loja">◀ VOLTAR PRA LOJA</a>
+
+  <header>
+    <h1>Como anunciar seu <span>Pokémon</span></h1>
+    <p>
+      Vender na loja de jogadores é rápido — e fica ainda mais fácil se você nomear a imagem certo (a loja preenche os campos
+      sozinha) e mandar um print limpo. Segue o passo a passo.
+    </p>
+  </header>
+
+  <section>
+    <div class="sec-head"><h2>1. Nomeie a imagem (preenche tudo sozinho)</h2><div class="rule"></div></div>
+    <p style="color:var(--faint);font-size:12.5px;margin:0 0 4px">Se o arquivo do print tiver este nome, a loja lê nome, qualidade, IV e nível automaticamente:</p>
+
+    <div class="filecode">
+      <span class="big">NomeQ&lt;qualidade&gt;IV&lt;iv&gt;N&lt;nível&gt;.png</span>
+      <table>
+        <tr><td>Nome</td><td>o nome do Pokémon, sem espaço. Ex: <b>Golem</b>, <b>Raichu</b>.</td></tr>
+        <tr><td>Q…</td><td><b>qualidade × 100</b>. Qualidade 1.70 → <b>Q170</b>. Qualidade 2.03 → <b>Q203</b>.</td></tr>
+        <tr><td>IV…</td><td>o <b>IV</b> do bicho (0 a 192). Ex: <b>IV138</b>.</td></tr>
+        <tr><td>N…</td><td>o <b>nível</b>. Ex: <b>N100</b>. (opcional — se faltar, você preenche na mão)</td></tr>
+      </table>
+      <div class="ex">
+        Exemplos prontos:<br>
+        • Golem, qualidade 1.70, IV 120, nível 100 → <code>GolemQ170IV120N100.png</code><br>
+        • Raichu, qualidade 2.03, IV 138, nível 1 → <code>RaichuQ203IV138N1.png</code>
+      </div>
+    </div>
+    <p style="color:var(--faint);font-size:12px;margin:0">Não é obrigatório — se preferir, sobe o print e preenche os campos na mão. Mas nomear certo economiza tempo e evita erro de digitação.</p>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>2. Tire o print da melhor forma</h2><div class="rule"></div></div>
+    <ul class="tips">
+      <li>Abra a <b>tela de status</b> do Pokémon no jogo — a que mostra IV, qualidade, nível e os stats.</li>
+      <li>Tire o print com <b>tudo visível e legível</b>. É a sua prova pro comprador; print borrado espanta.</li>
+      <li><b>Recorte só a caixa de status</b> (sem o resto da tela). A loja mostra a imagem inteira sem cortar, então quanto mais limpa, melhor fica o card.</li>
+      <li><b>Nada de editar o print.</b> Print alterado é fraude — e a moderação reprova na hora.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>3. Preencha e defina o preço</h2><div class="rule"></div></div>
+    <ol class="steps">
+      <li><b>Confira os campos.</b> Nome, qualidade, IV e nível — vieram do nome do arquivo? Confere se bate com o print.</li>
+      <li><b>Use a sugestão de preço.</b> Ao preencher IV/qualidade, aparece o <b>💡 preço sugerido</b> (venda rápida / referência / flex). Clica no que fizer sentido — é uma base, o preço final é seu.</li>
+      <li><b>Informe seu contato.</b> WhatsApp (com DDD) ou seu @Discord. É por ali que o comprador te acha — sem contato, ninguém fecha.</li>
+      <li><b>Envie.</b> Clica em <b>enviar pra aprovação</b>. Pronto — agora é com a gente (ver abaixo).</li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>4. A moderação (leia isto)</h2><div class="rule"></div></div>
+    <div class="mod">
+      <h3>▸ Por que seu anúncio não aparece na hora</h3>
+      <ul>
+        <li><b>Todo anúncio passa por aprovação</b> antes de ir pro ar. É o que mantém a loja limpa de golpe e print falso — protege você e quem compra.</li>
+        <li><b>Leva um tempo.</b> Não é instantâneo: eu confiro cada anúncio na mão. Pode levar de alguns minutos a algumas horas, dependendo do movimento. Fica tranquilo que não sumiu.</li>
+        <li><b>Acompanhe em "Meus anúncios".</b> Lá ele fica marcado <b>⏳ pendente</b> até sair. Quando aprovar, aparece na aba <b>Jogadores</b> da loja.</li>
+        <li><b>Se for recusado</b>, você vê o <b>motivo</b> ali mesmo — corrige e reenvia.</li>
+      </ul>
+    </div>
+    <p class="foot-note">
+      Dica pra aprovar rápido: <b>print real e nítido</b>, <b>preço coerente</b> com o mercado, e os <b>dados batendo</b> com a imagem.
+      Vendedor com bom histórico ganha aprovação mais ágil com o tempo.
+    </p>
+  </section>
+
+  <div class="cta">
+    <a class="main" href="/loja">ANUNCIAR NA LOJA ▸</a>
+    <a href="/preco">CALCULAR O PREÇO</a>
+    <a href="/negociar">NEGOCIAR SEM GOLPE</a>
+  </div>
+
+</div>
+</body>
+</html>
