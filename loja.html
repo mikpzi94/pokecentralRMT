@@ -389,6 +389,7 @@ function carregar(){
       if(res.error){ throw res.error; }
       lista = res.data || [];
       render();
+      if($('areaAdmin') && $('areaAdmin').style.display === 'block') renderTabela();
     })
     .catch(function(e){
       $('loading').textContent = 'não consegui carregar o estoque.';
