@@ -123,6 +123,15 @@
   }
   .btn-discord:hover{background:transparent;color:#7d8ff5;border-color:#7d8ff5;}
 
+  .card-report{
+    margin-top:6px;background:none;border:none;color:var(--faint);font-family:var(--mono);
+    font-size:10.5px;cursor:pointer;text-align:center;padding:2px;
+  }
+  .card-report:hover{color:var(--red);}
+  .den-item{border:2px solid var(--line);border-left:4px solid var(--red);background:var(--panel2);padding:12px 14px;margin-bottom:10px;font-size:13px;}
+  .den-item b{color:var(--text);}
+  .den-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+
   .empty{border:2px dashed var(--line);padding:34px 20px;text-align:center;color:var(--faint);font-size:12.5px;line-height:1.8;grid-column:1/-1;}
   .empty a{color:var(--green);}
   .loading{color:var(--faint);font-size:12.5px;padding:30px 0;text-align:center;}
@@ -383,6 +392,11 @@
         <div class="msg" id="mgMsg"></div>
       </div>
 
+      <div class="ed-panel" id="denunciasPanel" style="display:none">
+        <div class="ed-title">🚩 DENÚNCIAS <span id="denCount" style="color:var(--red)"></span></div>
+        <div id="denBody"></div>
+      </div>
+
     </div>
   </div>
 
@@ -490,6 +504,7 @@ function cardHtml(p){
       (p.obs ? '<div class="card-obs">'+esc(p.obs)+'</div>' : '')+
       '<div class="card-price">'+brl(p.preco)+'</div>'+
       rodape+
+      (ehOficial(p) ? '' : '<button type="button" class="card-report" data-den="'+p.id+'">🚩 denunciar</button>')+
     '</div></div>';
 }
 
@@ -528,6 +543,9 @@ function render(){
   } else {
     $('grid').innerHTML = itens.slice(0, mostrados).map(cardHtml).join('');
     $('carregarMais').style.display = (itens.length > mostrados) ? 'block' : 'none';
+    $('grid').querySelectorAll('[data-den]').forEach(function(b){
+      b.addEventListener('click', function(){ denunciar(this.dataset.den); });
+    });
   }
 
   var vendidos = lista.filter(function(p){ return ehOficial(p) && p.status === 'aprovado' && p.disponivel === false; });
@@ -577,6 +595,7 @@ function aplicarPapel(session){
   $('catTitle').textContent  = ehAdmin ? 'FILA DE MODERAÇÃO' : 'MEUS ANÚNCIOS';
   $('btnSalvar').textContent = ehAdmin ? '+ PUBLICAR NA LOJA' : '+ ENVIAR PRA APROVAÇÃO';
   $('wrapContato').style.display = ehAdmin ? 'none' : 'block';
+  if(ehAdmin){ carregarDenuncias(); } else { $('denunciasPanel').style.display = 'none'; }
 }
 
 function mostrarSessao(session){
@@ -771,6 +790,9 @@ function renderTabela(){
     } else {
       acoes = '';   /* pendente/rejeitado do vendedor: só editar/apagar */
     }
+    if(ehAdmin && !oficial && p.user_id){
+      acoes += '<button class="mini rm" data-banir="'+esc(p.user_id)+'" data-vnome="'+esc(p.vendedor_nome||'')+'" title="banir vendedor">🚫</button>';
+    }
     return '<tr class="'+(p.disponivel===false?'off':'')+'" data-id="'+p.id+'">'+
       '<td><input data-k="nome" value="'+esc(p.nome)+'">'+tag+origem+motivo+'</td>'+
       '<td style="width:58px"><input data-k="qualidade" value="'+esc(p.qualidade||'')+'"></td>'+
@@ -844,6 +866,76 @@ function renderTabela(){
       });
     });
   });
+
+  body.querySelectorAll('[data-banir]').forEach(function(btn){
+    btn.addEventListener('click', function(){ banir(this.dataset.banir, this.dataset.vnome); });
+  });
+}
+
+/* ---------- denúncias + banimento (B2) ---------- */
+function denunciar(id){
+  var p = lista.filter(function(x){ return String(x.id)===String(id); })[0];
+  if(!p) return;
+  var motivo = prompt('Por que está denunciando "'+p.nome+'"? (golpe, print falso, preço absurdo…)', '');
+  if(motivo === null) return;
+  sb.from('denuncias').insert({
+    anuncio_id: String(p.id),
+    vendedor_id: p.user_id || null,
+    vendedor_nome: p.vendedor_nome || null,
+    anuncio_nome: p.nome || null,
+    motivo: motivo || 'não especificado'
+  }).then(function(r){
+    alert(r.error ? 'erro ao denunciar: '+r.error.message : 'Denúncia enviada — vou revisar. Obrigado! 🙏');
+  });
+}
+
+var denuncias = [];
+function carregarDenuncias(){
+  if(!ehAdmin) return;
+  sb.from('denuncias').select('*').eq('resolvido', false).order('criado_em', {ascending:false}).then(function(r){
+    denuncias = r.data || [];
+    renderDenuncias();
+  });
+}
+function renderDenuncias(){
+  $('denunciasPanel').style.display = 'block';
+  $('denCount').textContent = denuncias.length ? '('+denuncias.length+')' : '';
+  var body = $('denBody');
+  if(!denuncias.length){
+    body.innerHTML = '<div style="color:var(--faint);font-size:12px;padding:4px 0">nenhuma denúncia pendente 👍</div>';
+    return;
+  }
+  body.innerHTML = denuncias.map(function(d){
+    return '<div class="den-item">'+
+      '<div><b>'+esc(d.anuncio_nome||'?')+'</b> · vendedor: <b style="color:var(--pink)">'+esc(d.vendedor_nome||'?')+'</b></div>'+
+      '<div style="color:var(--muted);font-size:12px;margin:5px 0">motivo: '+esc(d.motivo||'—')+'</div>'+
+      '<div class="den-acoes">'+
+        (d.vendedor_id ? '<button class="mini rm" data-banir="'+esc(d.vendedor_id)+'" data-vnome="'+esc(d.vendedor_nome||'')+'">🚫 BANIR VENDEDOR</button>' : '')+
+        '<button class="mini" data-resolver="'+d.id+'">✓ resolver</button>'+
+      '</div></div>';
+  }).join('');
+  body.querySelectorAll('[data-banir]').forEach(function(b){
+    b.addEventListener('click', function(){ banir(this.dataset.banir, this.dataset.vnome); });
+  });
+  body.querySelectorAll('[data-resolver]').forEach(function(b){
+    b.addEventListener('click', function(){ resolver(this.dataset.resolver); });
+  });
+}
+function banir(uid, nome){
+  if(!uid) return;
+  if(!confirm('Banir "'+(nome||'este vendedor')+'"?\nRemove TODOS os anúncios dele e bloqueia novos posts.')) return;
+  sb.from('banidos').upsert({ user_id: uid }).then(function(r){
+    if(r.error){ aviso($('mgMsg'), 'erro ao banir: '+r.error.message, 'err'); return Promise.reject(); }
+    return sb.from('pokemons').update({ status:'rejeitado', motivo_rejeicao:'vendedor banido' }).eq('user_id', uid);
+  }).then(function(){
+    return sb.from('denuncias').update({ resolvido:true }).eq('vendedor_id', uid);
+  }).then(function(){
+    aviso($('mgMsg'), '🚫 vendedor banido e anúncios removidos', 'ok');
+    carregar(); carregarDenuncias();
+  }).catch(function(){});
+}
+function resolver(id){
+  sb.from('denuncias').update({ resolvido:true }).eq('id', id).then(function(){ carregarDenuncias(); });
 }
 
 carregar();
