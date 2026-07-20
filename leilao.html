@@ -235,12 +235,12 @@
   <header>
     <h1>Leilão de <span>Pokémon</span></h1>
     <p>
-      Aqui vão os Pokémon com IV alto — os que não têm preço de tabela porque quase ninguém vende.
-      Entre com o <b>Discord</b> pra dar lance: seu nome aparece publicamente na lista.
+      Aqui vão os Pokémon bons demais pra ter preço de tabela. <b>Os leilões são criados e curados só pelo PokeCentral</b> —
+      cada lote é vetado por mim, pra você ter certeza de que é raro e legítimo.
     </p>
     <p>
-      O horário de cada lance é gravado pelo <b>servidor</b>, e o registro é <b>imutável</b> —
-      não existe permissão de edição nem de exclusão de lances no banco, nem pra mim.
+      Qualquer um pode <b>dar lance</b>: é só entrar com <b>Discord</b> (seu nome aparece na lista). O horário de cada lance é gravado pelo
+      <b>servidor</b> e o registro é <b>imutável</b> — ninguém edita nem apaga um lance, nem eu.
     </p>
   </header>
 
@@ -256,6 +256,12 @@
     </ol>
   </div>
 
+  <div style="border:2px solid var(--gold);background:rgba(240,180,41,.07);padding:14px 16px;margin-bottom:20px;font-size:13px;color:var(--muted);line-height:1.65">
+    <b style="color:var(--gold)">▸ Quer leiloar seu Pokémon?</b> Tem um bicho bom demais pra preço fixo? Fala comigo — eu confiro, a gente combina, e <b>eu monto o leilão</b> com toda a estrutura (lance imutável, ao vivo). Você só me passa o Pokémon.<br>
+    <a href="https://wa.me/5511994309545?text=Ol%C3%A1!%20Quero%20leiloar%20um%20Pok%C3%A9mon%20no%20PokeCentral." target="_blank" rel="noopener" style="color:var(--green)">chamar no WhatsApp →</a> &nbsp;·&nbsp;
+    <a href="/leilao-guia" style="color:var(--green)">como o leilão funciona →</a>
+  </div>
+
   <div class="me" id="me"></div>
 
   <div class="sec-head"><h2>Lotes</h2><div class="rule"></div></div>
@@ -268,7 +274,7 @@
     Se um lance não respeitou a regra do incremento, ele aparece riscado, mas continua visível: nada é escondido.
   </div>
 
-  <button class="edit-toggle" id="editToggle">▪ modo vendedor</button>
+  <button class="edit-toggle" id="editToggle">▪ acesso do dono</button>
 
   <div id="painel">
 
@@ -705,7 +711,7 @@ $('editToggle').addEventListener('click', function(){
   var p = $('painel');
   var aberto = p.style.display === 'block';
   p.style.display = aberto ? 'none' : 'block';
-  this.textContent = aberto ? '▪ modo vendedor' : '▪ fechar modo vendedor';
+  this.textContent = aberto ? '▪ acesso do dono' : '▪ fechar';
   if(!aberto) p.scrollIntoView({behavior:'smooth'});
 });
 

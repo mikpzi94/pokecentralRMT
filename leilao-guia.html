@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" href="/favicon.png">
+<meta name="theme-color" content="#f0b429">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Como o leilão funciona — PokeCentral</title>
+<meta name="description" content="Como funciona o leilão de Pokémon do PokeCentral: como dar lance, anti-sniping, compre já, quem ganha, e como leiloar o seu Pokémon.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12100c; --panel:#1c1812; --panel2:#26201a; --panel3:#332a20;
+    --line:#4a3c28; --line2:#6b5637;
+    --gold:#f0b429; --green:#8fc45a; --red:#d4593f; --blue:#4a90c2; --purple:#a878c4; --pink:#d9709b;
+    --text:#f2e8d5; --muted:#a89880; --faint:#736450;
+    --px:'Press Start 2P',monospace; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--bg);
+    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 3px);
+    color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.7;padding:0 16px 60px;
+  }
+  .wrap{max-width:900px;margin:0 auto;}
+
+  .nav{display:flex;gap:2px;flex-wrap:wrap;align-items:stretch;border:2px solid var(--line);background:var(--panel);margin:14px 0 22px;}
+  .nav a{font-family:var(--px);font-size:8px;letter-spacing:.05em;color:var(--muted);text-decoration:none;padding:12px 13px;border-right:2px solid var(--line);display:flex;align-items:center;}
+  .nav a:last-child{border-right:none;}
+  .nav a:hover{background:var(--panel2);color:var(--gold);}
+  .nav a.home{color:var(--gold);}
+  .nav a.on{background:var(--panel2);color:var(--gold);box-shadow:inset 0 -3px 0 var(--gold);}
+  .nav a.wa{margin-left:auto;color:var(--green);border-right:none;border-left:2px solid var(--line);}
+  .nav a.wa:hover{background:var(--green);color:var(--bg);}
+  @media(max-width:620px){ .nav a{font-size:7px;padding:10px;} .nav a.wa{margin-left:0;} }
+
+  .back{display:inline-block;font-family:var(--px);font-size:8px;color:var(--faint);text-decoration:none;padding:14px 0 12px;}
+  .back:hover{color:var(--gold);}
+
+  header{border:2px solid var(--line);background:var(--panel);padding:20px;margin-bottom:24px;}
+  h1{font-family:var(--px);font-size:clamp(13px,2.6vw,17px);margin:0 0 12px;line-height:1.5;}
+  h1 span{color:var(--gold);}
+  header p{color:var(--muted);font-size:13px;margin:0;max-width:680px;}
+
+  .sec-head{display:flex;align-items:center;gap:10px;margin:0 0 14px;}
+  .sec-head h2{font-family:var(--px);font-size:11px;margin:0;}
+  .sec-head .rule{flex:1;height:2px;background:var(--line);}
+  section{margin-bottom:34px;}
+
+  ol.steps{list-style:none;counter-reset:s;margin:0;padding:0;}
+  ol.steps li{
+    counter-increment:s;position:relative;border:2px solid var(--line);background:var(--panel);
+    padding:14px 16px 14px 56px;margin-bottom:12px;font-size:13px;color:var(--muted);line-height:1.65;
+  }
+  ol.steps li::before{
+    content:counter(s);position:absolute;left:14px;top:13px;
+    font-family:var(--px);font-size:12px;color:var(--bg);background:var(--gold);
+    width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  }
+  ol.steps b{color:var(--text);}
+
+  ul.regras{list-style:none;margin:0;padding:0;}
+  ul.regras li{border:2px solid var(--line);border-left:4px solid var(--gold);background:var(--panel);padding:12px 14px;margin-bottom:10px;font-size:13px;color:var(--muted);line-height:1.6;}
+  ul.regras li b{color:var(--text);}
+  ul.regras .k{color:var(--gold);}
+
+  .trust{border:2px solid var(--green);background:rgba(143,196,90,.06);padding:16px 18px;font-size:12.5px;color:var(--muted);line-height:1.7;}
+  .trust b{color:var(--green);}
+
+  .leilar{border:2px solid var(--gold);background:rgba(240,180,41,.07);padding:16px 18px;}
+  .leilar h3{font-family:var(--px);font-size:9px;color:var(--gold);margin:0 0 12px;letter-spacing:.04em;}
+  .leilar p{margin:0 0 10px;color:var(--muted);font-size:13px;line-height:1.65;}
+  .leilar b{color:var(--text);}
+
+  .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px;}
+  .cta a{font-family:var(--px);font-size:8px;letter-spacing:.04em;text-decoration:none;padding:13px 16px;border:2px solid var(--line2);color:var(--text);}
+  .cta a.main{border-color:var(--green);color:var(--green);}
+  .cta a.main:hover{background:var(--green);color:var(--bg);}
+  .cta a:hover{border-color:var(--gold);color:var(--gold);}
+
+  .foot-note{color:var(--faint);font-size:11.5px;line-height:1.7;margin-top:26px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav">
+    <a class="home" href="/">▪ POKECENTRAL</a>
+    <a href="/rentabilidade">QUANTO RENDE</a>
+    <a href="/preco">QUANTO VALE</a>
+    <a href="/loja">LOJA</a>
+    <a class="on" href="/leilao">LEILAO</a>
+    <a class="wa" href="https://wa.me/5511994309545?text=Ol%C3%A1!%20Vim%20pelo%20PokeCentral." target="_blank" rel="noopener">WHATSAPP</a>
+  </nav>
+
+  <a class="back" href="/leilao">◀ VOLTAR PRO LEILÃO</a>
+
+  <header>
+    <h1>Como o <span>leilão</span> funciona</h1>
+    <p>
+      No leilão vão os Pokémon bons demais pra ter preço fixo. <b>Só o PokeCentral cria os lotes</b> (cada um vetado por mim) —
+      você entra pra <b>dar lance</b>. Aqui está tudo que você precisa saber.
+    </p>
+  </header>
+
+  <section>
+    <div class="sec-head"><h2>Como dar lance</h2><div class="rule"></div></div>
+    <ol class="steps">
+      <li><b>Entre com Discord.</b> É só pra registrar quem deu cada lance — seu nome aparece publicamente na lista. Pede só nome e foto (e e-mail, pra identificar a conta).</li>
+      <li><b>Ponha seu nick do jogo</b> lá em cima. Assim eu sei quem te achar no jogo quando você ganhar.</li>
+      <li><b>Dê seu lance.</b> Pode digitar o valor, clicar em <b>"▲ lance mínimo"</b> (o menor lance válido em 1 clique), ou <b>⚡ Compre já</b> se quiser arrematar na hora.</li>
+      <li><b>Acompanhe o relógio.</b> Ele corre ao vivo. Se você é o maior lance quando encerra, ganhou.</li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>As regras</h2><div class="rule"></div></div>
+    <ul class="regras">
+      <li><span class="k">Lance mínimo:</span> precisa ser pelo menos o <b>lance atual + o incremento</b> do lote. Abaixo disso aparece riscado (não vale).</li>
+      <li><span class="k">Anti-sniping:</span> lance nos <b>últimos minutos estende o prazo</b>, quantas vezes for preciso. Não adianta esperar o último segundo — sempre dá tempo de cobrir.</li>
+      <li><span class="k">⚡ Compre já:</span> se o lote tiver, quem pagar esse valor <b>arremata na hora</b> e encerra o leilão. Some quando os lances normais já passam dele.</li>
+      <li><span class="k">Quem ganha:</span> encerrado o prazo, o <b>maior lance válido</b> leva. <b>Eu chamo o vencedor</b> pelo Discord.</li>
+      <li><span class="k">Prazo pra fechar:</span> o vencedor tem <b>24 horas</b> pra concluir. Passou, chamo o segundo colocado.</li>
+      <li><span class="k">Lance é compromisso:</span> quem der calote <b>não participa dos próximos</b>.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Por que confiar</h2><div class="rule"></div></div>
+    <div class="trust">
+      <b>▸ Os lances são públicos e imutáveis.</b> Ficam numa tabela com permissão só de leitura e inserção — <b>ninguém altera nem apaga um lance, nem eu</b>.
+      O horário vem do <b>servidor</b>, não do seu computador. Lance fora da regra aparece riscado, mas continua visível: nada é escondido.
+      É essa transparência que faz o leilão valer.
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Quer leiloar o seu Pokémon?</h2><div class="rule"></div></div>
+    <div class="leilar">
+      <h3>▸ Como funciona a consignação</h3>
+      <p><b>Só eu crio os leilões</b> — mas se você tem um Pokémon bom demais pra preço fixo, dá pra leiloar <b>comigo</b>:</p>
+      <p><b>1.</b> Você me chama e mostra o Pokémon (print, IV, qualidade, nível).<br>
+         <b>2.</b> A gente combina o lance inicial, o compre já e a duração.<br>
+         <b>3.</b> <b>Eu monto e conduzo o leilão</b> com toda a estrutura — lance imutável, cronômetro, e até ao vivo se for o caso.<br>
+         <b>4.</b> Vendeu? Eu chamo o vencedor e a gente fecha.</p>
+      <p style="color:var(--faint);font-size:12px">Por enquanto é de graça. Quando o leilão ganhar movimento, pode passar a ter uma pequena taxa sobre o valor vendido — sempre combinada antes, e só se vender.</p>
+    </div>
+  </section>
+
+  <div class="cta">
+    <a class="main" href="https://wa.me/5511994309545?text=Ol%C3%A1!%20Quero%20leiloar%20um%20Pok%C3%A9mon%20no%20PokeCentral." target="_blank" rel="noopener">QUERO LEILOAR ▸</a>
+    <a href="/leilao">VER OS LEILÕES</a>
+    <a href="/negociar">NEGOCIAR SEM GOLPE</a>
+  </div>
+
+  <p class="foot-note">
+    O jogo está em beta e reseta no lançamento — leilão é pra girar o que é bom agora, não pra guardar. Em qualquer negociação, print de tudo e, em valor alto, use intermediário.
+  </p>
+
+</div>
+</body>
+</html>
