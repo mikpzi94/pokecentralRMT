@@ -139,6 +139,23 @@
   .atab:hover{color:var(--gold);}
   .atab.on{background:var(--panel2);color:var(--gold);border-color:var(--gold);box-shadow:inset 0 -3px 0 var(--gold);}
 
+  .selo-conf{font-family:var(--px);font-size:7px;color:var(--green);border:1px solid var(--green);padding:2px 4px;white-space:nowrap;}
+  .card-rep{font-size:11px;color:var(--gold);cursor:pointer;margin-bottom:2px;}
+  .card-rep:hover{text-decoration:underline;}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50;}
+  .modal-box{background:var(--panel);border:2px solid var(--gold);max-width:460px;width:100%;max-height:85vh;overflow:auto;padding:20px;position:relative;}
+  .modal-x{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;}
+  .modal-x:hover{color:var(--gold);}
+  .modal-title{font-family:var(--px);font-size:11px;color:var(--gold);margin-bottom:14px;padding-right:20px;line-height:1.5;}
+  .rev-item{border-top:2px solid var(--line);padding:10px 0;font-size:13px;}
+  .rev-item:first-child{border-top:none;}
+  .rev-write{border-top:2px solid var(--line);margin-top:14px;padding-top:14px;}
+  .rev-title2{font-family:var(--px);font-size:9px;color:var(--muted);margin-bottom:10px;}
+  .rev-stars{font-size:26px;color:var(--gold);letter-spacing:4px;margin-bottom:10px;}
+  .rev-stars span{cursor:pointer;}
+  #revTexto{width:100%;background:var(--panel2);border:2px solid var(--line);color:var(--text);font-family:var(--mono);font-size:12.5px;padding:9px;outline:none;min-height:60px;margin-bottom:10px;resize:vertical;box-sizing:border-box;}
+  #revTexto:focus{border-color:var(--gold);}
+
   .empty{border:2px dashed var(--line);padding:34px 20px;text-align:center;color:var(--faint);font-size:12.5px;line-height:1.8;grid-column:1/-1;}
   .empty a{color:var(--green);}
   .loading{color:var(--faint);font-size:12.5px;padding:30px 0;text-align:center;}
@@ -348,6 +365,7 @@
         <button type="button" class="atab on" data-atab="loja">🏅 MINHA LOJA</button>
         <button type="button" class="atab" data-atab="jogadores">🧑 JOGADORES <span id="atabPend" style="color:var(--gold)"></span></button>
         <button type="button" class="atab" data-atab="denuncias">🚩 DENÚNCIAS <span id="atabDen" style="color:var(--red)"></span></button>
+        <button type="button" class="atab" data-atab="reviews">⭐ REVIEWS</button>
       </div>
 
       <div class="ed-panel" id="painelForm">
@@ -411,9 +429,23 @@
         <div id="denBody"></div>
       </div>
 
+      <div class="ed-panel" id="reviewsPanel" style="display:none">
+        <div class="ed-title">⭐ REPUTAÇÃO</div>
+        <div id="revAdminBody"></div>
+      </div>
+
     </div>
   </div>
 
+</div>
+
+<div class="modal" id="revModal" style="display:none">
+  <div class="modal-box">
+    <button class="modal-x" id="revClose">✕</button>
+    <div class="modal-title" id="revTitle">Avaliações</div>
+    <div id="revList"></div>
+    <div id="revForm"></div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -465,18 +497,35 @@ function lerNomeArquivo(nomeArq){
 $('navWa').href = waLink('Olá! Vim pelo PokeCentral.');
 
 /* ---------- carregar estoque ---------- */
+var reviews = [], confiaveis = {}, repMap = {};
+function repInfo(uid){
+  var m = repMap[uid];
+  return (m && m.n) ? { media: m.soma/m.n, n: m.n } : null;
+}
+
 function carregar(){
-  return sb.from('pokemons').select('*').order('criado_em', {ascending:false})
-    .then(function(res){
-      if(res.error){ throw res.error; }
-      lista = res.data || [];
-      render();
-      if($('areaAdmin') && $('areaAdmin').style.display === 'block') renderTabela();
-    })
-    .catch(function(e){
-      $('loading').textContent = 'não consegui carregar o estoque.';
-      console.error(e);
+  return Promise.all([
+    sb.from('pokemons').select('*').order('criado_em', {ascending:false}),
+    sb.from('reviews').select('*'),
+    sb.from('confiaveis').select('user_id')
+  ]).then(function(res){
+    if(res[0].error){ throw res[0].error; }
+    lista = res[0].data || [];
+    reviews = res[1].data || [];
+    confiaveis = {};
+    (res[2].data || []).forEach(function(r){ confiaveis[r.user_id] = true; });
+    repMap = {};
+    reviews.forEach(function(r){
+      var m = repMap[r.vendedor_id] || { soma:0, n:0 };
+      m.soma += Number(r.nota)||0; m.n++;
+      repMap[r.vendedor_id] = m;
     });
+    render();
+    if($('areaAdmin') && $('areaAdmin').style.display === 'block') renderTabela();
+  }).catch(function(e){
+    $('loading').textContent = 'não consegui carregar o estoque.';
+    console.error(e);
+  });
 }
 
 /* ---------- vitrine pública ---------- */
@@ -512,7 +561,11 @@ function cardHtml(p){
   return '<div class="card">'+
     '<div class="card-img">'+img+'<div class="iv-badge" style="background:'+ivColor(p.iv)+'">IV '+esc(p.iv)+'</div></div>'+
     '<div class="card-body">'+
-      (ehOficial(p) ? '' : '<div class="card-seller">🧑 '+esc(p.vendedor_nome || 'Vendedor da comunidade')+'</div>')+
+      (ehOficial(p) ? '' :
+        '<div class="card-seller">🧑 '+esc(p.vendedor_nome || 'Vendedor')+
+          (confiaveis[p.user_id] ? ' <span class="selo-conf">✔ Confiável</span>' : '')+'</div>'+
+        '<div class="card-rep" data-rev="'+esc(p.user_id||'')+'">'+
+          (repInfo(p.user_id) ? '⭐ '+repInfo(p.user_id).media.toFixed(1)+' ('+repInfo(p.user_id).n+')' : 'sem avaliações')+' ›</div>')+
       '<div class="card-name">'+esc(p.nome)+'</div>'+
       '<div class="card-meta">Nível '+esc(p.nivel)+(p.qualidade ? ' · Qualidade '+esc(p.qualidade) : '')+'</div>'+
       (p.obs ? '<div class="card-obs">'+esc(p.obs)+'</div>' : '')+
@@ -559,6 +612,9 @@ function render(){
     $('carregarMais').style.display = (itens.length > mostrados) ? 'block' : 'none';
     $('grid').querySelectorAll('[data-den]').forEach(function(b){
       b.addEventListener('click', function(){ denunciar(this.dataset.den); });
+    });
+    $('grid').querySelectorAll('[data-rev]').forEach(function(b){
+      b.addEventListener('click', function(){ abrirReviews(this.dataset.rev); });
     });
   }
 
@@ -628,9 +684,11 @@ function aplicarAbaAdmin(){
   $('painelForm').style.display     = (abaAdmin==='loja') ? 'block' : 'none';
   $('painelCatalogo').style.display = (abaAdmin==='loja' || abaAdmin==='jogadores') ? 'block' : 'none';
   $('denunciasPanel').style.display = (abaAdmin==='denuncias') ? 'block' : 'none';
+  $('reviewsPanel').style.display   = (abaAdmin==='reviews') ? 'block' : 'none';
   $('catTitle').textContent = (abaAdmin==='jogadores') ? 'MODERAÇÃO — JOGADORES' : 'MINHA LOJA';
-  renderTabela();
+  if(abaAdmin==='loja' || abaAdmin==='jogadores') renderTabela();
   if(abaAdmin==='denuncias') carregarDenuncias();
+  if(abaAdmin==='reviews') renderReviewsAdmin();
 }
 
 document.querySelectorAll('.atab').forEach(function(b){
@@ -999,6 +1057,114 @@ function banir(uid, nome){
 }
 function resolver(id){
   sb.from('denuncias').update({ resolvido:true }).eq('id', id).then(function(){ carregarDenuncias(); });
+}
+
+/* ---------- reviews + reputação (B3) ---------- */
+function estrelas(n){ n = Math.max(0, Math.min(5, Number(n)||0)); return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5-n); }
+function nomeVendedor(id){
+  var p = lista.filter(function(x){ return x.user_id===id; })[0];
+  return (p && p.vendedor_nome) || 'vendedor';
+}
+
+var revSellerId = null;
+function abrirReviews(uid){
+  if(!uid) return;
+  revSellerId = uid;
+  $('revTitle').textContent = 'Avaliações de ' + nomeVendedor(uid);
+  renderReviews();
+  $('revModal').style.display = 'flex';
+}
+function fecharReviews(){ $('revModal').style.display = 'none'; }
+$('revClose').addEventListener('click', fecharReviews);
+$('revModal').addEventListener('click', function(e){ if(e.target === this) fecharReviews(); });
+
+function renderReviews(){
+  var meus = reviews.filter(function(r){ return r.vendedor_id === revSellerId; })
+    .sort(function(a,b){ return new Date(b.criado_em) - new Date(a.criado_em); });
+  var rep = repInfo(revSellerId);
+  var head = rep
+    ? '<div style="color:var(--gold);font-family:var(--px);font-size:12px;margin-bottom:12px">⭐ '+rep.media.toFixed(1)+' · '+rep.n+' avaliação(ões)</div>'
+    : '<div style="color:var(--faint);margin-bottom:12px">Sem avaliações ainda. Seja o primeiro!</div>';
+  $('revList').innerHTML = head + meus.map(function(r){
+    return '<div class="rev-item"><div style="color:var(--gold)">'+estrelas(r.nota)+' <b style="color:var(--text)">'+esc(r.autor_nome||'anônimo')+'</b></div>'+
+      (r.texto ? '<div style="color:var(--muted);margin-top:3px">'+esc(r.texto)+'</div>' : '')+
+      (ehAdmin ? '<button class="mini rm" data-delrev="'+r.id+'" style="margin-top:6px">apagar</button>' : '')+
+    '</div>';
+  }).join('');
+  $('revList').querySelectorAll('[data-delrev]').forEach(function(b){
+    b.addEventListener('click', function(){ apagarReview(this.dataset.delrev); });
+  });
+
+  var f = $('revForm');
+  if(!sessaoAtual || !sessaoAtual.user){
+    f.innerHTML = '<button class="btn-discord" id="revLogin" style="width:100%;margin-top:14px">entrar com Discord pra avaliar</button>';
+    $('revLogin').addEventListener('click', function(){ sb.auth.signInWithOAuth({provider:'discord',options:{redirectTo:location.href,scopes:'identify email'}}); });
+  } else if(sessaoAtual.user.id === revSellerId){
+    f.innerHTML = '<div style="color:var(--faint);font-size:12px;margin-top:14px">você não pode avaliar a si mesmo</div>';
+  } else if(meus.some(function(r){ return r.autor_id === sessaoAtual.user.id; })){
+    f.innerHTML = '<div style="color:var(--green);font-size:12px;margin-top:14px">✓ você já avaliou este vendedor</div>';
+  } else {
+    f.innerHTML =
+      '<div class="rev-write"><div class="rev-title2">Deixe sua avaliação</div>'+
+      '<div class="rev-stars" id="revStars">'+[1,2,3,4,5].map(function(n){ return '<span data-nota="'+n+'">☆</span>'; }).join('')+'</div>'+
+      '<textarea id="revTexto" placeholder="como foi negociar com esse vendedor? (opcional)"></textarea>'+
+      '<button class="btn go" id="revEnviar" style="width:100%">enviar avaliação</button></div>';
+    var notaSel = 0;
+    $('revStars').querySelectorAll('[data-nota]').forEach(function(s){
+      s.addEventListener('click', function(){
+        notaSel = parseInt(this.dataset.nota);
+        $('revStars').querySelectorAll('[data-nota]').forEach(function(x){ x.textContent = parseInt(x.dataset.nota) <= notaSel ? '★' : '☆'; });
+      });
+    });
+    $('revEnviar').addEventListener('click', function(){
+      if(!notaSel){ alert('escolhe de 1 a 5 estrelas 🙂'); return; }
+      this.disabled = true;
+      sb.from('reviews').insert({
+        vendedor_id: revSellerId,
+        autor_id: sessaoAtual.user.id,
+        autor_nome: nomeDiscord(sessaoAtual),
+        nota: notaSel,
+        texto: ($('revTexto').value||'').trim() || null
+      }).then(function(r){
+        if(r.error){ alert(/duplicate|unique/i.test(r.error.message) ? 'você já avaliou este vendedor' : 'erro: '+r.error.message); return; }
+        carregar().then(renderReviews);
+      });
+    });
+  }
+}
+function apagarReview(id){
+  if(!confirm('Apagar esta avaliação?')) return;
+  sb.from('reviews').delete().eq('id', id).then(function(){ carregar().then(renderReviews); });
+}
+
+function renderReviewsAdmin(){
+  var body = $('revAdminBody');
+  var ids = {};
+  reviews.forEach(function(r){ ids[r.vendedor_id] = true; });
+  Object.keys(confiaveis).forEach(function(id){ ids[id] = true; });
+  var lst = Object.keys(ids);
+  if(!lst.length){ body.innerHTML = '<div style="color:var(--faint);font-size:12px;padding:4px 0">nenhuma avaliação ainda</div>'; return; }
+  body.innerHTML = lst.map(function(id){
+    var rep = repInfo(id), conf = confiaveis[id];
+    return '<div class="den-item" style="border-left-color:var(--gold)">'+
+      '<div><b style="color:var(--pink)">'+esc(nomeVendedor(id))+'</b> '+(conf?'<span class="selo-conf">✔ Confiável</span>':'')+'</div>'+
+      '<div style="color:var(--muted);font-size:12px;margin:4px 0">'+(rep ? '⭐ '+rep.media.toFixed(1)+' · '+rep.n+' review(s)' : 'sem reviews')+'</div>'+
+      '<div class="den-acoes">'+
+        '<button class="mini" data-rev="'+esc(id)+'">ver reviews</button>'+
+        (conf ? '<button class="mini rm" data-desconf="'+esc(id)+'">remover selo</button>'
+              : '<button class="mini" data-conf="'+esc(id)+'" style="border-color:var(--green);color:var(--green)">✔ tornar confiável</button>')+
+      '</div></div>';
+  }).join('');
+  body.querySelectorAll('[data-rev]').forEach(function(b){ b.addEventListener('click', function(){ abrirReviews(this.dataset.rev); }); });
+  body.querySelectorAll('[data-conf]').forEach(function(b){ b.addEventListener('click', function(){ tornarConfiavel(this.dataset.conf, true); }); });
+  body.querySelectorAll('[data-desconf]').forEach(function(b){ b.addEventListener('click', function(){ tornarConfiavel(this.dataset.desconf, false); }); });
+}
+function tornarConfiavel(uid, on){
+  var op = on ? sb.from('confiaveis').upsert({ user_id: uid }) : sb.from('confiaveis').delete().eq('user_id', uid);
+  op.then(function(r){
+    if(r && r.error){ aviso($('mgMsg'), 'erro: '+r.error.message, 'err'); return; }
+    carregar().then(renderReviewsAdmin);
+  });
 }
 
 carregar();
