@@ -236,9 +236,12 @@
   .drop:hover, .drop.over{border-color:var(--gold);color:var(--gold);}
   .drop b{color:var(--muted);}
   .preview{display:flex;gap:14px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
-  .cropbox{width:180px;height:180px;background:var(--panel2);border:2px solid var(--line);overflow:hidden;position:relative;touch-action:none;cursor:grab;}
-  .cropbox.drag{cursor:grabbing;}
-  .cropbox img{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;user-select:none;-webkit-user-drag:none;}
+  .cropwrap{position:relative;display:inline-block;overflow:hidden;background:var(--panel2);border:2px solid var(--line);line-height:0;touch-action:none;}
+  .cropwrap img{display:block;max-width:none;user-select:none;-webkit-user-drag:none;}
+  .cropsel{position:absolute;border:2px solid var(--gold);box-shadow:0 0 0 9999px rgba(0,0,0,.5);cursor:move;box-sizing:border-box;touch-action:none;}
+  .cropsel .ch{position:absolute;width:18px;height:18px;background:var(--gold);border:2px solid #12100c;box-sizing:border-box;}
+  .ch-nw{left:0;top:0;cursor:nwse-resize;} .ch-ne{right:0;top:0;cursor:nesw-resize;}
+  .ch-sw{left:0;bottom:0;cursor:nesw-resize;} .ch-se{right:0;bottom:0;cursor:nwse-resize;}
   .preview .info{font-size:12px;color:var(--muted);line-height:1.8;}
   .preview .info b{color:var(--green);}
 
@@ -422,9 +425,18 @@
 
         <div class="preview" id="preview" style="display:none">
           <div>
-            <div class="cropbox" id="cropBox"><img id="cropImg" alt="" draggable="false"></div>
-            <input type="range" id="cropZoom" min="1" max="4" step="0.01" value="1" style="width:180px;margin-top:8px;display:block">
-            <div style="font-size:10.5px;color:var(--faint);max-width:180px;margin-top:2px;line-height:1.5">começa com a imagem inteira. <b style="color:var(--muted)">zoom −</b> pra ver tudo, <b style="color:var(--muted)">zoom +</b> pra cortar/focar, arraste pra reposicionar. O que estiver no quadrado vira o anúncio.</div>
+            <div class="cropwrap" id="cropWrap">
+              <img id="cropImg" alt="" draggable="false">
+              <div class="cropsel" id="cropSel">
+                <span class="ch ch-nw" data-h="nw"></span><span class="ch ch-ne" data-h="ne"></span>
+                <span class="ch ch-sw" data-h="sw"></span><span class="ch ch-se" data-h="se"></span>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <button type="button" class="mini" id="btnCropQuad">▢ quadrado</button>
+              <button type="button" class="mini" id="btnCropTudo">⛶ imagem toda</button>
+            </div>
+            <div style="font-size:10.5px;color:var(--faint);max-width:264px;margin-top:4px;line-height:1.5"><b style="color:var(--muted)">arraste a caixa</b> pra escolher a área e <b style="color:var(--muted)">puxe os cantos</b> pra redimensionar. Só o que está dentro dela vira o anúncio.</div>
           </div>
           <div class="info" id="prevInfo"></div>
         </div>
@@ -937,77 +949,92 @@ function usarArquivo(file){
   atualizarSugestao();
 }
 
-/* ---------- recorte quadrado da foto ---------- */
-var CROP_BG = '#26201a';   /* fundo do card, pras bordas quando a imagem não é quadrada */
+/* ---------- recorte por área selecionável (mover + redimensionar) ---------- */
+var CROP_BG = '#26201a';   /* fundo do card, pras bordas quando a área não é quadrada */
+var cropDrag = null;
 function iniciarCropper(url){
   var img = $('cropImg');
   img.onload = function(){
-    var box = $('cropBox').clientWidth || 180;
     var natW = img.naturalWidth, natH = img.naturalHeight;
     if(!natW || !natH){ cropState = {}; return; }
-    var fitScale = box / Math.max(natW, natH);     /* imagem INTEIRA cabe no quadrado (começa assim) */
-    var coverScale = box / Math.min(natW, natH);   /* preenche o quadrado */
-    cropState = { natW:natW, natH:natH, boxSize:box, minScale:fitScale, scale:fitScale, tx:0, ty:0, dragging:false };
-    var z = $('cropZoom');
-    z.min = 1; z.step = 0.01;
-    z.max = Math.max(2, (coverScale/fitScale) * 2.2).toFixed(2);   /* afasta até ver tudo, aproxima bem além do cover */
-    z.value = 1;
-    aplicarCrop();
+    var maxD = 264;
+    var fit = Math.min(1, maxD/natW, maxD/natH);           /* mostra a imagem inteira num tamanho manejável */
+    var dispW = Math.round(natW*fit), dispH = Math.round(natH*fit);
+    img.style.width = dispW+'px'; img.style.height = dispH+'px';
+    var side = Math.round(Math.min(dispW, dispH) * 0.8);   /* seleção inicial: quadrada, centralizada */
+    cropState = { natW:natW, natH:natH, dispW:dispW, dispH:dispH,
+                  x:Math.round((dispW-side)/2), y:Math.round((dispH-side)/2), w:side, h:side };
+    renderSel();
   };
   img.src = url;
 }
-function aplicarCrop(){
+function renderSel(){
   var s = cropState; if(!s.natW) return;
-  var w = s.natW*s.scale, h = s.natH*s.scale;
-  s.tx = (w <= s.boxSize) ? (s.boxSize - w)/2 : Math.min(0, Math.max(s.boxSize - w, s.tx));   /* menor: centraliza · maior: limita pan */
-  s.ty = (h <= s.boxSize) ? (s.boxSize - h)/2 : Math.min(0, Math.max(s.boxSize - h, s.ty));
-  $('cropImg').style.transform = 'translate('+s.tx+'px,'+s.ty+'px) scale('+s.scale+')';
+  var el = $('cropSel');
+  el.style.left = s.x+'px'; el.style.top = s.y+'px';
+  el.style.width = s.w+'px'; el.style.height = s.h+'px';
+}
+function selQuadrado(){
+  var s = cropState; if(!s.natW) return;
+  var side = Math.round(Math.min(s.dispW, s.dispH) * 0.9);
+  s.w = side; s.h = side;
+  s.x = Math.round((s.dispW-side)/2); s.y = Math.round((s.dispH-side)/2);
+  renderSel();
+}
+function selTudo(){
+  var s = cropState; if(!s.natW) return;
+  s.x = 0; s.y = 0; s.w = s.dispW; s.h = s.dispH;
+  renderSel();
 }
 function gerarRecorte(){
   return new Promise(function(resolve){
     var s = cropState;
     if(!s.natW){ resolve(null); return; }
-    var out = 900, k = out/s.boxSize;
+    var sc = s.natW / s.dispW;                 /* natural por pixel exibido */
+    var sx = s.x*sc, sy = s.y*sc, sw = s.w*sc, sh = s.h*sc;
+    var out = 900;
     var canvas = document.createElement('canvas');
     canvas.width = out; canvas.height = out;
     var ctx = canvas.getContext('2d');
-    ctx.fillStyle = CROP_BG; ctx.fillRect(0, 0, out, out);   /* preenche as bordas */
-    try { ctx.drawImage($('cropImg'), s.tx*k, s.ty*k, s.natW*s.scale*k, s.natH*s.scale*k); }
+    ctx.fillStyle = CROP_BG; ctx.fillRect(0, 0, out, out);
+    var f = Math.min(out/sw, out/sh);          /* área selecionada, centralizada no quadrado */
+    var dw = sw*f, dh = sh*f, dx = (out-dw)/2, dy = (out-dh)/2;
+    try { ctx.drawImage($('cropImg'), sx, sy, sw, sh, dx, dy, dw, dh); }
     catch(e){ resolve(null); return; }
     canvas.toBlob(function(blob){ resolve(blob); }, 'image/jpeg', 0.85);
   });
 }
-$('cropZoom').addEventListener('input', function(){
-  var s = cropState; if(!s.natW) return;
-  var c = s.boxSize/2;
-  var sxp = (c - s.tx)/s.scale, syp = (c - s.ty)/s.scale;
-  s.scale = s.minScale * parseFloat(this.value);
-  s.tx = c - sxp*s.scale; s.ty = c - syp*s.scale;
-  aplicarCrop();
-});
-$('cropBox').addEventListener('pointerdown', function(e){
-  if(!cropState.natW) return;
-  cropState.dragging = true; cropState.lastX = e.clientX; cropState.lastY = e.clientY;
-  this.classList.add('drag'); try { this.setPointerCapture(e.pointerId); } catch(_){}
-});
-$('cropBox').addEventListener('pointermove', function(e){
-  if(!cropState.dragging) return;
-  cropState.tx += e.clientX - cropState.lastX;
-  cropState.ty += e.clientY - cropState.lastY;
-  cropState.lastX = e.clientX; cropState.lastY = e.clientY;
-  aplicarCrop();
-});
-function fimDrag(){ cropState.dragging = false; $('cropBox').classList.remove('drag'); }
-$('cropBox').addEventListener('pointerup', fimDrag);
-$('cropBox').addEventListener('pointercancel', fimDrag);
-$('cropBox').addEventListener('wheel', function(e){
+function cropPointerDown(e){
   if(!cropState.natW) return;
   e.preventDefault();
-  var zmax = parseFloat($('cropZoom').max) || 4;
-  var z = Math.min(zmax, Math.max(1, parseFloat($('cropZoom').value) + (e.deltaY < 0 ? 0.12 : -0.12)));
-  $('cropZoom').value = z;
-  $('cropZoom').dispatchEvent(new Event('input'));
-}, {passive:false});
+  cropDrag = { mode: e.target.getAttribute('data-h') || 'move',
+               sx:e.clientX, sy:e.clientY, ox:cropState.x, oy:cropState.y, ow:cropState.w, oh:cropState.h };
+  try { $('cropSel').setPointerCapture(e.pointerId); } catch(_){}
+}
+function cropPointerMove(e){
+  if(!cropDrag) return;
+  var s = cropState, m = cropDrag.mode, MIN = 24;
+  var dx = e.clientX - cropDrag.sx, dy = e.clientY - cropDrag.sy;
+  if(m === 'move'){
+    s.x = Math.min(s.dispW - s.w, Math.max(0, cropDrag.ox + dx));
+    s.y = Math.min(s.dispH - s.h, Math.max(0, cropDrag.oy + dy));
+  } else {   /* redimensiona pelo canto arrastado, mantendo o canto oposto fixo */
+    var x1 = cropDrag.ox, y1 = cropDrag.oy, x2 = cropDrag.ox+cropDrag.ow, y2 = cropDrag.oy+cropDrag.oh;
+    if(m.indexOf('w') >= 0) x1 = Math.min(x2 - MIN, Math.max(0, cropDrag.ox + dx));
+    if(m.indexOf('e') >= 0) x2 = Math.max(x1 + MIN, Math.min(s.dispW, cropDrag.ox+cropDrag.ow + dx));
+    if(m.indexOf('n') >= 0) y1 = Math.min(y2 - MIN, Math.max(0, cropDrag.oy + dy));
+    if(m.indexOf('s') >= 0) y2 = Math.max(y1 + MIN, Math.min(s.dispH, cropDrag.oy+cropDrag.oh + dy));
+    s.x = x1; s.y = y1; s.w = x2-x1; s.h = y2-y1;
+  }
+  renderSel();
+}
+function cropPointerUp(){ cropDrag = null; }
+$('cropSel').addEventListener('pointerdown', cropPointerDown);
+$('cropSel').addEventListener('pointermove', cropPointerMove);
+$('cropSel').addEventListener('pointerup', cropPointerUp);
+$('cropSel').addEventListener('pointercancel', cropPointerUp);
+$('btnCropQuad').addEventListener('click', selQuadrado);
+$('btnCropTudo').addEventListener('click', selTudo);
 
 /* ---------- sugestão de preço (usa pricing.js) ---------- */
 function precoChip(label, valor){
