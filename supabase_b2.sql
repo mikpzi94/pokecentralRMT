@@ -69,16 +69,20 @@ create policy "denuncias_admin_update"  on denuncias for update using (is_admin(
 -- rodar este bloco — as denúncias ainda caem no painel admin.
 -- =====================================================================
 create or replace function notifica_denuncia() returns trigger language plpgsql security definer as $$
+declare
+  hook text := 'COLE_A_URL_AQUI';   -- <-- troque pela URL do webhook do #moderacao
 begin
-  perform net.http_post(
-    url := 'COLE_A_URL_AQUI',
-    headers := jsonb_build_object('Content-Type','application/json'),
-    body := jsonb_build_object('content',
-      '🚩 **Denúncia** no anúncio **' || coalesce(new.anuncio_nome,'?') || '**' ||
-      ' — vendedor: ' || coalesce(new.vendedor_nome,'?') || chr(10) ||
-      'Motivo: ' || coalesce(new.motivo,'?') || chr(10) ||
-      'Revise no painel da loja (modo dono).')
-  );
+  if hook like 'https://%' then      -- trava: só dispara com URL de verdade (nunca quebra a denúncia)
+    perform net.http_post(
+      url := hook,
+      headers := jsonb_build_object('Content-Type','application/json'),
+      body := jsonb_build_object('content',
+        '🚩 **Denúncia** no anúncio **' || coalesce(new.anuncio_nome,'?') || '**' ||
+        ' — vendedor: ' || coalesce(new.vendedor_nome,'?') || chr(10) ||
+        'Motivo: ' || coalesce(new.motivo,'?') || chr(10) ||
+        'Revise no painel da loja (modo dono).')
+    );
+  end if;
   return new;
 end;
 $$;
