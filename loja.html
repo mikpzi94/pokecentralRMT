@@ -131,6 +131,13 @@
   .den-item{border:2px solid var(--line);border-left:4px solid var(--red);background:var(--panel2);padding:12px 14px;margin-bottom:10px;font-size:13px;}
   .den-item b{color:var(--text);}
   .den-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  .admin-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .atab{
+    font-family:var(--px);font-size:8.5px;letter-spacing:.02em;cursor:pointer;
+    background:var(--panel);border:2px solid var(--line);color:var(--muted);padding:12px 14px;
+  }
+  .atab:hover{color:var(--gold);}
+  .atab.on{background:var(--panel2);color:var(--gold);border-color:var(--gold);box-shadow:inset 0 -3px 0 var(--gold);}
 
   .empty{border:2px dashed var(--line);padding:34px 20px;text-align:center;color:var(--faint);font-size:12.5px;line-height:1.8;grid-column:1/-1;}
   .empty a{color:var(--green);}
@@ -335,9 +342,16 @@
     <!-- área logada -->
     <div id="areaAdmin" style="display:none">
 
-      <div class="ed-panel">
+      <div class="who">logado como <b id="userEmail"></b> <button class="btn sair" id="btnSair" style="margin-left:10px">SAIR</button></div>
+
+      <div class="admin-tabs" id="adminTabs" style="display:none">
+        <button type="button" class="atab on" data-atab="loja">🏅 MINHA LOJA</button>
+        <button type="button" class="atab" data-atab="jogadores">🧑 JOGADORES <span id="atabPend" style="color:var(--gold)"></span></button>
+        <button type="button" class="atab" data-atab="denuncias">🚩 DENÚNCIAS <span id="atabDen" style="color:var(--red)"></span></button>
+      </div>
+
+      <div class="ed-panel" id="painelForm">
         <div class="ed-title" id="addTitle">ADICIONAR POKÉMON</div>
-        <div class="who">logado como <b id="userEmail"></b> <button class="btn sair" id="btnSair" style="margin-left:10px">SAIR</button></div>
 
         <div class="drop" id="drop">
           Arraste o print aqui ou clique pra escolher<br>
@@ -383,7 +397,7 @@
         <div class="msg" id="addMsg"></div>
       </div>
 
-      <div class="ed-panel">
+      <div class="ed-panel" id="painelCatalogo">
         <div class="ed-title"><span id="catTitle">CATÁLOGO</span> <span id="pendCount"></span></div>
         <table class="mg">
           <thead><tr><th>Nome</th><th>Qual.</th><th>IV</th><th>Nv</th><th>R$</th><th></th></tr></thead>
@@ -589,14 +603,44 @@ function nomeDiscord(s){
   return m.full_name || m.name || m.user_name || m.preferred_username || (s && s.user ? s.user.email : '') || 'vendedor';
 }
 
+var abaAdmin = 'loja';
+
 function aplicarPapel(session){
   $('userEmail').textContent = ehAdmin ? session.user.email : nomeDiscord(session);
   $('addTitle').textContent  = ehAdmin ? 'ADICIONAR POKÉMON (OFICIAL)' : 'ANUNCIAR MEU POKÉMON';
-  $('catTitle').textContent  = ehAdmin ? 'FILA DE MODERAÇÃO' : 'MEUS ANÚNCIOS';
   $('btnSalvar').textContent = ehAdmin ? '+ PUBLICAR NA LOJA' : '+ ENVIAR PRA APROVAÇÃO';
   $('wrapContato').style.display = ehAdmin ? 'none' : 'block';
-  if(ehAdmin){ carregarDenuncias(); } else { $('denunciasPanel').style.display = 'none'; }
+  if(ehAdmin){
+    $('adminTabs').style.display = 'flex';
+    aplicarAbaAdmin();
+    carregarDenuncias();
+  } else {
+    $('adminTabs').style.display = 'none';
+    $('painelForm').style.display = 'block';
+    $('painelCatalogo').style.display = 'block';
+    $('denunciasPanel').style.display = 'none';
+    $('catTitle').textContent = 'MEUS ANÚNCIOS';
+  }
 }
+
+function aplicarAbaAdmin(){
+  if(!ehAdmin) return;
+  $('painelForm').style.display     = (abaAdmin==='loja') ? 'block' : 'none';
+  $('painelCatalogo').style.display = (abaAdmin==='loja' || abaAdmin==='jogadores') ? 'block' : 'none';
+  $('denunciasPanel').style.display = (abaAdmin==='denuncias') ? 'block' : 'none';
+  $('catTitle').textContent = (abaAdmin==='jogadores') ? 'MODERAÇÃO — JOGADORES' : 'MINHA LOJA';
+  renderTabela();
+  if(abaAdmin==='denuncias') carregarDenuncias();
+}
+
+document.querySelectorAll('.atab').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('.atab').forEach(function(x){ x.classList.remove('on'); });
+    this.classList.add('on');
+    abaAdmin = this.dataset.atab;
+    aplicarAbaAdmin();
+  });
+});
 
 function mostrarSessao(session){
   sessaoAtual = session;
@@ -753,20 +797,25 @@ $('btnSalvar').addEventListener('click', function(){
 /* ---------- catálogo ---------- */
 function renderTabela(){
   var body = $('mgBody');
-  var meus = ehAdmin
-    ? lista.filter(function(p){ return p.status !== 'rejeitado'; })    /* dono: tudo menos rejeitado */
-    : lista.filter(function(p){ return p.user_id === meuUid; });        /* vendedor: só os meus (com rejeitado + motivo) */
-
+  var meus;
   if(ehAdmin){
-    var pend = meus.filter(function(p){ return p.status==='pendente'; }).length;
-    $('pendCount').innerHTML = pend ? '<span style="color:var(--gold)">· ⏳ '+pend+' pra aprovar</span>' : '';
+    meus = lista.filter(function(p){
+      if(p.status === 'rejeitado') return false;
+      var oficial = !p.user_id || p.user_id === OWNER_ID;
+      return abaAdmin === 'loja' ? oficial : !oficial;   /* loja = oficial · jogadores = comunidade */
+    });
+    var pendTotal = lista.filter(function(p){ return p.status==='pendente'; }).length;
+    $('atabPend').textContent = pendTotal ? '('+pendTotal+')' : '';
+    $('pendCount').innerHTML = (abaAdmin==='jogadores' && pendTotal) ? '<span style="color:var(--gold)">· ⏳ '+pendTotal+' pra aprovar</span>' : '';
   } else {
+    meus = lista.filter(function(p){ return p.user_id === meuUid; });
     var ativos = lista.filter(function(p){ return p.user_id===meuUid && (p.status==='pendente'||p.status==='aprovado') && p.disponivel!==false; }).length;
     $('pendCount').innerHTML = '<span style="color:var(--faint)">· '+ativos+'/5 slots</span>';
   }
 
   if(!meus.length){
-    body.innerHTML = '<tr><td colspan="6" style="color:var(--faint);padding:14px 6px">'+(ehAdmin?'nenhum item':'você ainda não anunciou nada')+'</td></tr>';
+    body.innerHTML = '<tr><td colspan="6" style="color:var(--faint);padding:14px 6px">'+
+      (ehAdmin ? (abaAdmin==='jogadores' ? 'nenhum anúncio de jogador' : 'nenhum item na sua loja') : 'você ainda não anunciou nada')+'</td></tr>';
     return;
   }
 
@@ -911,8 +960,8 @@ function carregarDenuncias(){
   });
 }
 function renderDenuncias(){
-  $('denunciasPanel').style.display = 'block';
   $('denCount').textContent = denuncias.length ? '('+denuncias.length+')' : '';
+  $('atabDen').textContent = denuncias.length ? '('+denuncias.length+')' : '';
   var body = $('denBody');
   if(!denuncias.length){
     body.innerHTML = '<div style="color:var(--faint);font-size:12px;padding:4px 0">nenhuma denúncia pendente 👍</div>';
