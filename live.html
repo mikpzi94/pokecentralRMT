@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leilão ao vivo — PokeCentral</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12100c; --panel:#1c1812; --panel2:#26201a;
+    --line:#4a3c28; --line2:#6b5637;
+    --gold:#f0b429; --green:#8fc45a; --red:#d4593f; --pink:#d9709b;
+    --text:#f2e8d5; --muted:#a89880; --faint:#736450;
+    --px:'Press Start 2P',monospace; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg);color:var(--text);font-family:var(--mono);
+    display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden;
+  }
+  body.transp{background:transparent;}
+
+  .wait{font-family:var(--px);font-size:16px;color:var(--faint);line-height:1.8;text-align:center;}
+
+  .card{
+    width:100%;max-width:640px;border:3px solid var(--gold);background:var(--panel);
+    box-shadow:0 0 0 3px var(--bg), 0 0 40px rgba(240,180,41,.15);
+  }
+  .card.fim{border-color:var(--line2);}
+  .seller{
+    font-family:var(--px);font-size:12px;color:var(--bg);background:var(--pink);
+    padding:9px 14px;text-transform:uppercase;letter-spacing:.05em;
+  }
+  .top{display:flex;gap:20px;padding:20px;align-items:center;}
+  .pic{
+    width:150px;height:150px;flex-shrink:0;border:2px solid var(--line);background:var(--panel2);
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+  }
+  .pic img{width:100%;height:100%;object-fit:contain;image-rendering:auto;}
+  .pic img.sprite{width:auto;height:78%;image-rendering:pixelated;}
+  .info{flex:1;min-width:0;}
+  .nome{font-family:var(--px);font-size:20px;line-height:1.4;margin-bottom:12px;}
+  .meta{font-size:15px;color:var(--muted);line-height:1.7;}
+  .meta b{color:var(--text);}
+  .iv{color:var(--gold);}
+
+  .stage{display:flex;border-top:3px solid var(--gold);}
+  .cell{flex:1;padding:18px 16px;text-align:center;}
+  .cell + .cell{border-left:2px solid var(--line);}
+  .lbl{font-family:var(--px);font-size:9px;color:var(--faint);letter-spacing:.08em;margin-bottom:12px;}
+  .bid{font-family:var(--px);font-size:30px;color:var(--gold);line-height:1.2;}
+  .bid.none{font-size:15px;color:var(--muted);}
+  .clock{font-family:var(--px);font-size:30px;color:var(--green);line-height:1.2;}
+  .clock.soon{color:var(--gold);}
+  .clock.urgent{color:var(--red);animation:pisca 1s infinite;}
+  .clock.over{color:var(--faint);font-size:20px;}
+  @keyframes pisca{50%{opacity:.4;}}
+
+  .who{padding:14px 20px;border-top:2px solid var(--line);font-size:15px;color:var(--muted);text-align:center;}
+  .who b{color:var(--text);}
+  .who .win{color:var(--green);}
+  .buy{padding:10px 20px 16px;text-align:center;font-size:13px;color:var(--pink);}
+  .buy b{color:var(--pink);}
+
+  @media(max-width:560px){
+    .nome{font-size:15px;} .bid,.clock{font-size:22px;} .pic{width:110px;height:110px;}
+  }
+</style>
+</head>
+<body>
+<div id="app"><div class="wait">🎥 aguardando o próximo lote…<br><span style="font-size:10px">PokeCentral · leilão ao vivo</span></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+var SUPABASE_URL = 'https://gimluwxoaxfxpbcfosrj.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpbWx1d3hvYXhmeHBiY2Zvc3JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MDIxMzYsImV4cCI6MjA5OTk3ODEzNn0.uT05zvrnqU_sLnVQBFpHkw7TJL-WBUDaSqJ26RVPaSE';
+var EXTENSAO_MIN = 5;
+
+var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+var $ = function(id){ return document.getElementById(id); };
+var estado = null;
+
+if(new URLSearchParams(location.search).get('bg') === 'transparent') document.body.classList.add('transp');
+
+function brl(n){ return 'R$ ' + Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function spriteUrl(id){ return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/'+id+'.gif'; }
+
+function tempoTxt(resta){
+  var s = Math.max(0, Math.floor(resta/1000));
+  var h = Math.floor(s/3600), mi = Math.floor(s%3600/60), ss = s%60;
+  var p = function(n){ return String(n).padStart(2,'0'); };
+  return h>0 ? (h+':'+p(mi)+':'+p(ss)) : (p(mi)+':'+p(ss));
+}
+
+/* mesma regra do leilão: mínimo, anti-sniping e compre-já */
+function apurar(lote, lances){
+  var ext = (Number(lote.extensao_seg) || EXTENSAO_MIN*60) * 1000;
+  var fim = new Date(lote.fim).getTime();
+  var bids = lances.map(function(b){ return { ref:b, data:new Date(b.criado_em).getTime(), valor:Number(b.valor) }; })
+    .sort(function(a,b){ return a.data - b.data; });
+  var precoJa = Number(lote.preco_ja) || 0;
+  var validos = [], atual = 0, lider = null, arrematado = false;
+  bids.forEach(function(b){
+    if(arrematado) return;
+    if(b.data > fim) return;
+    var minimo = validos.length===0 ? Number(lote.lance_inicial) : atual + Number(lote.incremento);
+    if(b.valor >= minimo){
+      atual = b.valor; validos.push(b); lider = b;
+      if(precoJa && b.valor >= precoJa){ arrematado = true; fim = b.data; }
+      else if(b.data > fim - ext){ fim = b.data + ext; }
+    }
+  });
+  return { fim:fim, atual:atual, lider:lider, arrematado:arrematado, precoJa:precoJa, nLances:validos.length };
+}
+
+function nomeLider(b){
+  if(!b) return null;
+  return b.ref.nome_jogo || b.ref.nome_discord || 'anônimo';
+}
+
+function render(){
+  if(!estado){ $('app').innerHTML = '<div class="wait">🎥 aguardando o próximo lote…<br><span style="font-size:10px">PokeCentral · leilão ao vivo</span></div>'; return; }
+  var lote = estado.lote, a = estado.a;
+  var agora = Date.now();
+  var resta = a.fim - agora;
+  var aberto = resta > 0 && !a.arrematado;
+
+  var img = lote.print
+    ? '<img src="'+esc(lote.print)+'" alt="" onerror="this.style.display=\'none\'">'
+    : (lote.poke_id ? '<img class="sprite" src="'+spriteUrl(lote.poke_id)+'" alt="">' : '<span style="font-family:var(--px);font-size:8px;color:var(--faint)">SEM PRINT</span>');
+
+  var clockCls = !aberto ? 'over' : (resta < 30000 ? 'urgent' : (resta < 120000 ? 'soon' : ''));
+  var clockTxt = aberto ? tempoTxt(resta) : (a.arrematado ? 'ARREMATADO' : 'ENCERRADO');
+
+  var bidHtml = a.atual
+    ? '<div class="bid">'+brl(a.atual)+'</div>'
+    : '<div class="bid none">começa em<br>'+brl(lote.lance_inicial)+'</div>';
+
+  var whoHtml = '';
+  if(a.lider){
+    whoHtml = aberto
+      ? '<div class="who">na frente: <b>'+esc(nomeLider(a.lider))+'</b></div>'
+      : '<div class="who"><b class="win">🏆 '+esc(nomeLider(a.lider))+'</b> arrematou por <b>'+brl(a.atual)+'</b></div>';
+  } else if(!aberto){
+    whoHtml = '<div class="who">encerrado sem lances</div>';
+  }
+
+  var buyHtml = (aberto && a.precoJa && (a.atual + Number(lote.incremento)) <= a.precoJa)
+    ? '<div class="buy">⚡ compre já por <b>'+brl(a.precoJa)+'</b></div>' : '';
+
+  $('app').innerHTML =
+    '<div class="card'+(aberto?'':' fim')+'">'+
+      (lote.vendedor ? '<div class="seller">🎥 Leilão de '+esc(lote.vendedor)+'</div>' : '')+
+      '<div class="top">'+
+        '<div class="pic">'+img+'</div>'+
+        '<div class="info">'+
+          '<div class="nome">'+esc(lote.nome)+'</div>'+
+          '<div class="meta"><span class="iv">IV '+esc(lote.iv)+'</span>'+
+            (lote.qualidade?' · Qualidade <b>'+esc(lote.qualidade)+'</b>':'')+
+            ' · Nível <b>'+esc(lote.nivel)+'</b></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="stage">'+
+        '<div class="cell"><div class="lbl">'+(a.atual?'LANCE ATUAL':'INICIAL')+'</div>'+bidHtml+'</div>'+
+        '<div class="cell"><div class="lbl">'+(aberto?'TERMINA EM':'STATUS')+'</div><div class="clock '+clockCls+'">'+clockTxt+'</div></div>'+
+      '</div>'+
+      buyHtml+
+      whoHtml+
+    '</div>';
+}
+
+function carregar(){
+  sb.from('lotes').select('*').eq('ao_vivo', true).order('criado_em', {ascending:false}).limit(1)
+    .then(function(r){
+      var lote = (r.data && r.data[0]) || null;
+      if(!lote){ estado = null; render(); return; }
+      return sb.from('lances').select('*').eq('lote_id', lote.id).order('criado_em', {ascending:true})
+        .then(function(rl){
+          estado = { lote:lote, a: apurar(lote, rl.data || []) };
+          render();
+        });
+    })
+    .catch(function(){ /* silencioso — tela de stream não mostra erro */ });
+}
+
+/* relógio suave */
+setInterval(function(){
+  if(!estado) return;
+  var el = document.querySelector('.clock');
+  if(!el) return;
+  var resta = estado.a.fim - Date.now();
+  if(resta <= 0 || estado.a.arrematado){ render(); return; }  /* virou: redesenha */
+  el.textContent = tempoTxt(resta);
+  el.className = 'clock ' + (resta < 30000 ? 'urgent' : (resta < 120000 ? 'soon' : ''));
+}, 400);
+
+carregar();
+setInterval(carregar, 10000);  /* fallback */
+
+/* tempo real */
+sb.channel('live-rt')
+  .on('postgres_changes', { event:'*', schema:'public', table:'lances' }, function(){ carregar(); })
+  .on('postgres_changes', { event:'*', schema:'public', table:'lotes'  }, function(){ carregar(); })
+  .subscribe();
+</script>
+</body>
+</html>

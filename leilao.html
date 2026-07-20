@@ -328,10 +328,15 @@
           <div><label>Incremento (R$)</label><input type="number" id="lIncr" step="0.5" value="2"></div>
           <div><label>Compre já (opcional)</label><input type="number" id="lPrecoJa" step="0.5" placeholder="vazio = sem arremate"></div>
           <div><label>pokeId (opcional)</label><input type="number" id="lPokeId" placeholder="76"></div>
+          <div><label>🎥 Vendedor / Streamer</label><input type="text" id="lVendedor" placeholder="vazio = seu leilão"></div>
+          <div><label>Anti-sniping (seg)</label><input type="number" id="lExtensao" placeholder="padrão 300 (5min)"></div>
 
           <div style="grid-column:1/-1">
             <label>Duração do leilão</label>
             <div class="dur-row">
+              <button type="button" class="dur" data-min="3">3 MIN</button>
+              <button type="button" class="dur" data-min="5">5 MIN</button>
+              <button type="button" class="dur" data-min="10">10 MIN</button>
               <button type="button" class="dur" data-h="6">6H</button>
               <button type="button" class="dur" data-h="12">12H</button>
               <button type="button" class="dur" data-h="24">24H</button>
@@ -420,7 +425,7 @@ $('navWa').href = 'https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent('Olá! V
 
 /* ---------- apuração ---------- */
 function apurar(lote){
-  var ext = EXTENSAO_MIN * 60000;
+  var ext = (Number(lote.extensao_seg) || EXTENSAO_MIN*60) * 1000;
   var fim = new Date(lote.fim).getTime();
   var meus = lances.filter(function(b){ return b.lote_id === lote.id; })
     .map(function(b){ return { ref:b, data:new Date(b.criado_em), valor:Number(b.valor) }; })
@@ -573,6 +578,7 @@ function render(){
       '<div class="lote-top">'+
         '<div class="lote-img">'+img+'<div class="iv-badge" style="background:'+ivColor(lote.iv)+'">IV '+esc(lote.iv)+'</div></div>'+
         '<div class="lote-info">'+
+          (lote.vendedor ? '<div style="font-family:var(--px);font-size:8px;color:var(--pink);border:2px solid var(--pink);display:inline-block;padding:6px 9px;margin-bottom:9px;text-transform:uppercase">🎥 Leilão de '+esc(lote.vendedor)+'</div>' : '')+
           '<div class="lote-nome">'+esc(lote.nome)+'</div>'+
           '<div class="lote-meta">Nível '+esc(lote.nivel)+(lote.qualidade?' · Qualidade '+esc(lote.qualidade):'')+
             ' · incremento mínimo '+brl(lote.incremento)+'</div>'+
@@ -588,7 +594,7 @@ function render(){
           (!aberto && a.lider
             ? '<div class="winner"><b>Arrematado por '+esc(a.lider.ref.nome_discord)+'</b> — '+brl(a.lider.valor)+
               (a.arrematado ? ' <span style="color:var(--green)">⚡ (compre já)</span>':'')+
-              '<br>Entro em contato pelo Discord.</div>' : '')+
+              '<br>'+(lote.vendedor ? 'Combine com <b>'+esc(lote.vendedor)+'</b> (o vendedor deste lote) pra fechar.' : 'Entro em contato pelo Discord.')+'</div>' : '')+
           (!aberto && !a.lider ? '<div class="winner" style="border-color:var(--line)"><b style="color:var(--muted)">Encerrado sem lances.</b></div>':'')+
         '</div>'+
       '</div>'+
@@ -744,11 +750,14 @@ function mostrarFim(){
   if(!v){ $('durOut').textContent = ''; return; }
   var d = new Date(v);
   var dias = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'][d.getDay()];
-  var horas = Math.round((d.getTime() - Date.now())/3600000);
+  var ms = d.getTime() - Date.now();
+  var quando;
+  if(ms <= 0) quando = ' · <span style="color:var(--red)">no passado!</span>';
+  else if(ms < 3600000) quando = ' · daqui a ~'+Math.round(ms/60000)+' min';
+  else quando = ' · daqui a ~'+Math.round(ms/3600000)+'h';
   $('durOut').innerHTML = 'encerra <b>' + dias + ', ' +
     String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' às '+
-    String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+'</b>' +
-    (horas > 0 ? ' · daqui a ~'+horas+'h' : ' · <span style="color:var(--red)">no passado!</span>');
+    String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+'</b>' + quando;
 }
 
 document.querySelectorAll('.dur').forEach(function(b){
@@ -756,7 +765,12 @@ document.querySelectorAll('.dur').forEach(function(b){
     document.querySelectorAll('.dur').forEach(function(x){ x.classList.remove('on'); });
     this.classList.add('on');
     $('lHoras').value = '';
-    aplicarDuracao(parseInt(this.dataset.h));
+    if(this.dataset.min){
+      aplicarDuracao(parseInt(this.dataset.min)/60);   /* minutos → horas fracionárias */
+      if(!$('lExtensao').value) $('lExtensao').value = 30;  /* live: anti-sniping curto */
+    } else {
+      aplicarDuracao(parseInt(this.dataset.h));
+    }
   });
 });
 $('lHoras').addEventListener('input', function(){
@@ -863,11 +877,14 @@ $('btnCriar').addEventListener('click', function(){
       lance_inicial: inicial,
       incremento: parseFloat($('lIncr').value) || 1,
       preco_ja: parseFloat($('lPrecoJa').value) || null,
+      vendedor: $('lVendedor').value.trim() || null,
+      extensao_seg: parseInt($('lExtensao').value) || null,
+      ao_vivo: false,
       fim: new Date(fim).toISOString()
     });
   }).then(function(r){
     if(r.error) throw r.error;
-    ['lNome','lQual','lIv','lNivel','lInicial','lPrecoJa','lPokeId','lObs','lHoras'].forEach(function(i){ $(i).value=''; });
+    ['lNome','lQual','lIv','lNivel','lInicial','lPrecoJa','lPokeId','lObs','lHoras','lVendedor','lExtensao'].forEach(function(i){ $(i).value=''; });
     $('lDemanda').value = '1.0'; $('lShiny').value = '0';
     $('sugBox').style.display = 'none'; sugAtual = null;
     document.querySelectorAll('.dur').forEach(function(x){ x.classList.remove('on'); });
@@ -892,10 +909,12 @@ function renderAdmin(){
     var n = lances.filter(function(b){ return b.lote_id===l.id; }).length;
     var aberto = new Date(l.fim).getTime() > Date.now();
     return '<tr data-id="'+l.id+'">'+
-      '<td>'+esc(l.nome)+'</td><td>'+esc(l.iv)+'</td>'+
+      '<td>'+esc(l.nome)+(l.vendedor?' <span style="color:var(--pink)">🎥</span>':'')+'</td><td>'+esc(l.iv)+'</td>'+
       '<td style="color:'+(aberto?'var(--green)':'var(--faint)')+'">'+hora(new Date(l.fim))+'</td>'+
       '<td>'+n+'</td>'+
-      '<td style="width:1%"><button class="mini rm" data-a="del">APAGAR</button></td></tr>';
+      '<td style="width:1%;white-space:nowrap">'+
+        '<button class="mini" data-a="live" style="margin-right:6px;'+(l.ao_vivo?'background:var(--pink);color:var(--bg);border-color:var(--pink)':'')+'">'+(l.ao_vivo?'● AO VIVO':'▶ ao vivo')+'</button>'+
+        '<button class="mini rm" data-a="del">APAGAR</button></td></tr>';
   }).join('');
 
   body.querySelectorAll('[data-a="del"]').forEach(function(b){
@@ -909,12 +928,37 @@ function renderAdmin(){
       });
     });
   });
+
+  body.querySelectorAll('[data-a="live"]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var id = this.closest('tr').dataset.id;
+      var l = lotes.filter(function(x){ return x.id===id; })[0];
+      var novo = !l.ao_vivo;
+      /* liga só este, desliga os outros (um ao vivo por vez) */
+      var updates = lotes.map(function(x){
+        var val = (novo && x.id===id);
+        if((x.ao_vivo||false) === val) return null;
+        return sb.from('lotes').update({ ao_vivo: val }).eq('id', x.id);
+      }).filter(Boolean);
+      aviso($('mgMsg'), novo ? 'colocando ao vivo…' : 'saindo do ar…', '');
+      Promise.all(updates).then(function(){
+        aviso($('mgMsg'), novo ? '✓ no ar! a tela de OBS (/live) já mostra este lote' : '✓ fora do ar', 'ok');
+        carregar();
+      });
+    });
+  });
 }
 
 /* ---------- ciclo ---------- */
 carregar();
 setInterval(tick, 1000);        /* só o relógio */
-setInterval(carregar, 15000);   /* busca lances novos */
+setInterval(carregar, 15000);   /* fallback: busca lances (se o realtime não estiver ligado) */
+
+/* lances em tempo real — aparecem na hora na página e na tela de OBS */
+sb.channel('leilao-rt')
+  .on('postgres_changes', { event:'*', schema:'public', table:'lances' }, function(){ carregar(); })
+  .on('postgres_changes', { event:'*', schema:'public', table:'lotes'  }, function(){ carregar(); })
+  .subscribe();
 </script>
 </body>
 </html>
