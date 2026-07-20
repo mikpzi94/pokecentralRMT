@@ -456,9 +456,9 @@
           </div>
           <div id="wrapContato" style="grid-column:1/-1;display:none">
             <label>Como o comprador fala com você?</label>
-            <div style="display:flex;gap:8px">
-              <select id="fContatoTipo" style="flex:0 0 auto"><option value="wa">WhatsApp</option><option value="dc">Discord</option></select>
-              <input type="text" id="fContato" placeholder="11 98888-7777" style="flex:1">
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="fContatoTipo" style="width:auto;flex:0 0 auto"><option value="wa">📱 WhatsApp</option><option value="dc">💬 Discord</option></select>
+              <input type="text" id="fContato" placeholder="11 98888-7777" style="flex:1;min-width:0">
             </div>
             <div id="contatoHint" style="font-size:11px;color:var(--faint);margin-top:4px">Número com DDD. O botão no anúncio abre a conversa no WhatsApp.</div>
           </div>
@@ -798,6 +798,7 @@ function aplicarPapel(session){
   $('btnSalvar').textContent = ehAdmin ? '+ PUBLICAR NA LOJA' : '+ ENVIAR PRA APROVAÇÃO';
   $('wrapContato').style.display = ehAdmin ? 'none' : 'block';
   $('fotoReq').style.display = ehAdmin ? 'none' : 'block';
+  if(!ehAdmin) aplicarTipoContato();
   if(ehAdmin){
     $('adminTabs').style.display = 'flex';
     aplicarAbaAdmin();
@@ -835,13 +836,19 @@ document.querySelectorAll('.atab').forEach(function(b){
 $('mgSearch').addEventListener('input', renderTabela);
 $('mgSort').addEventListener('change', renderTabela);
 
-$('fContatoTipo').addEventListener('change', function(){
-  var dc = this.value === 'dc';
-  $('fContato').placeholder = dc ? '(opcional) @user ou link do seu Discord' : '11 98888-7777';
+function aplicarTipoContato(){
+  var dc = $('fContatoTipo').value === 'dc';
+  $('fContato').style.display = dc ? 'none' : '';   /* Discord é automático: sem campo */
+  if(!dc){
+    $('fContato').placeholder = '11 98888-7777';
+    var salvo = (function(){ try { return localStorage.getItem('pc_wa'); } catch(e){ return null; } })();
+    if(salvo && !$('fContato').value) $('fContato').value = salvo;   /* preenche com o número salvo */
+  }
   $('contatoHint').textContent = dc
-    ? 'O comprador cai direto no seu perfil do Discord (o do seu login). Pode deixar em branco.'
-    : 'Número com DDD. O botão no anúncio abre a conversa no WhatsApp.';
-});
+    ? '✓ usa o seu Discord do login automaticamente — o comprador cai direto no seu perfil.'
+    : 'Número com DDD (fica salvo pros próximos anúncios). O botão abre a conversa no WhatsApp.';
+}
+$('fContatoTipo').addEventListener('change', aplicarTipoContato);
 
 function abrirPainel(){
   $('painel').style.display = 'block';
@@ -1113,8 +1120,10 @@ $('btnSalvar').addEventListener('click', function(){
     return sb.from('pokemons').insert(reg);
   }).then(function(r){
     if(r.error) throw r.error;
+    if(!ehAdmin && cTipo==='wa'){ try { localStorage.setItem('pc_wa', cRaw.replace(/\D/g,'')); } catch(e){} }   /* guarda o número pros próximos */
     ['fNome','fQual','fIv','fNivel','fPreco','fPokeId','fObs','fContato'].forEach(function(i){ $(i).value=''; });
     $('fDemanda').value='1.0'; $('fShiny').value='0'; $('sugBox').style.display='none';
+    if(!ehAdmin) aplicarTipoContato();   /* recoloca o número salvo no campo */
     arquivoSelecionado = null; cropState = {};
     $('preview').style.display = 'none';
     $('fileInput').value = '';
