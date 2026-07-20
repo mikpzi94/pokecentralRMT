@@ -1249,7 +1249,7 @@ function tornarConfiavel(uid, on){
 
 /* ---------- link/detalhe do produto ---------- */
 function copiarLinkProduto(id, btn){
-  var url = location.origin + location.pathname + '?p=' + id;
+  var url = location.origin + '/p/' + id;   /* link com preview (miniatura do Pokémon) */
   function ok(){ var t = btn.textContent; btn.textContent = '✓ link copiado!'; setTimeout(function(){ btn.textContent = t; }, 2000); }
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(url).then(ok).catch(function(){ prompt('Copie o link:', url); });
