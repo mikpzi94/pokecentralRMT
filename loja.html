@@ -407,7 +407,7 @@ function render(){
   var ordem = $('sortSel').value;
   var ivMin = parseFloat($('ivFilter').value) || 0;
 
-  var itens = lista.filter(function(p){ return p.disponivel !== false; });
+  var itens = lista.filter(function(p){ return p.status === 'aprovado' && p.disponivel !== false; });
   var total = itens.length;
 
   if(termo) itens = itens.filter(function(p){ return String(p.nome||'').toLowerCase().indexOf(termo)>=0; });
@@ -445,7 +445,7 @@ function render(){
     }).join('');
   }
 
-  var vendidos = lista.filter(function(p){ return p.disponivel === false; });
+  var vendidos = lista.filter(function(p){ return p.status === 'aprovado' && p.disponivel === false; });
   if(vendidos.length){
     $('soldStrip').style.display = 'block';
     $('soldList').innerHTML = vendidos.slice(0,8).map(function(p){
