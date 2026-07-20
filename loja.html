@@ -52,6 +52,16 @@
   .pitch{border:2px solid var(--green);background:rgba(143,196,90,.07);padding:13px 15px;margin-bottom:20px;font-size:12.5px;color:var(--muted);}
   .pitch b{color:var(--green);}
   .pitch .hi{color:var(--text);}
+  .vender-cta{
+    display:flex;align-items:center;justify-content:center;gap:8px 12px;flex-wrap:wrap;
+    width:100%;margin:0 0 20px;padding:15px 16px;cursor:pointer;text-align:center;
+    background:rgba(143,196,90,.07);border:2px solid var(--green);color:var(--muted);
+    font-family:var(--mono);font-size:13px;transition:border-color .15s,background .15s;
+  }
+  .vender-cta:hover{background:rgba(143,196,90,.14);border-color:var(--gold);}
+  .vender-cta .vt{color:var(--text);}
+  .vender-cta .vb{font-family:var(--px);font-size:9px;color:var(--green);}
+  .vender-cta:hover .vb{color:var(--gold);}
 
   .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2px;margin-bottom:26px;}
   .step{border:2px solid var(--line);background:var(--panel);padding:14px 15px;}
@@ -292,6 +302,11 @@
       Estoque de 1 por Pokémon: se sumiu da lista, foi vendido.
     </p>
   </header>
+
+  <button type="button" class="vender-cta" id="venderCta">
+    <span class="vt">🧑 Tem um Pokémon pra vender?</span>
+    <span class="vb">ANUNCIAR GRÁTIS AQUI →</span>
+  </button>
 
   <div class="pitch">
     <b>▸ Por que comprar em vez de farmar?</b><br>
@@ -785,6 +800,7 @@ $('editToggle').addEventListener('click', function(){
   this.textContent = aberto ? '▪ modo vendedor' : '▪ fechar modo vendedor';
   if(!aberto) p.scrollIntoView({behavior:'smooth'});
 });
+$('venderCta').addEventListener('click', abrirPainel);   /* atalho do topo -> abre o modo vendedor */
 
 var ehAdmin = false, meuUid = null, sessaoAtual = null;
 
