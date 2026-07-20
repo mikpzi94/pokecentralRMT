@@ -613,15 +613,26 @@ function contatoTipo(c){
 function contatoLink(c){
   var v = contatoValor(c);
   if(!v) return null;
-  if(contatoTipo(c) === 'dc') return /^https?:\/\//i.test(v) ? v : DISCORD_COMUNIDADE;
+  if(contatoTipo(c) === 'dc'){
+    if(/^https?:\/\//i.test(v)) return v;                       /* link/convite explícito */
+    if(/^\d{5,}$/.test(v)) return 'https://discord.com/users/'+v;   /* perfil direto do vendedor */
+    return DISCORD_COMUNIDADE;                                  /* legado: @handle -> servidor */
+  }
   if(/^https?:\/\//i.test(v)) return v;
   var num = v.replace(/\D/g,'');
   return num.length >= 10 ? 'https://wa.me/'+num : null;
 }
 function contatoTexto(c){   /* exibição amigável, sem prefixo */
   var v = contatoValor(c);
-  if(contatoTipo(c) === 'dc' && v && !/^https?:/i.test(v)) return v[0]==='@' ? v : '@'+v;
+  if(contatoTipo(c) === 'dc'){
+    if(!v || /^\d{5,}$/.test(v)) return 'Discord';             /* id numérico não vira texto */
+    if(/^https?:/i.test(v)) return v;
+    return v[0]==='@' ? v : '@'+v;
+  }
   return v;
+}
+function contatoDiretoDc(c){   /* true = leva no perfil/link do vendedor; false = cai no servidor */
+  return contatoTipo(c)==='dc' && contatoLink(c) !== DISCORD_COMUNIDADE;
 }
 
 function cardHtml(p){
@@ -636,9 +647,11 @@ function cardHtml(p){
   } else {
     var link = contatoLink(p.vendedor_contato);
     if(contatoTipo(p.vendedor_contato) === 'dc'){
-      var handle = contatoTexto(p.vendedor_contato);
-      rodape = '<a class="card-cta" href="'+esc(link||DISCORD_COMUNIDADE)+'" target="_blank" rel="noopener">💬 FALAR NO DISCORD ▸</a>'+
-        (handle && handle[0]==='@' ? '<div class="card-contato" style="border:0;padding:6px 0 0;margin-top:2px">chame <b style="color:var(--pink)">'+esc(handle)+'</b> lá</div>' : '');
+      var direto = contatoDiretoDc(p.vendedor_contato);
+      var nota = direto
+        ? '<div class="card-contato" style="border:0;padding:6px 0 0;margin-top:2px">abre direto no Discord de <b style="color:var(--pink)">'+esc(p.vendedor_nome||'vendedor')+'</b></div>'
+        : (contatoTexto(p.vendedor_contato)[0]==='@' ? '<div class="card-contato" style="border:0;padding:6px 0 0;margin-top:2px">chame <b style="color:var(--pink)">'+esc(contatoTexto(p.vendedor_contato))+'</b> no servidor</div>' : '');
+      rodape = '<a class="card-cta" href="'+esc(link||DISCORD_COMUNIDADE)+'" target="_blank" rel="noopener">💬 CHAMAR NO DISCORD ▸</a>'+nota;
     } else {
       rodape = link
         ? '<a class="card-cta" href="'+esc(link)+'" target="_blank" rel="noopener">FALAR COM VENDEDOR ▸</a>'
@@ -767,6 +780,15 @@ function nomeDiscord(s){
   var m = (s && s.user && s.user.user_metadata) || {};
   return m.full_name || m.name || m.user_name || m.preferred_username || (s && s.user ? s.user.email : '') || 'vendedor';
 }
+function discordId(s){   /* ID numérico do Discord (snowflake) pra link direto ao perfil */
+  var u = s && s.user; if(!u) return null;
+  var m = u.user_metadata || {};
+  if(/^\d{5,}$/.test(String(m.provider_id||''))) return String(m.provider_id);
+  if(/^\d{5,}$/.test(String(m.sub||'')))         return String(m.sub);
+  var ids = u.identities || [];
+  for(var i=0;i<ids.length;i++){ if(ids[i].provider==='discord' && /^\d{5,}$/.test(String(ids[i].id||''))) return String(ids[i].id); }
+  return null;
+}
 
 var abaAdmin = 'loja';
 
@@ -815,9 +837,9 @@ $('mgSort').addEventListener('change', renderTabela);
 
 $('fContatoTipo').addEventListener('change', function(){
   var dc = this.value === 'dc';
-  $('fContato').placeholder = dc ? '@seuusuario' : '11 98888-7777';
+  $('fContato').placeholder = dc ? '(opcional) @user ou link do seu Discord' : '11 98888-7777';
   $('contatoHint').textContent = dc
-    ? 'O comprador vai te chamar pelo Discord da comunidade — deixe seu @ certinho.'
+    ? 'O comprador cai direto no seu perfil do Discord (o do seu login). Pode deixar em branco.'
     : 'Número com DDD. O botão no anúncio abre a conversa no WhatsApp.';
 });
 
@@ -1039,9 +1061,22 @@ $('btnSalvar').addEventListener('click', function(){
   var contato = null;
   if(!ehAdmin){
     if(!arquivoSelecionado){ aviso($('addMsg'), 'anúncio precisa do print do Pokémon — arraste ou clique na área acima', 'err'); return; }
-    if(!cRaw){ aviso($('addMsg'), 'informe seu contato pra o comprador te achar', 'err'); return; }
-    if(cTipo==='wa' && cRaw.replace(/\D/g,'').length < 10){ aviso($('addMsg'), 'WhatsApp inválido — coloque DDD + número (ex: 11 98888-7777)', 'err'); return; }
-    contato = cTipo==='wa' ? 'wa:'+cRaw.replace(/\D/g,'') : 'dc:'+cRaw.replace(/^@+/,'');
+    if(cTipo === 'wa'){
+      if(!cRaw){ aviso($('addMsg'), 'informe seu WhatsApp pra o comprador te achar', 'err'); return; }
+      if(cRaw.replace(/\D/g,'').length < 10){ aviso($('addMsg'), 'WhatsApp inválido — coloque DDD + número (ex: 11 98888-7777)', 'err'); return; }
+      contato = 'wa:'+cRaw.replace(/\D/g,'');
+    } else {   /* Discord */
+      var did = discordId(sessaoAtual);
+      if(/discord\.(gg|com)/i.test(cRaw)){
+        contato = 'dc:'+cRaw.replace(/^@+/,'');            /* colou link/convite próprio */
+      } else if(did){
+        contato = 'dc:'+did;                                /* perfil direto pelo ID do login */
+      } else if(cRaw){
+        contato = 'dc:'+cRaw.replace(/^@+/,'');            /* fallback: @handle -> servidor */
+      } else {
+        aviso($('addMsg'), 'não consegui pegar seu Discord do login — coloque seu @ ou um link do seu perfil', 'err'); return;
+      }
+    }
   }
 
   btn.disabled = true;
@@ -1453,9 +1488,12 @@ function mostrarProduto(id){
     } else {
       var link = contatoLink(p.vendedor_contato);
       if(contatoTipo(p.vendedor_contato) === 'dc'){
-        var handleP = contatoTexto(p.vendedor_contato);
-        cta = '<a class="prod-cta" href="'+esc(link||DISCORD_COMUNIDADE)+'" target="_blank" rel="noopener">💬 FALAR NO DISCORD ▸</a>'+
-          (handleP && handleP[0]==='@' ? '<div style="text-align:center;color:var(--muted);font-size:12px;margin-top:8px">chame <b style="color:var(--pink)">'+esc(handleP)+'</b> no Discord da comunidade</div>' : '');
+        var diretoP = contatoDiretoDc(p.vendedor_contato);
+        var htxt = contatoTexto(p.vendedor_contato);
+        cta = '<a class="prod-cta" href="'+esc(link||DISCORD_COMUNIDADE)+'" target="_blank" rel="noopener">💬 CHAMAR NO DISCORD ▸</a>'+
+          (diretoP
+            ? '<div style="text-align:center;color:var(--muted);font-size:12px;margin-top:8px">abre direto no Discord de <b style="color:var(--pink)">'+esc(p.vendedor_nome||'vendedor')+'</b></div>'
+            : (htxt[0]==='@' ? '<div style="text-align:center;color:var(--muted);font-size:12px;margin-top:8px">chame <b style="color:var(--pink)">'+esc(htxt)+'</b> no Discord da comunidade</div>' : ''));
       } else {
         cta = link ? '<a class="prod-cta" href="'+esc(link)+'" target="_blank" rel="noopener">FALAR COM VENDEDOR ▸</a>'
                    : '<div style="text-align:center;color:var(--muted);font-size:12px;margin-top:8px">Contato: '+esc(contatoTexto(p.vendedor_contato)||'pelo Discord da comunidade')+'</div>';
