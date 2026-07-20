@@ -236,7 +236,9 @@
   .drop:hover, .drop.over{border-color:var(--gold);color:var(--gold);}
   .drop b{color:var(--muted);}
   .preview{display:flex;gap:14px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
-  .preview img{width:120px;height:96px;object-fit:contain;background:var(--panel2);border:2px solid var(--line);}
+  .cropbox{width:180px;height:180px;background:var(--panel2);border:2px solid var(--line);overflow:hidden;position:relative;touch-action:none;cursor:grab;}
+  .cropbox.drag{cursor:grabbing;}
+  .cropbox img{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;user-select:none;-webkit-user-drag:none;}
   .preview .info{font-size:12px;color:var(--muted);line-height:1.8;}
   .preview .info b{color:var(--green);}
 
@@ -415,10 +417,15 @@
           <b>Nomeie assim: GolemQ170IV120N100.png</b> — nome, qualidade, IV e nível são lidos sozinhos
         </div>
         <input type="file" id="fileInput" accept="image/*" style="display:none">
+        <div id="fotoReq" style="display:none;font-size:11.5px;color:var(--gold);text-align:center;margin:2px 0 8px">📸 o print do Pokémon é obrigatório pra anunciar</div>
         <div style="text-align:center;margin:-4px 0 12px"><a href="/anunciar" target="_blank" style="font-size:11px;color:var(--green)">📖 como anunciar (guia completo) →</a></div>
 
         <div class="preview" id="preview" style="display:none">
-          <img id="prevImg" alt="">
+          <div>
+            <div class="cropbox" id="cropBox"><img id="cropImg" alt="" draggable="false"></div>
+            <input type="range" id="cropZoom" min="1" max="4" step="0.01" value="1" style="width:180px;margin-top:8px;display:block">
+            <div style="font-size:10.5px;color:var(--faint);max-width:180px;margin-top:2px;line-height:1.5">arraste a imagem e use o zoom — <b style="color:var(--muted)">só o que fica no quadrado vira o anúncio</b> (recorte a tela do jogo)</div>
+          </div>
           <div class="info" id="prevInfo"></div>
         </div>
 
@@ -447,7 +454,14 @@
               <div class="sug-hint">Clique num preço pra usar no campo Preço. Baseado na calculadora — pode editar depois.</div>
             </div>
           </div>
-          <div id="wrapContato" style="grid-column:1/-1;display:none"><label>Seu contato (WhatsApp com DDD ou @Discord)</label><input type="text" id="fContato" placeholder="ex: 11 98888-7777 ou @seuuser"></div>
+          <div id="wrapContato" style="grid-column:1/-1;display:none">
+            <label>Como o comprador fala com você?</label>
+            <div style="display:flex;gap:8px">
+              <select id="fContatoTipo" style="flex:0 0 auto"><option value="wa">WhatsApp</option><option value="dc">Discord</option></select>
+              <input type="text" id="fContato" placeholder="11 98888-7777" style="flex:1">
+            </div>
+            <div id="contatoHint" style="font-size:11px;color:var(--faint);margin-top:4px">Número com DDD. O botão no anúncio abre a conversa no WhatsApp.</div>
+          </div>
           <div style="grid-column:1/-1"><label>Observação (opcional)</label><input type="text" id="fObs" placeholder="meta forte, ótimo pra farm de moeda"></div>
         </div>
         <button class="btn go" id="btnSalvar">+ PUBLICAR NA LOJA</button>
@@ -508,6 +522,7 @@
 var SUPABASE_URL = 'https://gimluwxoaxfxpbcfosrj.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpbWx1d3hvYXhmeHBiY2Zvc3JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MDIxMzYsImV4cCI6MjA5OTk3ODEzNn0.uT05zvrnqU_sLnVQBFpHkw7TJL-WBUDaSqJ26RVPaSE';
 var WHATSAPP = '5511994309545';   /* <-- TROQUE PELO SEU NÚMERO */
+var DISCORD_COMUNIDADE = 'https://discord.gg/6rAzSv9RQF';   /* servidor da comunidade */
 /* =============================================== */
 
 var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -516,6 +531,7 @@ var lista = [];
 var OWNER_ID = 'd3607434-85a0-46eb-8a17-16dd3d0b247a';   /* dono = anúncio oficial */
 var aba = 'oficial', mostrados = 24, PAGINA = 24;
 var arquivoSelecionado = null;
+var cropState = {};   /* estado do recorte quadrado da foto */
 
 /* ---------- helpers ---------- */
 function brl(n){ return 'R$ ' + Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -584,13 +600,28 @@ function carregar(){
 /* ---------- vitrine pública ---------- */
 function ehOficial(p){ return !p.user_id || p.user_id === OWNER_ID; }
 
-function contatoLink(c){
+/* contato é guardado com prefixo: "wa:<numero>" ou "dc:<@user ou url>".
+   Anúncios antigos sem prefixo caem na heurística (número = WhatsApp). */
+function contatoValor(c){ return String(c||'').trim().replace(/^(wa|dc):/i,'').trim(); }
+function contatoTipo(c){
   c = String(c||'').trim();
-  if(!c) return null;
-  if(/^https?:\/\//i.test(c)) return c;
-  var num = c.replace(/\D/g,'');
-  if(num.length >= 10) return 'https://wa.me/'+num;
-  return null;
+  var m = c.match(/^(wa|dc):/i);
+  if(m) return m[1].toLowerCase();
+  if(/discord\.(gg|com)/i.test(c) || /^@/.test(c)) return 'dc';   /* legado */
+  return 'wa';
+}
+function contatoLink(c){
+  var v = contatoValor(c);
+  if(!v) return null;
+  if(contatoTipo(c) === 'dc') return /^https?:\/\//i.test(v) ? v : DISCORD_COMUNIDADE;
+  if(/^https?:\/\//i.test(v)) return v;
+  var num = v.replace(/\D/g,'');
+  return num.length >= 10 ? 'https://wa.me/'+num : null;
+}
+function contatoTexto(c){   /* exibição amigável, sem prefixo */
+  var v = contatoValor(c);
+  if(contatoTipo(c) === 'dc' && v && !/^https?:/i.test(v)) return v[0]==='@' ? v : '@'+v;
+  return v;
 }
 
 function cardHtml(p){
@@ -604,11 +635,17 @@ function cardHtml(p){
     rodape = '<a class="card-cta" href="'+waLink(msg)+'" target="_blank" rel="noopener">TENHO INTERESSE ▸</a>';
   } else {
     var link = contatoLink(p.vendedor_contato);
-    rodape = link
-      ? '<a class="card-cta" href="'+esc(link)+'" target="_blank" rel="noopener">FALAR COM VENDEDOR ▸</a>'
-      : (p.vendedor_contato
-          ? '<div class="card-contato">Contato: '+esc(p.vendedor_contato)+'</div>'
-          : '<div class="card-contato" style="color:var(--faint)">contato pelo Discord da comunidade</div>');
+    if(contatoTipo(p.vendedor_contato) === 'dc'){
+      var handle = contatoTexto(p.vendedor_contato);
+      rodape = '<a class="card-cta" href="'+esc(link||DISCORD_COMUNIDADE)+'" target="_blank" rel="noopener">💬 FALAR NO DISCORD ▸</a>'+
+        (handle && handle[0]==='@' ? '<div class="card-contato" style="border:0;padding:6px 0 0;margin-top:2px">chame <b style="color:var(--pink)">'+esc(handle)+'</b> lá</div>' : '');
+    } else {
+      rodape = link
+        ? '<a class="card-cta" href="'+esc(link)+'" target="_blank" rel="noopener">FALAR COM VENDEDOR ▸</a>'
+        : (p.vendedor_contato
+            ? '<div class="card-contato">Contato: '+esc(contatoTexto(p.vendedor_contato))+'</div>'
+            : '<div class="card-contato" style="color:var(--faint)">contato pelo Discord da comunidade</div>');
+    }
   }
 
   return '<div class="card">'+
@@ -738,6 +775,7 @@ function aplicarPapel(session){
   $('addTitle').textContent  = ehAdmin ? 'ADICIONAR POKÉMON (OFICIAL)' : 'ANUNCIAR MEU POKÉMON';
   $('btnSalvar').textContent = ehAdmin ? '+ PUBLICAR NA LOJA' : '+ ENVIAR PRA APROVAÇÃO';
   $('wrapContato').style.display = ehAdmin ? 'none' : 'block';
+  $('fotoReq').style.display = ehAdmin ? 'none' : 'block';
   if(ehAdmin){
     $('adminTabs').style.display = 'flex';
     aplicarAbaAdmin();
@@ -774,6 +812,14 @@ document.querySelectorAll('.atab').forEach(function(b){
 });
 $('mgSearch').addEventListener('input', renderTabela);
 $('mgSort').addEventListener('change', renderTabela);
+
+$('fContatoTipo').addEventListener('change', function(){
+  var dc = this.value === 'dc';
+  $('fContato').placeholder = dc ? '@seuusuario' : '11 98888-7777';
+  $('contatoHint').textContent = dc
+    ? 'O comprador vai te chamar pelo Discord da comunidade — deixe seu @ certinho.'
+    : 'Número com DDD. O botão no anúncio abre a conversa no WhatsApp.';
+});
 
 function abrirPainel(){
   $('painel').style.display = 'block';
@@ -846,7 +892,7 @@ $('fileInput').addEventListener('change', function(){ if(this.files[0]) usarArqu
 function usarArquivo(file){
   arquivoSelecionado = file;
   $('preview').style.display = 'flex';
-  $('prevImg').src = URL.createObjectURL(file);
+  iniciarCropper(URL.createObjectURL(file));
 
   var d = lerNomeArquivo(file.name);
   if(d){
@@ -861,6 +907,73 @@ function usarArquivo(file){
   }
   atualizarSugestao();
 }
+
+/* ---------- recorte quadrado da foto ---------- */
+function iniciarCropper(url){
+  var img = $('cropImg');
+  img.onload = function(){
+    var box = $('cropBox').clientWidth || 180;
+    var natW = img.naturalWidth, natH = img.naturalHeight;
+    if(!natW || !natH){ cropState = {}; return; }
+    var minScale = box / Math.min(natW, natH);   /* cobre o quadrado */
+    cropState = { natW:natW, natH:natH, boxSize:box, minScale:minScale, scale:minScale,
+                  tx:(box - natW*minScale)/2, ty:(box - natH*minScale)/2, dragging:false };
+    $('cropZoom').value = 1;
+    aplicarCrop();
+  };
+  img.src = url;
+}
+function aplicarCrop(){
+  var s = cropState; if(!s.natW) return;
+  var w = s.natW*s.scale, h = s.natH*s.scale;
+  s.tx = Math.min(0, Math.max(s.boxSize - w, s.tx));   /* imagem sempre cobre o quadrado */
+  s.ty = Math.min(0, Math.max(s.boxSize - h, s.ty));
+  $('cropImg').style.transform = 'translate('+s.tx+'px,'+s.ty+'px) scale('+s.scale+')';
+}
+function gerarRecorte(){
+  return new Promise(function(resolve){
+    var s = cropState;
+    if(!s.natW){ resolve(null); return; }
+    var out = 900, sSize = s.boxSize/s.scale;
+    var sx = Math.max(0, Math.min((0 - s.tx)/s.scale, s.natW - sSize));
+    var sy = Math.max(0, Math.min((0 - s.ty)/s.scale, s.natH - sSize));
+    var canvas = document.createElement('canvas');
+    canvas.width = out; canvas.height = out;
+    try { canvas.getContext('2d').drawImage($('cropImg'), sx, sy, sSize, sSize, 0, 0, out, out); }
+    catch(e){ resolve(null); return; }
+    canvas.toBlob(function(blob){ resolve(blob); }, 'image/jpeg', 0.82);
+  });
+}
+$('cropZoom').addEventListener('input', function(){
+  var s = cropState; if(!s.natW) return;
+  var c = s.boxSize/2;
+  var sxp = (c - s.tx)/s.scale, syp = (c - s.ty)/s.scale;
+  s.scale = s.minScale * parseFloat(this.value);
+  s.tx = c - sxp*s.scale; s.ty = c - syp*s.scale;
+  aplicarCrop();
+});
+$('cropBox').addEventListener('pointerdown', function(e){
+  if(!cropState.natW) return;
+  cropState.dragging = true; cropState.lastX = e.clientX; cropState.lastY = e.clientY;
+  this.classList.add('drag'); try { this.setPointerCapture(e.pointerId); } catch(_){}
+});
+$('cropBox').addEventListener('pointermove', function(e){
+  if(!cropState.dragging) return;
+  cropState.tx += e.clientX - cropState.lastX;
+  cropState.ty += e.clientY - cropState.lastY;
+  cropState.lastX = e.clientX; cropState.lastY = e.clientY;
+  aplicarCrop();
+});
+function fimDrag(){ cropState.dragging = false; $('cropBox').classList.remove('drag'); }
+$('cropBox').addEventListener('pointerup', fimDrag);
+$('cropBox').addEventListener('pointercancel', fimDrag);
+$('cropBox').addEventListener('wheel', function(e){
+  if(!cropState.natW) return;
+  e.preventDefault();
+  var z = Math.min(4, Math.max(1, parseFloat($('cropZoom').value) + (e.deltaY < 0 ? 0.12 : -0.12)));
+  $('cropZoom').value = z;
+  $('cropZoom').dispatchEvent(new Event('input'));
+}, {passive:false});
 
 /* ---------- sugestão de preço (usa pricing.js) ---------- */
 function precoChip(label, valor){
@@ -921,14 +1034,23 @@ $('btnSalvar').addEventListener('click', function(){
   var nome = $('fNome').value.trim();
   var preco = parseFloat($('fPreco').value) || 0;
   if(!nome || !preco){ aviso($('addMsg'), 'preencha ao menos nome e preço', 'err'); return; }
-  var contato = $('fContato').value.trim();
-  if(!ehAdmin && !contato){ aviso($('addMsg'), 'informe seu contato pra o comprador te achar', 'err'); return; }
+  var cTipo = $('fContatoTipo') ? $('fContatoTipo').value : 'wa';
+  var cRaw = $('fContato').value.trim();
+  var contato = null;
+  if(!ehAdmin){
+    if(!arquivoSelecionado){ aviso($('addMsg'), 'anúncio precisa do print do Pokémon — arraste ou clique na área acima', 'err'); return; }
+    if(!cRaw){ aviso($('addMsg'), 'informe seu contato pra o comprador te achar', 'err'); return; }
+    if(cTipo==='wa' && cRaw.replace(/\D/g,'').length < 10){ aviso($('addMsg'), 'WhatsApp inválido — coloque DDD + número (ex: 11 98888-7777)', 'err'); return; }
+    contato = cTipo==='wa' ? 'wa:'+cRaw.replace(/\D/g,'') : 'dc:'+cRaw.replace(/^@+/,'');
+  }
 
   btn.disabled = true;
   aviso($('addMsg'), 'enviando…', '');
 
   var etapa = arquivoSelecionado
-    ? comprimirImagem(arquivoSelecionado, 1200, 0.72).then(function(blob){
+    ? gerarRecorte().then(function(recorte){
+        return recorte || comprimirImagem(arquivoSelecionado, 1200, 0.72);   /* recorte quadrado; se falhar, imagem inteira comprimida */
+      }).then(function(blob){
         var base = arquivoSelecionado.name.replace(/\.\w+$/, '');
         return sb.storage.from('prints').upload('loja/'+Date.now()+'-'+base+'.jpg', blob, {upsert:true, contentType:'image/jpeg'});
       }).then(function(up){
@@ -958,7 +1080,7 @@ $('btnSalvar').addEventListener('click', function(){
     if(r.error) throw r.error;
     ['fNome','fQual','fIv','fNivel','fPreco','fPokeId','fObs','fContato'].forEach(function(i){ $(i).value=''; });
     $('fDemanda').value='1.0'; $('fShiny').value='0'; $('sugBox').style.display='none';
-    arquivoSelecionado = null;
+    arquivoSelecionado = null; cropState = {};
     $('preview').style.display = 'none';
     $('fileInput').value = '';
     aviso($('addMsg'), ehAdmin ? '✓ publicado na loja' : '✓ enviado! agora é só aguardar a aprovação (você recebe assim que sair no ar)', 'ok');
@@ -1017,8 +1139,12 @@ function renderTabela(){
     var oficial = !p.user_id || p.user_id === OWNER_ID;
     var tag = p.status==='pendente' ? '<span style="color:var(--gold);font-size:10px"> ⏳ pendente</span>'
             : p.status==='rejeitado' ? '<span style="color:var(--red);font-size:10px"> ✕ rejeitado</span>' : '';
-    var motivo = (p.status==='rejeitado' && p.motivo_rejeicao) ? '<div style="font-size:10px;color:var(--red)">motivo: '+esc(p.motivo_rejeicao)+'</div>' : '';
-    var origem = (ehAdmin && !oficial) ? '<div style="color:var(--pink);font-size:10.5px;margin-top:2px" title="vendedor">🧑 '+esc(p.vendedor_nome||'?')+(p.vendedor_contato?' · <span style="color:var(--faint)">'+esc(p.vendedor_contato)+'</span>':'')+'</div>' : '';
+    var motivo = (p.status==='rejeitado' && p.motivo_rejeicao)
+      ? (ehAdmin
+          ? '<div style="font-size:10px;color:var(--red)">motivo: '+esc(p.motivo_rejeicao)+'</div>'
+          : '<div style="font-size:11px;color:var(--red);border:2px solid var(--red);padding:6px;margin-top:4px">✕ Rejeitado — <b>'+esc(p.motivo_rejeicao)+'</b><br><span style="color:var(--muted)">corrija e crie o anúncio de novo.</span></div>')
+      : '';
+    var origem = (ehAdmin && !oficial) ? '<div style="color:var(--pink);font-size:10.5px;margin-top:2px" title="vendedor">🧑 '+esc(p.vendedor_nome||'?')+(p.vendedor_contato?' · <span style="color:var(--faint)">'+(contatoTipo(p.vendedor_contato)==='dc'?'💬 ':'📱 ')+esc(contatoTexto(p.vendedor_contato))+'</span>':'')+'</div>' : '';
     var acoes;
     if(ehAdmin && p.status==='pendente'){
       acoes = (p.print ? '<a class="mini" href="'+esc(p.print)+'" target="_blank" style="text-decoration:none" title="ver print">🖼</a>' : '')+
@@ -1026,6 +1152,7 @@ function renderTabela(){
         '<button class="mini rm" data-a="rejeitar">REJEITAR</button>';
     } else if(p.status==='aprovado'){
       acoes = '<button class="mini" data-a="toggle">'+(p.disponivel===false?'REATIVAR':'VENDIDO')+'</button>';
+      if(ehAdmin && !oficial) acoes += '<button class="mini rm" data-a="rejeitar" title="tirar do ar e avisar o vendedor o motivo">✕ tirar</button>';
     } else {
       acoes = '';   /* pendente/rejeitado do vendedor: só editar/apagar */
     }
@@ -1097,11 +1224,12 @@ function renderTabela(){
     btn.addEventListener('click', function(){
       var id = this.closest('tr').dataset.id;
       var item = lista.filter(function(x){ return x.id === id; })[0];
-      var motivo = prompt('Motivo da rejeição (o vendedor vê depois):', '');
+      var motivo = prompt('Motivo (o vendedor vê no painel dele):\n\nex: sem print · print não bate com o anúncio · imagem cortada/fora do padrão · preço fora da realidade · dados errados', '');
       if(motivo === null) return;
-      sb.from('pokemons').update({ status:'rejeitado', motivo_rejeicao: motivo || 'não especificado' }).eq('id', id).select().then(function(r){
+      sb.from('pokemons').update({ status:'rejeitado', motivo_rejeicao: (motivo.trim() || 'não especificado') }).eq('id', id).select().then(function(r){
         if(r.error){ aviso($('mgMsg'), 'erro: '+r.error.message, 'err'); return; }
-        aviso($('mgMsg'), 'anúncio rejeitado', 'ok'); carregar();
+        if(!r.data || !r.data.length){ aviso($('mgMsg'), 'não salvou — RLS não permitiu com essa conta.', 'err'); return; }
+        aviso($('mgMsg'), 'anúncio rejeitado — o vendedor vê o motivo no painel dele', 'ok'); carregar();
       });
     });
   });
@@ -1324,8 +1452,14 @@ function mostrarProduto(id){
       cta = '<a class="prod-cta" href="'+waLink(msg)+'" target="_blank" rel="noopener">TENHO INTERESSE ▸</a>';
     } else {
       var link = contatoLink(p.vendedor_contato);
-      cta = link ? '<a class="prod-cta" href="'+esc(link)+'" target="_blank" rel="noopener">FALAR COM VENDEDOR ▸</a>'
-                 : '<div style="text-align:center;color:var(--muted);font-size:12px;margin-top:8px">Contato: '+esc(p.vendedor_contato||'pelo Discord da comunidade')+'</div>';
+      if(contatoTipo(p.vendedor_contato) === 'dc'){
+        var handleP = contatoTexto(p.vendedor_contato);
+        cta = '<a class="prod-cta" href="'+esc(link||DISCORD_COMUNIDADE)+'" target="_blank" rel="noopener">💬 FALAR NO DISCORD ▸</a>'+
+          (handleP && handleP[0]==='@' ? '<div style="text-align:center;color:var(--muted);font-size:12px;margin-top:8px">chame <b style="color:var(--pink)">'+esc(handleP)+'</b> no Discord da comunidade</div>' : '');
+      } else {
+        cta = link ? '<a class="prod-cta" href="'+esc(link)+'" target="_blank" rel="noopener">FALAR COM VENDEDOR ▸</a>'
+                   : '<div style="text-align:center;color:var(--muted);font-size:12px;margin-top:8px">Contato: '+esc(contatoTexto(p.vendedor_contato)||'pelo Discord da comunidade')+'</div>';
+      }
     }
   }
   $('prodBody').innerHTML =
