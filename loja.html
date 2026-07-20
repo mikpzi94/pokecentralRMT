@@ -91,6 +91,27 @@
   }
   .card-cta:hover{background:var(--green);color:var(--bg);}
 
+  .shop-tabs{display:flex;gap:8px;margin-bottom:16px;}
+  .shop-tab{
+    font-family:var(--px);font-size:8.5px;letter-spacing:.03em;cursor:pointer;
+    background:var(--panel);border:2px solid var(--line);color:var(--muted);padding:11px 15px;
+  }
+  .shop-tab:hover{color:var(--gold);}
+  .shop-tab.on{background:var(--panel2);color:var(--gold);border-color:var(--gold);}
+  .comunidade-aviso{
+    border:2px solid var(--gold);background:rgba(240,180,41,.07);color:var(--muted);
+    padding:11px 14px;margin-bottom:16px;font-size:12px;line-height:1.6;
+  }
+  .comunidade-aviso b{color:var(--gold);}
+  .comunidade-aviso a{color:var(--green);}
+  .card-seller{font-size:11px;color:var(--pink);margin-bottom:1px;}
+  .card-contato{margin-top:auto;font-size:11.5px;color:var(--muted);border:2px solid var(--line);padding:9px 8px;text-align:center;line-height:1.5;}
+  .load-more{
+    display:block;margin:22px auto 0;font-family:var(--px);font-size:9px;cursor:pointer;
+    background:transparent;border:2px solid var(--line2);color:var(--muted);padding:12px 22px;
+  }
+  .load-more:hover{border-color:var(--gold);color:var(--gold);}
+
   .empty{border:2px dashed var(--line);padding:34px 20px;text-align:center;color:var(--faint);font-size:12.5px;line-height:1.8;grid-column:1/-1;}
   .empty a{color:var(--green);}
   .loading{color:var(--faint);font-size:12.5px;padding:30px 0;text-align:center;}
@@ -219,6 +240,11 @@
     <h2>Disponíveis</h2><span class="count" id="count"></span><div class="rule"></div>
   </div>
 
+  <div class="shop-tabs">
+    <button class="shop-tab on" data-aba="oficial">🏅 OFICIAL</button>
+    <button class="shop-tab" data-aba="jogadores">🧑 JOGADORES</button>
+  </div>
+
   <div class="filters">
     <input type="text" id="search" placeholder="buscar por nome...">
     <select id="sortSel">
@@ -237,8 +263,13 @@
     </select>
   </div>
 
+  <div class="comunidade-aviso" id="comunidadeAviso" style="display:none">
+    ⚠️ <b>Loja de jogadores:</b> anúncios de vendedores da comunidade. O <b>PokeCentral não intermedia</b> estas vendas — negocie por sua conta e use um intermediário. <a href="/negociar">como negociar sem golpe →</a>
+  </div>
+
   <div class="loading" id="loading">carregando estoque…</div>
   <div class="grid" id="grid" style="display:none"></div>
+  <button class="load-more" id="carregarMais" style="display:none">carregar mais ▾</button>
 
   <div class="sold-strip" id="soldStrip" style="display:none">
     <div class="t">JÁ VENDIDOS</div>
@@ -349,6 +380,7 @@ var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 var $ = function(id){ return document.getElementById(id); };
 var lista = [];
 var OWNER_ID = 'd3607434-85a0-46eb-8a17-16dd3d0b247a';   /* dono = anúncio oficial */
+var aba = 'oficial', mostrados = 24, PAGINA = 24;
 var arquivoSelecionado = null;
 
 /* ---------- helpers ---------- */
@@ -399,6 +431,47 @@ function carregar(){
 }
 
 /* ---------- vitrine pública ---------- */
+function ehOficial(p){ return !p.user_id || p.user_id === OWNER_ID; }
+
+function contatoLink(c){
+  c = String(c||'').trim();
+  if(!c) return null;
+  if(/^https?:\/\//i.test(c)) return c;
+  var num = c.replace(/\D/g,'');
+  if(num.length >= 10) return 'https://wa.me/'+num;
+  return null;
+}
+
+function cardHtml(p){
+  var img = p.print
+    ? '<img loading="lazy" src="'+esc(p.print)+'" alt="'+esc(p.nome)+'" onerror="this.outerHTML=\'<span class=ph>SEM PRINT</span>\'">'
+    : (p.poke_id ? '<img class="sprite" loading="lazy" src="'+spriteUrl(p.poke_id)+'" alt="">' : '<span class="ph">SEM PRINT</span>');
+
+  var rodape;
+  if(ehOficial(p)){
+    var msg = 'Olá! Tenho interesse no '+p.nome+' (IV '+p.iv+', Nv. '+p.nivel+') anunciado por '+brl(p.preco)+' no PokeCentral. Ainda está disponível?';
+    rodape = '<a class="card-cta" href="'+waLink(msg)+'" target="_blank" rel="noopener">TENHO INTERESSE ▸</a>';
+  } else {
+    var link = contatoLink(p.vendedor_contato);
+    rodape = link
+      ? '<a class="card-cta" href="'+esc(link)+'" target="_blank" rel="noopener">FALAR COM VENDEDOR ▸</a>'
+      : (p.vendedor_contato
+          ? '<div class="card-contato">Contato: '+esc(p.vendedor_contato)+'</div>'
+          : '<div class="card-contato" style="color:var(--faint)">contato pelo Discord da comunidade</div>');
+  }
+
+  return '<div class="card">'+
+    '<div class="card-img">'+img+'<div class="iv-badge" style="background:'+ivColor(p.iv)+'">IV '+esc(p.iv)+'</div></div>'+
+    '<div class="card-body">'+
+      (ehOficial(p) ? '' : '<div class="card-seller">🧑 '+esc(p.vendedor_nome || 'Vendedor da comunidade')+'</div>')+
+      '<div class="card-name">'+esc(p.nome)+'</div>'+
+      '<div class="card-meta">Nível '+esc(p.nivel)+(p.qualidade ? ' · Qualidade '+esc(p.qualidade) : '')+'</div>'+
+      (p.obs ? '<div class="card-obs">'+esc(p.obs)+'</div>' : '')+
+      '<div class="card-price">'+brl(p.preco)+'</div>'+
+      rodape+
+    '</div></div>';
+}
+
 function render(){
   $('loading').style.display = 'none';
   $('grid').style.display = 'grid';
@@ -407,9 +480,10 @@ function render(){
   var ordem = $('sortSel').value;
   var ivMin = parseFloat($('ivFilter').value) || 0;
 
-  var itens = lista.filter(function(p){ return p.status === 'aprovado' && p.disponivel !== false; });
-  var total = itens.length;
-
+  var itens = lista.filter(function(p){
+    return p.status === 'aprovado' && p.disponivel !== false &&
+      (aba === 'oficial' ? ehOficial(p) : !ehOficial(p));
+  });
   if(termo) itens = itens.filter(function(p){ return String(p.nome||'').toLowerCase().indexOf(termo)>=0; });
   if(ivMin) itens = itens.filter(function(p){ return (Number(p.iv)||0) >= ivMin; });
 
@@ -417,35 +491,25 @@ function render(){
   else if(ordem==='priceDesc') itens.sort(function(a,b){ return b.preco-a.preco; });
   else if(ordem==='ivDesc') itens.sort(function(a,b){ return (b.iv||0)-(a.iv||0); });
 
-  $('count').textContent = total>0 ? '('+total+')' : '';
+  $('count').textContent = itens.length>0 ? '('+itens.length+')' : '';
+  $('comunidadeAviso').style.display = (aba === 'jogadores') ? 'block' : 'none';
 
   if(itens.length===0){
+    $('carregarMais').style.display = 'none';
     $('grid').innerHTML = '<div class="empty">' +
-      (total===0
-        ? 'Nenhum Pokémon à venda no momento.<br>Me chama no WhatsApp que eu te aviso quando entrar algo — ou encomendo o que você procura.<br><br>' +
-          '<a href="'+waLink('Olá! Vi que a vitrine do PokeCentral está vazia. Estou procurando um Pokémon específico, dá pra encomendar?')+'" target="_blank" rel="noopener">falar no WhatsApp →</a>'
-        : 'Nenhum Pokémon com esses filtros.') + '</div>';
+      (aba === 'jogadores'
+        ? 'Ainda não há anúncios de jogadores.<br>Em breve vendedores da comunidade poderão anunciar aqui. 🧑'
+        : (termo || ivMin
+            ? 'Nenhum Pokémon com esses filtros.'
+            : 'Nenhum Pokémon à venda no momento.<br>Me chama no WhatsApp que eu te aviso quando entrar algo — ou encomendo o que você procura.<br><br>' +
+              '<a href="'+waLink('Olá! Vi que a vitrine do PokeCentral está vazia. Estou procurando um Pokémon específico, dá pra encomendar?')+'" target="_blank" rel="noopener">falar no WhatsApp →</a>')) +
+      '</div>';
   } else {
-    $('grid').innerHTML = itens.map(function(p){
-      var img = p.print
-        ? '<img src="'+esc(p.print)+'" alt="'+esc(p.nome)+'" onerror="this.outerHTML=\'<span class=ph>SEM PRINT</span>\'">'
-        : (p.poke_id ? '<img class="sprite" src="'+spriteUrl(p.poke_id)+'" alt="">' : '<span class="ph">SEM PRINT</span>');
-
-      var msg = 'Olá! Tenho interesse no '+p.nome+' (IV '+p.iv+', Nv. '+p.nivel+') anunciado por '+brl(p.preco)+' no PokeCentral. Ainda está disponível?';
-
-      return '<div class="card">'+
-        '<div class="card-img">'+img+'<div class="iv-badge" style="background:'+ivColor(p.iv)+'">IV '+esc(p.iv)+'</div></div>'+
-        '<div class="card-body">'+
-          '<div class="card-name">'+esc(p.nome)+'</div>'+
-          '<div class="card-meta">Nível '+esc(p.nivel)+(p.qualidade ? ' · Qualidade '+esc(p.qualidade) : '')+'</div>'+
-          (p.obs ? '<div class="card-obs">'+esc(p.obs)+'</div>' : '')+
-          '<div class="card-price">'+brl(p.preco)+'</div>'+
-          '<a class="card-cta" href="'+waLink(msg)+'" target="_blank" rel="noopener">TENHO INTERESSE ▸</a>'+
-        '</div></div>';
-    }).join('');
+    $('grid').innerHTML = itens.slice(0, mostrados).map(cardHtml).join('');
+    $('carregarMais').style.display = (itens.length > mostrados) ? 'block' : 'none';
   }
 
-  var vendidos = lista.filter(function(p){ return p.status === 'aprovado' && p.disponivel === false; });
+  var vendidos = lista.filter(function(p){ return ehOficial(p) && p.status === 'aprovado' && p.disponivel === false; });
   if(vendidos.length){
     $('soldStrip').style.display = 'block';
     $('soldList').innerHTML = vendidos.slice(0,8).map(function(p){
@@ -456,7 +520,19 @@ function render(){
   $('updated').textContent = 'estoque ao vivo · '+lista.length+' registro(s)';
 }
 
-['search','sortSel','ivFilter'].forEach(function(id){ $(id).addEventListener('input', render); });
+function resetRender(){ mostrados = PAGINA; render(); }
+['search','sortSel','ivFilter'].forEach(function(id){ $(id).addEventListener('input', resetRender); });
+
+document.querySelectorAll('.shop-tab').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('.shop-tab').forEach(function(x){ x.classList.remove('on'); });
+    this.classList.add('on');
+    aba = this.dataset.aba;
+    mostrados = PAGINA;
+    render();
+  });
+});
+$('carregarMais').addEventListener('click', function(){ mostrados += PAGINA; render(); });
 
 /* ---------- painel ---------- */
 $('editToggle').addEventListener('click', function(){
