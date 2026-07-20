@@ -131,6 +131,16 @@
     font-size:10.5px;cursor:pointer;text-align:center;padding:2px;
   }
   .card-report:hover{color:var(--red);}
+  .card-share{
+    margin-top:5px;background:none;border:none;color:var(--faint);font-family:var(--mono);
+    font-size:10.5px;cursor:pointer;text-align:center;padding:2px;
+  }
+  .card-share:hover{color:var(--gold);}
+  .prod-cta{
+    display:block;text-align:center;text-decoration:none;font-family:var(--px);font-size:9px;
+    border:2px solid var(--green);color:var(--green);padding:12px;margin-top:8px;
+  }
+  .prod-cta:hover{background:var(--green);color:var(--bg);}
   .den-item{border:2px solid var(--line);border-left:4px solid var(--red);background:var(--panel2);padding:12px 14px;margin-bottom:10px;font-size:13px;}
   .den-item b{color:var(--text);}
   .den-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
@@ -457,6 +467,13 @@
   </div>
 </div>
 
+<div class="modal" id="prodModal" style="display:none">
+  <div class="modal-box">
+    <button class="modal-x" id="prodClose">✕</button>
+    <div id="prodBody"></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="pricing.js"></script>
 <script>
@@ -580,6 +597,7 @@ function cardHtml(p){
       (p.obs ? '<div class="card-obs">'+esc(p.obs)+'</div>' : '')+
       '<div class="card-price">'+brl(p.preco)+'</div>'+
       rodape+
+      '<button type="button" class="card-share" data-share="'+p.id+'">🔗 compartilhar</button>'+
       (ehOficial(p) ? '' : '<button type="button" class="card-report" data-den="'+p.id+'">🚩 denunciar</button>')+
     '</div></div>';
 }
@@ -624,6 +642,9 @@ function render(){
     });
     $('grid').querySelectorAll('[data-rev]').forEach(function(b){
       b.addEventListener('click', function(){ abrirReviews(this.dataset.rev); });
+    });
+    $('grid').querySelectorAll('[data-share]').forEach(function(b){
+      b.addEventListener('click', function(){ copiarLinkProduto(this.dataset.share, this); });
     });
   }
 
@@ -1220,7 +1241,55 @@ function tornarConfiavel(uid, on){
   });
 }
 
-carregar();
+/* ---------- link/detalhe do produto ---------- */
+function copiarLinkProduto(id, btn){
+  var url = location.origin + location.pathname + '?p=' + id;
+  function ok(){ var t = btn.textContent; btn.textContent = '✓ link copiado!'; setTimeout(function(){ btn.textContent = t; }, 2000); }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(ok).catch(function(){ prompt('Copie o link:', url); });
+  } else { prompt('Copie o link:', url); }
+}
+
+function mostrarProduto(id){
+  var p = lista.filter(function(x){ return String(x.id)===String(id); })[0];
+  if(!p || p.status !== 'aprovado'){ return; }
+  var img = p.print
+    ? '<img src="'+esc(p.print)+'" alt="'+esc(p.nome)+'" style="width:100%;max-height:300px;object-fit:contain;background:var(--panel2);border:2px solid var(--line);margin-bottom:14px">'
+    : (p.poke_id ? '<img src="'+spriteUrl(p.poke_id)+'" style="height:120px;display:block;margin:0 auto 14px;image-rendering:pixelated">' : '');
+  var seller = ehOficial(p)
+    ? '<div style="font-family:var(--px);font-size:9px;color:var(--gold);margin-bottom:8px">🏅 LOJA OFICIAL</div>'
+    : '<div style="color:var(--pink);margin-bottom:8px">🧑 '+esc(p.vendedor_nome||'Vendedor')+(confiaveis[p.user_id]?' <span class="selo-conf">✔ Confiável</span>':'')+'</div>';
+  var cta = '';
+  if(p.disponivel !== false){
+    if(ehOficial(p)){
+      var msg = 'Olá! Tenho interesse no '+p.nome+' (IV '+p.iv+', Nv. '+p.nivel+') anunciado por '+brl(p.preco)+' no PokeCentral. Ainda está disponível?';
+      cta = '<a class="prod-cta" href="'+waLink(msg)+'" target="_blank" rel="noopener">TENHO INTERESSE ▸</a>';
+    } else {
+      var link = contatoLink(p.vendedor_contato);
+      cta = link ? '<a class="prod-cta" href="'+esc(link)+'" target="_blank" rel="noopener">FALAR COM VENDEDOR ▸</a>'
+                 : '<div style="text-align:center;color:var(--muted);font-size:12px;margin-top:8px">Contato: '+esc(p.vendedor_contato||'pelo Discord da comunidade')+'</div>';
+    }
+  }
+  $('prodBody').innerHTML =
+    img + seller +
+    '<div style="font-family:var(--px);font-size:12px;line-height:1.5;margin-bottom:8px">'+esc(p.nome)+(p.disponivel===false?' <span style="color:var(--red);font-size:9px">(VENDIDO)</span>':'')+'</div>'+
+    '<div style="color:var(--muted);margin-bottom:6px">IV '+esc(p.iv)+' · Nível '+esc(p.nivel)+(p.qualidade?' · Qualidade '+esc(p.qualidade):'')+'</div>'+
+    (p.obs?'<div style="color:var(--faint);font-size:12.5px;margin-bottom:8px">'+esc(p.obs)+'</div>':'')+
+    '<div style="font-family:var(--px);font-size:16px;color:var(--gold);margin-bottom:6px">'+brl(p.preco)+'</div>'+
+    cta +
+    '<button class="mini" id="prodShare" style="margin-top:12px;width:100%">🔗 copiar link deste Pokémon</button>';
+  $('prodShare').addEventListener('click', function(){ copiarLinkProduto(p.id, this); });
+  $('prodModal').style.display = 'flex';
+}
+$('prodClose').addEventListener('click', function(){ $('prodModal').style.display = 'none'; });
+$('prodModal').addEventListener('click', function(e){ if(e.target === this) $('prodModal').style.display = 'none'; });
+
+function abrirProdutoDaURL(){
+  var pid = new URLSearchParams(location.search).get('p');
+  if(pid) mostrarProduto(pid);
+}
+
+carregar().then(abrirProdutoDaURL);
 </script>
 </body>
 </html>
