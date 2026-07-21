@@ -214,7 +214,7 @@ body.page-auction{--sector:#9b5de5;--sector-rgb:155,93,229;--sector-name:"ARENA 
 .wrap{position:relative;}
 .wrap::before,.wrap::after{content:"";position:fixed;top:92px;bottom:20px;width:2px;pointer-events:none;opacity:.22;background:repeating-linear-gradient(180deg,var(--sector) 0 16px,transparent 16px 25px);}
 .wrap::before{left:max(8px,calc(50% - 576px));}.wrap::after{right:max(8px,calc(50% - 576px));}
-.nav::before{content:"● CENTRAL ONLINE";font-family:var(--px);font-size:6px;color:var(--green);letter-spacing:.06em;margin-right:4px;white-space:nowrap;text-shadow:0 0 8px rgba(143,196,90,.45);}
+.nav::before{display:none;}
 header{clip-path:polygon(0 0,calc(100% - 22px) 0,100% 22px,100% 100%,14px 100%,0 calc(100% - 14px));overflow:visible;}
 header::before{content:var(--sector-code) " // " var(--sector-name);top:7px;border-width:2px;box-shadow:2px 2px 0 rgba(0,0,0,.55);}
 header::after{content:"●  ●  ●";position:absolute;right:28px;top:10px;color:var(--sector);font-size:8px;letter-spacing:5px;text-shadow:0 0 7px rgba(var(--sector-rgb),.6);}
