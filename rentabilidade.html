@@ -143,6 +143,7 @@
   .apoio-btn{display:inline-block;font-family:var(--px);font-size:9px;color:var(--green);border:2px solid var(--green);padding:11px 16px;text-decoration:none;transition:background .15s,color .15s;}
   .apoio-btn:hover{background:var(--green);color:var(--bg);}
 </style>
+  <link rel="stylesheet" href="/apoio.css">
 </head>
 <body>
 <div class="wrap">
@@ -317,8 +318,17 @@
 
   <div class="apoio">
     <div class="apoio-t">❤ APOIO OPCIONAL</div>
-    <p>O PokeCentral é <b>grátis</b> e vai continuar assim. Se quiser dar uma força com os custos do projeto, é <b>100% opcional</b> — e sem custo pra você: se ainda não joga, criar sua conta pelo meu <b>referral</b> já ajuda.</p>
-    <a class="apoio-btn" href="https://poke.idleworld.online/?ref=2P268SJ" target="_blank" rel="noopener">🎮 Jogar pelo meu referral →</a>
+    <p>Hoje, as ferramentas e o marketplace do PokeCentral podem ser usados <b>gratuitamente</b>. Se quiser ajudar com infraestrutura, manutenção e melhorias, o apoio é <b>100% opcional</b> e não oferece vantagem na loja, na moderação ou na reputação. Se ainda não joga, criar sua conta pelo meu <b>referral</b> já ajuda sem custo adicional.</p>
+    <div class="apoio-acoes">
+      <a class="apoio-btn" href="https://poke.idleworld.online/?ref=2P268SJ" target="_blank" rel="noopener">🎮 Jogar pelo meu referral →</a>
+      <button type="button" class="apoio-pix-btn" aria-expanded="false">◆ APOIAR VIA PIX</button>
+    </div>
+    <div class="pix-panel">
+      <img src="/pix-qr.png" alt="QR Code Pix para apoiar o PokeCentral" loading="lazy">
+      <p>Apoio voluntário para infraestrutura e melhorias. Não é pagamento por produto e não oferece vantagem no site.</p>
+      <button type="button" class="pix-copy">COPIAR PIX COPIA E COLA</button>
+      <span class="pix-status"></span>
+    </div>
   </div>
 
 </div>
@@ -587,5 +597,6 @@ FIELDS.forEach(function(id){
 document.getElementById("btnShare").addEventListener("click", copiarCenario);
 document.getElementById("btnClear").addEventListener("click", limparCampos);
 </script>
+<script src="/apoio.js"></script>
 </body>
 </html>

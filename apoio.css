@@ -1,0 +1,11 @@
+.apoio-acoes{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}
+.apoio-pix-btn{font-family:var(--px);font-size:9px;color:var(--gold);border:2px solid var(--gold);padding:11px 16px;background:transparent;cursor:pointer}
+.apoio-pix-btn:hover{background:var(--gold);color:var(--bg)}
+.pix-panel{display:none;max-width:420px;margin:16px auto 0;padding:15px;border:2px solid var(--line);background:var(--panel2)}
+.pix-panel.open{display:block}
+.pix-panel img{display:block;width:min(230px,100%);height:auto;margin:0 auto 12px;background:#fff;padding:8px;image-rendering:pixelated}
+.pix-panel p{font-size:11px;margin:0 auto 10px;line-height:1.65}
+.pix-copy{font-family:var(--px);font-size:8px;color:var(--green);border:2px solid var(--green);padding:10px 12px;background:transparent;cursor:pointer}
+.pix-copy:hover{background:var(--green);color:var(--bg)}
+.pix-status{display:block;min-height:18px;margin-top:8px;font-size:10px;color:var(--faint)}
+
