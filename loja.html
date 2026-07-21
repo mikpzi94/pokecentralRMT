@@ -339,21 +339,8 @@
       <option value="priceDesc">maior preço</option>
       <option value="ivDesc">maior IV</option>
     </select>
-    <select id="ivFilter">
-      <option value="0">qualquer IV</option>
-      <option value="100">IV ≥ 100</option>
-      <option value="120">IV ≥ 120</option>
-      <option value="140">IV ≥ 140</option>
-      <option value="160">IV ≥ 160</option>
-      <option value="180">IV ≥ 180</option>
-    </select>
-    <select id="qualFilter">
-      <option value="0">qualquer qualidade</option>
-      <option value="1.3">Qualidade ≥ 1.3</option>
-      <option value="1.5">Qualidade ≥ 1.5</option>
-      <option value="1.7">Qualidade ≥ 1.7</option>
-      <option value="2.0">Qualidade ≥ 2.0</option>
-    </select>
+    <input type="number" id="ivFilter" min="0" max="192" step="1" inputmode="numeric" placeholder="IV mínimo (0–192)" aria-label="IV mínimo">
+    <input type="text" id="qualFilter" inputmode="decimal" placeholder="Qualidade mínima (ex: 1,70)" aria-label="Qualidade mínima">
   </div>
 
   <div class="comunidade-aviso" id="comunidadeAviso" style="display:none">
@@ -745,7 +732,7 @@ function render(){
   var termo = ($('search').value||'').toLowerCase();
   var ordem = $('sortSel').value;
   var ivMin = parseFloat($('ivFilter').value) || 0;
-  var qualMin = parseFloat($('qualFilter').value) || 0;
+  var qualMin = parseFloat(String($('qualFilter').value||'').replace(',','.')) || 0;
 
   var itens = lista.filter(function(p){
     return p.status === 'aprovado' && p.disponivel !== false &&
