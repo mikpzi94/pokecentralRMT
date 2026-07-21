@@ -77,6 +77,18 @@
     font-family:var(--mono);font-size:13px;padding:9px 10px;outline:none;
   }
   input:focus,select:focus{border-color:var(--gold);}
+  .poke-combo{position:relative;width:100%;}
+  .poke-combo-btn{width:100%;height:44px;background:var(--panel2);border:2px solid var(--line);color:var(--text);font-family:var(--mono);font-size:13px;padding:9px 36px 9px 10px;text-align:left;cursor:pointer;position:relative;}
+  .poke-combo-btn::after{content:'▾';position:absolute;right:12px;color:var(--gold);}
+  .poke-combo-btn:focus,.poke-combo.open .poke-combo-btn{border-color:var(--gold);outline:none;}
+  .poke-combo-panel{display:none;position:absolute;z-index:50;top:calc(100% + 5px);left:0;right:0;background:var(--panel2);border:2px solid var(--gold);box-shadow:0 10px 24px rgba(0,0,0,.5);padding:8px;}
+  .poke-combo.open .poke-combo-panel{display:block;}
+  .poke-search{width:100%;height:40px;background:var(--bg);border:2px solid var(--line2);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;outline:none;margin:0 0 7px;}
+  .poke-search:focus{border-color:var(--gold);}
+  .poke-results{max-height:250px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;}
+  .poke-option{border:0;background:transparent;color:var(--muted);font-family:var(--mono);font-size:12px;text-align:left;padding:8px 9px;cursor:pointer;}
+  .poke-option:hover,.poke-option:focus{background:var(--panel3);color:var(--gold);outline:none;}
+  .poke-empty{padding:10px;color:var(--red);font-size:11px;}
   .note{color:var(--faint);font-size:11.5px;line-height:1.7;margin:12px 0 0;}
 
   details{border:2px solid var(--line);background:var(--panel2);margin-top:16px;}
@@ -172,7 +184,16 @@
     </p>
 
     <div class="grid main">
-      <div><label for="p-name">Espécie do Pokémon</label><select id="p-name"><option value="">Escolha um Pokémon...</option></select><div id="p-species-status" style="font-size:10px;margin-top:5px;color:var(--faint)">Lista oficial do jogo — não é possível digitar um nome errado.</div></div>
+      <div>
+        <label for="p-name">Espécie do Pokémon</label>
+        <div class="poke-combo" id="pokeCombo">
+          <button type="button" class="poke-combo-btn" id="p-name" aria-haspopup="listbox" aria-expanded="false">Escolha um Pokémon...</button>
+          <div class="poke-combo-panel" id="pokePanel">
+            <input type="text" class="poke-search" id="pokeSearch" placeholder="Comece a escrever..." autocomplete="off">
+            <div class="poke-results" id="pokeResults" role="listbox"></div>
+          </div>
+        </div>
+      </div>
       <div>
         <label for="p-iv">IV do Pokémon (0 – 192)</label>
         <input type="number" id="p-iv" value="120" min="0" max="192" step="1">
@@ -404,18 +425,34 @@ document.getElementById('saleSend').addEventListener('click',async function(){
   try{ var v=JSON.parse(raw); document.getElementById('saleNome').value=v.nome||''; document.getElementById('saleIv').value=v.iv||''; document.getElementById('saleQual').value=v.qual||''; document.getElementById('saleNivel').value=v.nivel||''; document.getElementById('saleShiny').value=v.shiny||'0'; document.getElementById('salePedido').value=v.pedido||''; document.getElementById('saleVendido').value=v.vendido||''; document.getElementById('saleOrigem').value=v.origem||'externa'; document.getElementById('saleData').value=v.data||''; document.getElementById('saleObs').value=v.obs||''; document.getElementById('saleForm').style.display='block'; }catch(e){}
 })();
 (function prepararEspecies(){
-  var campo=document.getElementById('p-name');
-  (window.PokeSpecies||[]).forEach(function(sp){
-    var o=document.createElement('option'); o.value=String(sp.id); o.textContent=sp.name; campo.appendChild(o);
+  var combo=document.getElementById('pokeCombo'), abrir=document.getElementById('p-name');
+  var busca=document.getElementById('pokeSearch'), resultados=document.getElementById('pokeResults');
+  var especies=window.PokeSpecies||[];
+  function render(termo){
+    termo=String(termo||'').trim().toLowerCase();
+    var filtradas=especies.filter(function(sp){return !termo||sp.name.toLowerCase().indexOf(termo)>=0;});
+    resultados.innerHTML='';
+    if(!filtradas.length){ resultados.innerHTML='<div class="poke-empty">Nenhum Pokémon encontrado.</div>'; return; }
+    filtradas.forEach(function(sp){
+      var b=document.createElement('button'); b.type='button'; b.className='poke-option'; b.textContent=sp.name; b.dataset.id=sp.id;
+      b.addEventListener('click',function(){
+        selectedSpecies=sp; abrir.textContent=sp.name; busca.value=''; fechar(); calcPrice();
+      });
+      resultados.appendChild(b);
+    });
+  }
+  function fechar(){ combo.classList.remove('open'); abrir.setAttribute('aria-expanded','false'); }
+  abrir.addEventListener('click',function(){
+    var vaiAbrir=!combo.classList.contains('open');
+    if(vaiAbrir){ combo.classList.add('open'); abrir.setAttribute('aria-expanded','true'); render(''); setTimeout(function(){busca.focus();},0); }
+    else fechar();
   });
-  campo.addEventListener('change',function(){
-    var id=Number(this.value);
-    selectedSpecies=(window.PokeSpecies||[]).filter(function(sp){return sp.id===id;})[0]||null;
-    var st=document.getElementById('p-species-status');
-    if(selectedSpecies){ st.textContent='✓ '+selectedSpecies.name+' selecionado'; st.style.color='var(--green)'; }
-    else { st.textContent='Escolha um Pokémon da lista oficial.'; st.style.color='var(--faint)'; }
-    calcPrice();
+  busca.addEventListener('input',function(){render(this.value);});
+  busca.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){fechar();abrir.focus();}
+    if(e.key==='Enter'){var primeiro=resultados.querySelector('.poke-option');if(primeiro)primeiro.click();}
   });
+  document.addEventListener('click',function(e){if(!combo.contains(e.target))fechar();});
 })();
 ["p-iv","p-qual","p-level"].forEach(function(id){
   document.getElementById(id).addEventListener("input", calcPrice);
