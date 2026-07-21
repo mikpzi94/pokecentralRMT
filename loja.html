@@ -113,6 +113,9 @@
     border:2px solid var(--green);color:var(--green);padding:10px 6px;line-height:1.6;
   }
   .card-cta:hover{background:var(--green);color:var(--bg);}
+  .card-action-area{margin-top:auto;display:flex;flex-direction:column;gap:6px;}
+  .card-action-area .card-cta{margin-top:0;display:block;}
+  .card-action-note{min-height:34px;font-size:10.5px;color:var(--faint);line-height:1.45;text-align:center;display:flex;align-items:center;justify-content:center;}
 
   .shop-tabs{display:flex;gap:10px;margin-bottom:18px;}
   .shop-tab{
@@ -125,7 +128,15 @@
     background:var(--panel2);color:var(--gold);border-color:var(--gold);
     box-shadow:inset 0 -4px 0 var(--gold);
   }
-  @media(max-width:480px){ .shop-tab{font-size:9px;padding:14px 8px;} }
+  .shop-tab .st-name{display:block;}
+  .shop-tab .st-desc{display:block;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:0;margin-top:6px;}
+  .shop-tab .st-count{display:inline-block;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0;margin-top:7px;border:1px solid var(--line2);padding:2px 6px;}
+  .shop-tab.on .st-desc,.shop-tab.on .st-count{color:var(--text);}
+  .store-context{border:2px solid var(--gold);background:rgba(240,180,41,.07);padding:12px 14px;margin:-6px 0 16px;display:flex;gap:12px;align-items:center;}
+  .store-context .sc-icon{font-size:24px;line-height:1;}
+  .store-context .sc-kicker{font-family:var(--px);font-size:7px;color:var(--gold);margin-bottom:5px;}
+  .store-context .sc-text{font-size:12px;color:var(--muted);line-height:1.5;}
+  @media(max-width:480px){ .shop-tab{font-size:9px;padding:14px 8px;} .shop-tab .st-desc{font-size:10px;} }
   .comunidade-aviso{
     border:2px solid var(--gold);background:rgba(240,180,41,.07);color:var(--muted);
     padding:11px 14px;margin-bottom:16px;font-size:12px;line-height:1.6;
@@ -323,13 +334,15 @@
   <div class="steps" id="steps"></div>
 
   <div class="sec-head">
-    <h2>Disponíveis</h2><span class="count" id="count"></span><div class="rule"></div>
+    <h2 id="storeTitle">Loja Oficial</h2><span class="count" id="count"></span><div class="rule"></div>
   </div>
 
-  <div class="shop-tabs">
-    <button class="shop-tab on" data-aba="oficial">🏅 OFICIAL</button>
-    <button class="shop-tab" data-aba="jogadores">🧑 JOGADORES</button>
+  <div class="shop-tabs" role="tablist" aria-label="Escolha a loja">
+    <button class="shop-tab on" data-aba="oficial" aria-selected="true"><span class="st-name">🏅 LOJA OFICIAL</span><span class="st-desc">Pokémon do PokeCentral</span><span class="st-count" id="tabCountOficial">0 disponíveis</span></button>
+    <button class="shop-tab" data-aba="jogadores" aria-selected="false"><span class="st-name">🧑 LOJA DOS JOGADORES</span><span class="st-desc">Anúncios da comunidade</span><span class="st-count" id="tabCountJogadores">0 disponíveis</span></button>
   </div>
+
+  <div class="store-context" id="storeContext"><span class="sc-icon">🏅</span><div><div class="sc-kicker">VOCÊ ESTÁ VENDO</div><div class="sc-text"><b>Loja Oficial:</b> Pokémon anunciados pelo próprio PokeCentral.</div></div></div>
 
   <div class="filters">
     <input type="text" id="search" placeholder="buscar por nome ou vendedor...">
@@ -677,15 +690,15 @@ function cardHtml(p){
     if(contatoTipo(p.vendedor_contato) === 'dc'){
       var direto = contatoDiretoDc(p.vendedor_contato);
       var nota = direto
-        ? '<div class="card-contato" style="border:0;padding:6px 0 0;margin-top:2px">abre direto no Discord de <b style="color:var(--pink)">'+esc(p.vendedor_nome||'vendedor')+'</b></div>'
-        : (contatoTexto(p.vendedor_contato)[0]==='@' ? '<div class="card-contato" style="border:0;padding:6px 0 0;margin-top:2px">chame <b style="color:var(--pink)">'+esc(contatoTexto(p.vendedor_contato))+'</b> no servidor</div>' : '');
-      rodape = '<a class="card-cta" href="'+esc(link||DISCORD_COMUNIDADE)+'" target="_blank" rel="noopener">💬 CHAMAR NO DISCORD ▸</a>'+nota;
+        ? 'abre direto no Discord de <b style="color:var(--pink)">'+esc(p.vendedor_nome||'vendedor')+'</b>'
+        : (contatoTexto(p.vendedor_contato)[0]==='@' ? 'chame <b style="color:var(--pink)">'+esc(contatoTexto(p.vendedor_contato))+'</b> no servidor' : 'abre o contato do vendedor no Discord');
+      rodape = '<div class="card-action-area"><div class="card-action-note">'+nota+'</div><a class="card-cta" href="'+esc(link||DISCORD_COMUNIDADE)+'" target="_blank" rel="noopener">💬 CHAMAR NO DISCORD ▸</a></div>';
     } else {
       rodape = link
-        ? '<a class="card-cta" href="'+esc(link)+'" target="_blank" rel="noopener">FALAR COM VENDEDOR ▸</a>'
+        ? '<div class="card-action-area"><div class="card-action-note">abre uma conversa no WhatsApp de <b style="color:var(--green)">'+esc(p.vendedor_nome||'vendedor')+'</b></div><a class="card-cta" href="'+esc(link)+'" target="_blank" rel="noopener">📱 FALAR NO WHATSAPP ▸</a></div>'
         : (p.vendedor_contato
-            ? '<div class="card-contato">Contato: '+esc(contatoTexto(p.vendedor_contato))+'</div>'
-            : '<div class="card-contato" style="color:var(--faint)">contato pelo Discord da comunidade</div>');
+            ? '<div class="card-action-area"><div class="card-action-note">Contato informado pelo vendedor</div><div class="card-contato">Contato: '+esc(contatoTexto(p.vendedor_contato))+'</div></div>'
+            : '<div class="card-action-area"><div class="card-action-note">Contato não informado</div><div class="card-contato" style="color:var(--faint)">contato pelo Discord da comunidade</div></div>');
     }
   }
 
@@ -728,6 +741,16 @@ function render(){
   $('loading').style.display = 'none';
   $('grid').style.display = 'grid';
   renderSteps();
+
+  var totalOficial = lista.filter(function(p){ return p.status==='aprovado' && p.disponivel!==false && ehOficial(p); }).length;
+  var totalJogadores = lista.filter(function(p){ return p.status==='aprovado' && p.disponivel!==false && !ehOficial(p); }).length;
+  $('tabCountOficial').textContent = totalOficial+' disponíve'+(totalOficial===1?'l':'is');
+  $('tabCountJogadores').textContent = totalJogadores+' disponíve'+(totalJogadores===1?'l':'is');
+  $('storeTitle').textContent = aba==='oficial' ? 'Loja Oficial' : 'Loja dos Jogadores';
+  $('storeContext').innerHTML = aba==='oficial'
+    ? '<span class="sc-icon">🏅</span><div><div class="sc-kicker">VOCÊ ESTÁ VENDO</div><div class="sc-text"><b>Loja Oficial:</b> Pokémon anunciados pelo próprio PokeCentral. A negociação é feita diretamente comigo.</div></div>'
+    : '<span class="sc-icon">🧑</span><div><div class="sc-kicker">VOCÊ ESTÁ VENDO</div><div class="sc-text"><b>Loja dos Jogadores:</b> anúncios da comunidade. Você fala e negocia diretamente com cada vendedor.</div></div>';
+  document.querySelectorAll('.shop-tab').forEach(function(x){ x.setAttribute('aria-selected', x.dataset.aba===aba ? 'true' : 'false'); });
 
   var termo = ($('search').value||'').toLowerCase();
   var ordem = $('sortSel').value;
