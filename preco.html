@@ -240,7 +240,7 @@
     <details class="adv-box">
       <summary>Como a estimativa é calculada</summary>
       <div class="box-inner help-body">
-        <p><b>Modelo conservador:</b> qualidade pesa mais que IV; o nível recebe bônus moderado pelo esforço crescente de XP; acima de IV 150 a raridade passa a elevar o preço com mais força, mantendo cautela por causa do beta/reset.</p>
+        <p><b>Modelo conservador:</b> qualidade pesa mais que IV; o nível recebe bônus moderado pelo esforço crescente de XP; acima de IV 150 existe um adicional gradual de raridade, mas procura e utilidade continuam pesando mais.</p>
         <p><b>Espécie:</b> força da evolução, raridade e economia oficial formam um fator próprio. Ele é separado da demanda, que representa a procura entre jogadores.</p><p><b>Mercado:</b> vendas aprovadas pesam mais que preços apenas anunciados. Comparáveis da mesma espécie pesam mais que referências genéricas.</p>
         <p><b>Shiny:</b> recebe um prêmio mínimo de coleção/escassez mais um multiplicador moderado. A confiança aumenta conforme entram vendas reais.</p>
         <p><b>Captura:</b> gastar muitas Poké Balls não garante bons IVs ou qualidade e, por isso, o custo individual da captura não é somado ao preço.</p><p style="color:var(--faint)">Fontes oficiais: <a href="https://poke.idleworld.online/pokepedia/systems/power" target="_blank" rel="noopener">Power</a> · <a href="https://poke.idleworld.online/pokepedia/systems/quality" target="_blank" rel="noopener">Qualidade</a> · <a href="https://poke.idleworld.online/pokepedia/systems/shiny" target="_blank" rel="noopener">Shiny</a> · <a href="https://poke.idleworld.online/pokepedia/systems/xp" target="_blank" rel="noopener">XP</a>.</p>
@@ -359,7 +359,7 @@ function calcPrice(){
     n.textContent = "Confiança " + pr.confidence + ": " + comp.count + " referência(s) comparável(is), sendo " + comp.sales + " venda(s) confirmada(s).";
     if(!p.name) n.textContent += " Informe a espécie para encontrar comparáveis melhores.";
   } else n.textContent = "Confiança baixa: ainda não há referência aprovada comparável. Esta é uma estimativa conservadora do modelo.";
-  if(p.iv > BREAKPOINT_IV) n.textContent += " Faixa de IV extremamente rara: acima de 150 a curva cresce mais forte e a incerteza também aumenta.";
+  if(p.iv > BREAKPOINT_IV) n.textContent += " Acima de IV 150 existe um adicional gradual de raridade; demanda e vendas comparáveis continuam sendo decisivas.";
   var sf=PokePrice.speciesFactor(p.name,p.shiny), pct=Math.round((sf-1)*100);
   n.textContent += " Fator da espécie: ×"+sf.toFixed(2)+" ("+(pct>=0?"+":"")+pct+"%).";
   if(p.shiny) n.textContent += " Shiny ainda tem pouca âncora; raridade de captura não é preço garantido.";
