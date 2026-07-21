@@ -41,11 +41,22 @@
     return Math.min(bonus,CFG.LEVEL_CAP);
   }
 
+  function speciesInfo(name){
+    var n=normName(name), list=global.PokeSpecies||[];
+    for(var i=0;i<list.length;i++) if(normName(list[i].name)===n)return list[i];
+    return null;
+  }
+  function speciesFactor(name,shiny){
+    var sp=speciesInfo(name); if(!sp)return 1;
+    var bst=shiny?num(sp.bst,500):num(sp.finalBst||sp.bst,500);
+    return clamp(Math.pow(bst/500,0.7),0.88,1.15);
+  }
   function model(p){
     p=p||{};
     var demand=clamp(num(p.demand,1),0.5,2);
     var shiny=p.shiny?num(p.shinyMult,CFG.SHINY_MULT):1;
-    return CFG.BASE_PRICE*ivFactor(p.iv)*qualityFactor(p.qual,p.qualBase,p.qualPeso)*demand*shiny+levelBonus(p.level);
+    var especie=num(p.speciesFactor,speciesFactor(p.name,p.shiny));
+    return CFG.BASE_PRICE*ivFactor(p.iv)*qualityFactor(p.qual,p.qualBase,p.qualPeso)*demand*shiny*especie+levelBonus(p.level);
   }
 
   function refValue(r){ return num(r.preco_vendido,0)>0?num(r.preco_vendido,0):num(r.preco_pedido,0); }
@@ -62,7 +73,7 @@
       var valor=refValue(r); if(!(valor>0) || !!r.shiny!==alvoShiny)return;
       var mesmo=alvoNome && normName(r.pokemon_nome)===alvoNome;
       var venda=num(r.preco_vendido,0)>0;
-      var refModel=model({iv:r.iv,qual:r.qualidade,level:r.nivel,shiny:r.shiny,demand:1});
+      var refModel=model({name:r.pokemon_nome,iv:r.iv,qual:r.qualidade,level:r.nivel,shiny:r.shiny,demand:1});
       var razao=clamp(alvoModel/Math.max(refModel,1),0.5,2);
       var conf={alta:1.35,media:1,baixa:.7,muito_baixa:.4}[r.confianca]||.7;
       var peso=(venda?3:1)*(mesmo?2.5:1)*conf;
@@ -92,5 +103,5 @@
     return {fast:pr.fast,fair:pr.fair,flex:pr.flex,inicial:pr.fair*.6,incremento:sugerirIncremento(pr.fair),arremate:pr.flex,confidence:pr.confidence};
   }
 
-  global.PokePrice={CFG:CFG,model:model,fair:fair,prices:prices,auction:auction,sugerirIncremento:sugerirIncremento,comparable:comparable};
+  global.PokePrice={CFG:CFG,speciesInfo:speciesInfo,speciesFactor:speciesFactor,model:model,fair:fair,prices:prices,auction:auction,sugerirIncremento:sugerirIncremento,comparable:comparable};
 })(window);
