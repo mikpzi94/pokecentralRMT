@@ -1,0 +1,8 @@
+-- PokeCentral — preço firme ou aberto a propostas.
+-- Rode uma vez no SQL Editor do Supabase.
+
+alter table pokemons
+  add column if not exists aceita_oferta boolean not null default false;
+
+comment on column pokemons.aceita_oferta is
+  'true = vendedor aceita propostas; false = preço anunciado é firme';

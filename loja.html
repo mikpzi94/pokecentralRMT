@@ -108,6 +108,8 @@
   .card-meta{font-size:11.5px;color:var(--muted);}
   .card-obs{font-size:11.5px;color:var(--faint);line-height:1.5;}
   .card-price{font-family:var(--px);font-size:12px;color:var(--gold);margin-top:2px;}
+  .deal-badge{display:inline-block;margin:5px 0 2px;padding:4px 6px;border:1px solid var(--line2);font-family:var(--px);font-size:6.5px;letter-spacing:.03em;color:var(--muted);}
+  .deal-badge.open{border-color:var(--green);color:var(--green);background:rgba(143,196,90,.08);}
   .card-cta{
     margin-top:auto;font-family:var(--px);font-size:8px;text-align:center;text-decoration:none;
     border:2px solid var(--green);color:var(--green);padding:10px 6px;line-height:1.6;
@@ -491,6 +493,7 @@
             <select id="fShiny"><option value="0" selected>Não</option><option value="1">Sim ✨</option></select>
           </div>
           <div><label>Preço (R$)</label><input type="number" id="fPreco" step="0.5" placeholder="30"></div>
+          <div><label>Negociação</label><select id="fOferta"><option value="0" selected>Preço firme</option><option value="1">Aceito propostas</option></select></div>
           <div><label>pokeId (opcional)</label><input type="number" id="fPokeId" placeholder="76"></div>
           <div style="grid-column:1/-1">
             <div class="sug" id="sugBox" style="display:none">
@@ -667,7 +670,7 @@ function contatoTipo(c){
   if(/discord\.(gg|com)/i.test(c) || /^@/.test(c)) return 'dc';   /* legado */
   return 'wa';
 }
-function contatoLink(c){
+function contatoLink(c,msg){
   var v = contatoValor(c);
   if(!v) return null;
   if(contatoTipo(c) === 'dc'){
@@ -677,7 +680,7 @@ function contatoLink(c){
   }
   if(/^https?:\/\//i.test(v)) return v;
   var num = v.replace(/\D/g,'');
-  return num.length >= 10 ? 'https://wa.me/'+num : null;
+  return num.length >= 10 ? 'https://wa.me/'+num+(msg?'?text='+encodeURIComponent(msg):'') : null;
 }
 function contatoTexto(c){   /* exibição amigável, sem prefixo */
   var v = contatoValor(c);
@@ -693,25 +696,31 @@ function contatoDiretoDc(c){   /* true = leva no perfil/link do vendedor; false 
 }
 
 function cardHtml(p){
+  var aceita = p.aceita_oferta === true;
+  var ofertaBadge = aceita
+    ? '<div class="deal-badge open">💬 ACEITA PROPOSTAS</div>'
+    : '<div class="deal-badge">🔒 PREÇO FIRME</div>';
+  var propostaMsg = aceita
+    ? 'Olá! Vi o '+p.nome+' (IV '+p.iv+', Nv. '+p.nivel+') anunciado por '+brl(p.preco)+' no PokeCentral. Você aceita uma proposta?'
+    : 'Olá! Tenho interesse no '+p.nome+' (IV '+p.iv+', Nv. '+p.nivel+') anunciado por '+brl(p.preco)+' no PokeCentral. Ainda está disponível?';
   var img = p.print
     ? '<img loading="lazy" src="'+esc(p.print)+'" alt="'+esc(p.nome)+'" onerror="this.outerHTML=\'<span class=ph>SEM PRINT</span>\'">'
     : (p.poke_id ? '<img class="sprite" loading="lazy" src="'+spriteUrl(p.poke_id)+'" alt="">' : '<span class="ph">SEM PRINT</span>');
 
   var rodape;
   if(ehOficial(p)){
-    var msg = 'Olá! Tenho interesse no '+p.nome+' (IV '+p.iv+', Nv. '+p.nivel+') anunciado por '+brl(p.preco)+' no PokeCentral. Ainda está disponível?';
-    rodape = '<a class="card-cta" href="'+waLink(msg)+'" target="_blank" rel="noopener">TENHO INTERESSE ▸</a>';
+    rodape = '<a class="card-cta" href="'+waLink(propostaMsg)+'" target="_blank" rel="noopener">'+(aceita?'FAZER PROPOSTA':'TENHO INTERESSE')+' ▸</a>';
   } else {
-    var link = contatoLink(p.vendedor_contato);
+    var link = contatoLink(p.vendedor_contato, propostaMsg);
     if(contatoTipo(p.vendedor_contato) === 'dc'){
       var direto = contatoDiretoDc(p.vendedor_contato);
       var nota = direto
         ? 'abre direto no Discord de <b style="color:var(--pink)">'+esc(p.vendedor_nome||'vendedor')+'</b>'
         : (contatoTexto(p.vendedor_contato)[0]==='@' ? 'chame <b style="color:var(--pink)">'+esc(contatoTexto(p.vendedor_contato))+'</b> no servidor' : 'abre o contato do vendedor no Discord');
-      rodape = '<div class="card-action-area"><div class="card-action-note">'+nota+'</div><a class="card-cta" href="'+esc(link||DISCORD_COMUNIDADE)+'" target="_blank" rel="noopener">💬 CHAMAR NO DISCORD ▸</a></div>';
+      rodape = '<div class="card-action-area"><div class="card-action-note">'+nota+'</div><a class="card-cta" href="'+esc(link||DISCORD_COMUNIDADE)+'" target="_blank" rel="noopener">'+(aceita?'💬 NEGOCIAR NO DISCORD ▸':'💬 CHAMAR NO DISCORD ▸')+'</a></div>';
     } else {
       rodape = link
-        ? '<div class="card-action-area"><div class="card-action-note">abre uma conversa no WhatsApp de <b style="color:var(--green)">'+esc(p.vendedor_nome||'vendedor')+'</b></div><a class="card-cta" href="'+esc(link)+'" target="_blank" rel="noopener">📱 FALAR NO WHATSAPP ▸</a></div>'
+        ? '<div class="card-action-area"><div class="card-action-note">abre uma conversa no WhatsApp de <b style="color:var(--green)">'+esc(p.vendedor_nome||'vendedor')+'</b></div><a class="card-cta" href="'+esc(link)+'" target="_blank" rel="noopener">'+(aceita?'📱 FAZER PROPOSTA ▸':'📱 FALAR NO WHATSAPP ▸')+'</a></div>'
         : (p.vendedor_contato
             ? '<div class="card-action-area"><div class="card-action-note">Contato informado pelo vendedor</div><div class="card-contato">Contato: '+esc(contatoTexto(p.vendedor_contato))+'</div></div>'
             : '<div class="card-action-area"><div class="card-action-note">Contato não informado</div><div class="card-contato" style="color:var(--faint)">contato pelo Discord da comunidade</div></div>');
@@ -729,7 +738,7 @@ function cardHtml(p){
       '<div class="card-name">'+esc(p.nome)+'</div>'+
       '<div class="card-meta">Nível '+esc(p.nivel)+(p.qualidade ? ' · Qualidade '+esc(p.qualidade) : '')+'</div>'+
       (p.obs ? '<div class="card-obs">'+esc(p.obs)+'</div>' : '')+
-      '<div class="card-price">'+brl(p.preco)+'</div>'+
+      '<div class="card-price">'+brl(p.preco)+'</div>'+ofertaBadge+
       rodape+
       '<button type="button" class="card-share" data-share="'+p.id+'">🔗 compartilhar</button>'+
       (ehOficial(p) ? '' : '<button type="button" class="card-report" data-den="'+p.id+'">🚩 denunciar</button>')+
@@ -1272,6 +1281,7 @@ $('btnSalvar').addEventListener('click', function(){
       print: url,
       print_path: caminhoEnviado,
       shiny: $('fShiny').value === '1',
+      aceita_oferta: $('fOferta').value === '1',
       poke_id: parseInt($('fPokeId').value) || null,
       obs: $('fObs').value.trim() || null,
       disponivel: true
@@ -1286,7 +1296,7 @@ $('btnSalvar').addEventListener('click', function(){
     if(!ehAdmin && cTipo==='wa'){ try { localStorage.setItem('pc_wa', cRaw.replace(/\D/g,'')); } catch(e){} }   /* guarda o número pros próximos */
     var novoStatus = (r.data && r.data[0] && r.data[0].status) || 'pendente';
     ['fNome','fQual','fIv','fNivel','fPreco','fPokeId','fObs','fContato'].forEach(function(i){ $(i).value=''; });
-    $('fDemanda').value='1.0'; $('fShiny').value='0'; $('sugBox').style.display='none';
+    $('fDemanda').value='1.0'; $('fShiny').value='0'; $('fOferta').value='0'; $('sugBox').style.display='none';
     if(!ehAdmin) aplicarTipoContato();   /* recoloca o número salvo no campo */
     arquivoSelecionado = null; cropState = {};
     $('preview').style.display = 'none';
@@ -1358,6 +1368,7 @@ function renderTabela(){
           ? '<div style="font-size:10px;color:var(--red)">motivo: '+esc(p.motivo_rejeicao)+'</div>'
           : '<div style="font-size:11px;color:var(--red);border:2px solid var(--red);padding:6px;margin-top:4px">✕ Rejeitado — <b>'+esc(p.motivo_rejeicao)+'</b><br><span style="color:var(--muted)">corrija e crie o anúncio de novo.</span></div>')
       : '';
+    var ofertaEdit = '<select data-k="aceita_oferta" style="margin-top:4px;font-size:10px;padding:4px"><option value="0"'+(p.aceita_oferta?'':' selected')+'>preço firme</option><option value="1"'+(p.aceita_oferta?' selected':'')+'>aceita propostas</option></select>';
     var origem = (ehAdmin && !oficial) ? '<div style="color:var(--pink);font-size:10.5px;margin-top:2px" title="vendedor">🧑 '+esc(p.vendedor_nome||'?')+(p.vendedor_contato?' · <span style="color:var(--faint)">'+(contatoTipo(p.vendedor_contato)==='dc'?'💬 ':'📱 ')+esc(contatoTexto(p.vendedor_contato))+'</span>':'')+'</div>' : '';
     var acoes;
     if(ehAdmin && p.status==='pendente'){
@@ -1376,7 +1387,7 @@ function renderTabela(){
       acoes += '<button class="mini rm" data-banir="'+esc(p.user_id)+'" data-vnome="'+esc(p.vendedor_nome||'')+'" title="banir vendedor">🚫</button>';
     }
     return '<tr class="'+(p.disponivel===false?'off':'')+'" data-id="'+p.id+'">'+
-      '<td><input data-k="nome" value="'+esc(p.nome)+'">'+tag+origem+motivo+'</td>'+
+      '<td><input data-k="nome" value="'+esc(p.nome)+'">'+tag+ofertaEdit+origem+motivo+'</td>'+
       '<td style="width:58px"><input data-k="qualidade" value="'+esc(p.qualidade||'')+'"></td>'+
       '<td style="width:56px"><input data-k="iv" type="number" value="'+esc(p.iv)+'"></td>'+
       '<td style="width:56px"><input data-k="nivel" type="number" value="'+esc(p.nivel)+'"></td>'+
@@ -1386,11 +1397,11 @@ function renderTabela(){
       '</td></tr>';
   }).join('');
 
-  body.querySelectorAll('input').forEach(function(inp){
+  body.querySelectorAll('input[data-k],select[data-k]').forEach(function(inp){
     inp.addEventListener('change', function(){
       var id = this.closest('tr').dataset.id;
       var k = this.dataset.k;
-      var v = (k==='nome'||k==='qualidade') ? this.value : (parseFloat(this.value)||0);
+      var v = k==='aceita_oferta' ? this.value==='1' : ((k==='nome'||k==='qualidade') ? this.value : (parseFloat(this.value)||0));
       var patch = {}; patch[k] = v;
       sb.from('pokemons').update(patch).eq('id', id).select().then(function(r){
         if(r.error){ aviso($('mgMsg'), 'erro ao salvar: '+r.error.message, 'err'); return; }
@@ -1712,6 +1723,8 @@ function copiarLinkProduto(id, btn){
 function mostrarProduto(id){
   var p = lista.filter(function(x){ return String(x.id)===String(id); })[0];
   if(!p || p.status !== 'aprovado'){ return; }
+  var aceitaModal = p.aceita_oferta === true;
+  var propostaModal = aceitaModal ? 'Olá! Vi o '+p.nome+' (IV '+p.iv+', Nv. '+p.nivel+') anunciado por '+brl(p.preco)+' no PokeCentral. Você aceita uma proposta?' : 'Olá! Tenho interesse no '+p.nome+' anunciado por '+brl(p.preco)+' no PokeCentral. Ainda está disponível?';
   var img = p.print
     ? '<img src="'+esc(p.print)+'" alt="'+esc(p.nome)+'" style="width:100%;max-height:300px;object-fit:contain;background:var(--panel2);border:2px solid var(--line);margin-bottom:14px">'
     : (p.poke_id ? '<img src="'+spriteUrl(p.poke_id)+'" style="height:120px;display:block;margin:0 auto 14px;image-rendering:pixelated">' : '');
@@ -1721,19 +1734,19 @@ function mostrarProduto(id){
   var cta = '';
   if(p.disponivel !== false){
     if(ehOficial(p)){
-      var msg = 'Olá! Tenho interesse no '+p.nome+' (IV '+p.iv+', Nv. '+p.nivel+') anunciado por '+brl(p.preco)+' no PokeCentral. Ainda está disponível?';
-      cta = '<a class="prod-cta" href="'+waLink(msg)+'" target="_blank" rel="noopener">TENHO INTERESSE ▸</a>';
+            var msg = propostaModal;
+      cta = '<a class="prod-cta" href="'+waLink(msg)+'" target="_blank" rel="noopener">'+(aceitaModal?'FAZER PROPOSTA':'TENHO INTERESSE')+' ▸</a>';
     } else {
-      var link = contatoLink(p.vendedor_contato);
+      var link = contatoLink(p.vendedor_contato, propostaModal);
       if(contatoTipo(p.vendedor_contato) === 'dc'){
         var diretoP = contatoDiretoDc(p.vendedor_contato);
         var htxt = contatoTexto(p.vendedor_contato);
-        cta = '<a class="prod-cta" href="'+esc(link||DISCORD_COMUNIDADE)+'" target="_blank" rel="noopener">💬 CHAMAR NO DISCORD ▸</a>'+
+        cta = '<a class="prod-cta" href="'+esc(link||DISCORD_COMUNIDADE)+'" target="_blank" rel="noopener">'+(aceitaModal?'💬 NEGOCIAR NO DISCORD ▸':'💬 CHAMAR NO DISCORD ▸')+'</a>'+
           (diretoP
             ? '<div style="text-align:center;color:var(--muted);font-size:12px;margin-top:8px">abre direto no Discord de <b style="color:var(--pink)">'+esc(p.vendedor_nome||'vendedor')+'</b></div>'
             : (htxt[0]==='@' ? '<div style="text-align:center;color:var(--muted);font-size:12px;margin-top:8px">chame <b style="color:var(--pink)">'+esc(htxt)+'</b> no Discord da comunidade</div>' : ''));
       } else {
-        cta = link ? '<a class="prod-cta" href="'+esc(link)+'" target="_blank" rel="noopener">FALAR COM VENDEDOR ▸</a>'
+        cta = link ? '<a class="prod-cta" href="'+esc(link)+'" target="_blank" rel="noopener">'+(aceitaModal?'FAZER PROPOSTA':'FALAR COM VENDEDOR')+' ▸</a>'
                    : '<div style="text-align:center;color:var(--muted);font-size:12px;margin-top:8px">Contato: '+esc(contatoTexto(p.vendedor_contato)||'pelo Discord da comunidade')+'</div>';
       }
     }
@@ -1744,6 +1757,7 @@ function mostrarProduto(id){
     '<div style="color:var(--muted);margin-bottom:6px">IV '+esc(p.iv)+' · Nível '+esc(p.nivel)+(p.qualidade?' · Qualidade '+esc(p.qualidade):'')+'</div>'+
     (p.obs?'<div style="color:var(--faint);font-size:12.5px;margin-bottom:8px">'+esc(p.obs)+'</div>':'')+
     '<div style="font-family:var(--px);font-size:16px;color:var(--gold);margin-bottom:6px">'+brl(p.preco)+'</div>'+
+    (aceitaModal?'<div class="deal-badge open">💬 ACEITA PROPOSTAS</div>':'<div class="deal-badge">🔒 PREÇO FIRME</div>')+
     cta +
     '<button class="mini" id="prodShare" style="margin-top:12px;width:100%">🔗 copiar link deste Pokémon</button>';
   $('prodShare').addEventListener('click', function(){ copiarLinkProduto(p.id, this); });
