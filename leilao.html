@@ -90,6 +90,8 @@
   .lote-img img.sprite{width:auto;height:62%;}
   .lote-img .ph{font-family:var(--px);font-size:7px;color:var(--faint);}
   .iv-badge{position:absolute;top:0;right:0;font-family:var(--px);font-size:7px;padding:6px 7px;color:var(--bg);}
+  .iv-badge.perfect{color:#070812;box-shadow:0 0 12px rgba(139,92,246,.9);background-size:220% 220%!important;animation:ivCosmic 2.8s ease infinite;}
+  @keyframes ivCosmic{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
   .lote-info{flex:1;min-width:250px;padding:16px 18px;}
   .lote-nome{font-family:var(--px);font-size:11px;margin-bottom:8px;line-height:1.5;}
   .lote-meta{font-size:12.5px;color:var(--muted);margin-bottom:4px;}
@@ -430,8 +432,12 @@ function caminhoDoPrint(url){
 }
 function ivColor(iv){
   iv = Number(iv)||0;
-  if(iv>=180) return 'var(--pink)'; if(iv>=160) return 'var(--purple)';
-  if(iv>=140) return 'var(--gold)'; if(iv>=120) return 'var(--green)'; return 'var(--blue)';
+  if(iv>=192) return 'linear-gradient(135deg,#ecfeff 0%,#67e8f9 22%,#a78bfa 48%,#f0abfc 72%,#ffffff 100%)';
+  if(iv>=180) return '#f0b429';
+  if(iv>=160) return '#9b5de5';
+  if(iv>=140) return '#4da3ff';
+  if(iv>=120) return '#8fc45a';
+  return '#7b8190';
 }
 function spriteUrl(id){ return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+id+'.png'; }
 function hora(d){
@@ -638,7 +644,7 @@ function render(){
 
     return '<div class="lote'+(aberto?'':' fim')+'" id="lote-'+lote.id+'">'+
       '<div class="lote-top">'+
-        '<div class="lote-img">'+img+'<div class="iv-badge" style="background:'+ivColor(lote.iv)+'">IV '+esc(lote.iv)+'</div></div>'+
+        '<div class="lote-img">'+img+'<div class="iv-badge'+(Number(lote.iv)>=192?' perfect':'')+'" style="background:'+ivColor(lote.iv)+'">IV '+esc(lote.iv)+'</div></div>'+
         '<div class="lote-info">'+
           (lote.vendedor ? '<div style="font-family:var(--px);font-size:8px;color:var(--pink);border:2px solid var(--pink);display:inline-block;padding:6px 9px;margin-bottom:9px;text-transform:uppercase">🎥 Leilão de '+esc(lote.vendedor)+'</div>' : '')+
           '<div class="lote-nome">'+esc(lote.nome)+'</div>'+
