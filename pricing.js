@@ -10,10 +10,11 @@
     BASE_IV:       120,
     BASE_PRICE:    12,
     IV_RATE:       0.018,
-    IV_TAIL_RATE:  0.008,
+    IV_TAIL_RATE:  0.027,
     QUAL_BASE:     1.75,
     QUAL_PESO:     3,
-    SHINY_MULT:    1.35,
+    SHINY_MULT:    1.6,
+    SHINY_PREMIUM: 15,
     LEVEL_SCALE:   10,
     LEVEL_REF:     350,
     LEVEL_EXP:     1.7,
@@ -22,7 +23,7 @@
 
   function num(v,d){ v=parseFloat(v); return isFinite(v)?v:d; }
   function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
-  function normName(v){ return String(v||'').trim().toLowerCase(); }
+  function normName(v){ return String(v||'').trim().toLowerCase().replace(/^(brave|furious|enraged|ancient|tribal|war|enigmatic|charged|magnetic|evil|freezing|psy|heavy|roll|hard|brute|dark|trickmaster|banshee|taekwondo)\\s+/,'').replace(/^milch-/,''); }
 
   function ivFactor(iv){
     iv=clamp(num(iv,CFG.BASE_IV),0,192);
@@ -49,14 +50,19 @@
   function speciesFactor(name,shiny){
     var sp=speciesInfo(name); if(!sp)return 1;
     var bst=shiny?num(sp.bst,500):num(sp.finalBst||sp.bst,500);
-    return clamp(Math.pow(bst/500,0.7),0.88,1.15);
+    var forca=clamp(Math.pow(bst/500,0.55),0.88,1.18);
+    var custo=num(sp.priceNpc,0);
+    var economia=custo>0?clamp(Math.pow(custo/18000,0.18),0.70,1.30):1;
+    var raridade={COMMON:1,UNCOMMON:1.03,RARE:1.07,EPIC:1.15,LEGENDARY:1.30}[String(sp.rarity||'').toUpperCase()]||1;
+    return clamp(forca*economia*raridade,0.65,1.60);
   }
   function model(p){
     p=p||{};
     var demand=clamp(num(p.demand,1),0.5,2);
     var shiny=p.shiny?num(p.shinyMult,CFG.SHINY_MULT):1;
     var especie=num(p.speciesFactor,speciesFactor(p.name,p.shiny));
-    return CFG.BASE_PRICE*ivFactor(p.iv)*qualityFactor(p.qual,p.qualBase,p.qualPeso)*demand*shiny*especie+levelBonus(p.level);
+    var shinyPremium=p.shiny?num(p.shinyPremium,CFG.SHINY_PREMIUM):0;
+    return CFG.BASE_PRICE*ivFactor(p.iv)*qualityFactor(p.qual,p.qualBase,p.qualPeso)*demand*shiny*especie+shinyPremium+levelBonus(p.level);
   }
 
   function refValue(r){ return num(r.preco_vendido,0)>0?num(r.preco_vendido,0):num(r.preco_pedido,0); }

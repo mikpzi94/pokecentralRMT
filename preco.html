@@ -174,7 +174,7 @@
 
   <div class="warn">
     <b>▸ Lembre do beta.</b> Tudo reseta no lançamento (menos diamante da loja oficial, que volta com +25%).
-    Ninguém paga preço de "raridade pura" por algo temporário — por isso a curva desacelera no topo, e por isso vale girar rápido em vez de segurar esperando o preço ideal.
+    IVs muito altos e shinies continuam sendo extremamente raros, mas o reset reduz a liquidez: use a faixa sugerida como ponto de partida e não como venda garantida.
   </div>
 
   <div class="panel">
@@ -239,9 +239,9 @@
     <details class="adv-box">
       <summary>Como a estimativa é calculada</summary>
       <div class="box-inner help-body">
-        <p><b>Modelo conservador:</b> qualidade pesa mais que IV; o nível recebe bônus moderado pelo esforço crescente de XP; o topo do IV desacelera por causa do beta/reset.</p>
-        <p><b>Mercado:</b> vendas aprovadas pesam mais que preços apenas anunciados. Comparáveis da mesma espécie pesam mais que referências genéricas.</p>
-        <p><b>Shiny:</b> recebe prêmio inicial cauteloso. A confiança aumenta somente com vendas reais.</p>
+        <p><b>Modelo conservador:</b> qualidade pesa mais que IV; o nível recebe bônus moderado pelo esforço crescente de XP; acima de IV 150 a raridade passa a elevar o preço com mais força, mantendo cautela por causa do beta/reset.</p>
+        <p><b>Espécie:</b> força da evolução, raridade e economia oficial formam um fator próprio. Ele é separado da demanda, que representa a procura entre jogadores.</p><p><b>Mercado:</b> vendas aprovadas pesam mais que preços apenas anunciados. Comparáveis da mesma espécie pesam mais que referências genéricas.</p>
+        <p><b>Shiny:</b> recebe um prêmio mínimo de coleção/escassez mais um multiplicador moderado. A confiança aumenta conforme entram vendas reais.</p>
         <p><b>Captura:</b> gastar muitas Poké Balls não garante bons IVs ou qualidade e, por isso, o custo individual da captura não é somado ao preço.</p><p style="color:var(--faint)">Fontes oficiais: <a href="https://poke.idleworld.online/pokepedia/systems/power" target="_blank" rel="noopener">Power</a> · <a href="https://poke.idleworld.online/pokepedia/systems/quality" target="_blank" rel="noopener">Qualidade</a> · <a href="https://poke.idleworld.online/pokepedia/systems/shiny" target="_blank" rel="noopener">Shiny</a> · <a href="https://poke.idleworld.online/pokepedia/systems/xp" target="_blank" rel="noopener">XP</a>.</p>
       </div>
     </details>
@@ -249,7 +249,7 @@
     <div class="cards">
       <div class="pcard" style="--tint:var(--green)">
         <div class="pcard-tag">VENDA RÁPIDA</div>
-        <div class="pcard-title">Liquidez (~20% abaixo)</div>
+        <div class="pcard-title">Liquidez (~15% abaixo)</div>
         <p>Preço pra vender logo, sem ficar esperando comprador.</p>
         <div class="pcard-val" id="p-fast">-</div>
       </div>
@@ -261,22 +261,13 @@
       </div>
       <div class="pcard" style="--tint:var(--gold)">
         <div class="pcard-tag">FLEX / LEILÃO</div>
-        <div class="pcard-title">Teto (~25% acima)</div>
+        <div class="pcard-title">Teto (~15% acima)</div>
         <p>Preço pra tentar com quem paga mais por status.</p>
         <div class="pcard-val" id="p-flex">-</div>
       </div>
     </div>
 
     <p class="note" id="p-note"></p>
-
-    <table class="tb">
-      <thead><tr><th>IV</th><th class="num">Venda rápida</th><th class="num">Preço justo</th><th class="num">Flex / leilão</th></tr></thead>
-      <tbody id="p-table-body"></tbody>
-    </table>
-    <p class="note">
-      Linhas destacadas = perto do IV que você digitou. Os valores já incluem o bônus de nível.
-      A partir de IV 150, considere leilão informal (postar e pedir lances) em vez de preço fixo — nessa faixa tem poucos compradores dispostos a pagar cheio e rápido.
-    </p>
   </div>
 
   <div class="contrib">
@@ -343,7 +334,6 @@ function calcPrice(){
     document.getElementById("p-fast").textContent = "—";
     document.getElementById("p-fair").textContent = "—";
     document.getElementById("p-flex").textContent = "—";
-    document.getElementById("p-table-body").innerHTML = "";
     document.getElementById("p-note").textContent = "Escolha uma espécie válida na lista para calcular.";
     return;
   }
@@ -359,28 +349,10 @@ function calcPrice(){
     n.textContent = "Confiança " + pr.confidence + ": " + comp.count + " referência(s) comparável(is), sendo " + comp.sales + " venda(s) confirmada(s).";
     if(!p.name) n.textContent += " Informe a espécie para encontrar comparáveis melhores.";
   } else n.textContent = "Confiança baixa: ainda não há referência aprovada comparável. Esta é uma estimativa conservadora do modelo.";
-  if(p.iv > BREAKPOINT_IV) n.textContent += " O crescimento desacelera no topo por causa do beta/reset.";
+  if(p.iv > BREAKPOINT_IV) n.textContent += " Faixa de IV extremamente rara: acima de 150 a curva cresce mais forte e a incerteza também aumenta.";
   var sf=PokePrice.speciesFactor(p.name,p.shiny), pct=Math.round((sf-1)*100);
-  n.textContent += " Ajuste da base da espécie: "+(pct>=0?"+":"")+pct+"%.";
+  n.textContent += " Fator da espécie: ×"+sf.toFixed(2)+" ("+(pct>=0?"+":"")+pct+"%).";
   if(p.shiny) n.textContent += " Shiny ainda tem pouca âncora; raridade de captura não é preço garantido.";
-
-  buildPriceTable(p);
-}
-
-function buildPriceTable(p){
-  var body = document.getElementById("p-table-body");
-  body.innerHTML = "";
-  [100,110,120,130,140,150,160,170,180,192].forEach(function(ivPoint){
-    var pr = PokePrice.prices(Object.assign({}, p, {iv:ivPoint}), marketRefs);
-    var tr = document.createElement("tr");
-    if(Math.abs(ivPoint - p.iv) <= 5) tr.className = "hl";
-    tr.innerHTML =
-      '<td>IV ' + ivPoint + '</td>' +
-      '<td class="num">' + brlRounded(pr.fast) + '</td>' +
-      '<td class="num">' + brlRounded(pr.fair) + '</td>' +
-      '<td class="num">' + brlRounded(pr.flex) + '</td>';
-    body.appendChild(tr);
-  });
 }
 
 /* contribuição estruturada de vendas reais */
