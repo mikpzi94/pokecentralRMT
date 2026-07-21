@@ -158,3 +158,33 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(240,180,41,.10
   .page-store .grid{grid-template-columns:1fr;}
   .page-store .card-img{height:250px!important;}
 }
+
+/* Retro Trading Hub — ícones e identidade dos setores */
+.nav a{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.nav .nav-icon{width:20px;height:20px;object-fit:contain;image-rendering:pixelated;flex:0 0 20px;}
+.nav a.on .nav-icon,.nav a:hover .nav-icon{filter:drop-shadow(0 0 5px rgba(240,180,41,.32));}
+.pc-icon{display:inline-block;width:1.35em;height:1.35em;object-fit:contain;image-rendering:pixelated;vertical-align:-.3em;margin-right:.35em;}
+.page-home .tool-ico img,.page-home .mk-ico img{image-rendering:pixelated;object-fit:contain;}
+.page-home .tool,.page-home .mk{position:relative;}
+.page-home .tool::before,.page-home .mk::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--tint,var(--gold));opacity:.8;z-index:2;}
+.page-store .vender-cta{display:flex;align-items:center;justify-content:center;gap:10px;}
+.page-store .vender-cta::before{content:"";width:32px;height:32px;background:url('/icons/ui/32/vender-pokemon.png') center/contain no-repeat;image-rendering:pixelated;flex:0 0 32px;}
+.page-store .shop-tab .st-name{display:flex!important;align-items:center;gap:9px;}
+.page-store .shop-tab .st-name::before{content:"";width:32px;height:32px;background:center/contain no-repeat;image-rendering:pixelated;flex:0 0 32px;}
+.page-store .shop-tab[data-aba="oficial"] .st-name::before{background-image:url('/icons/ui/32/loja.png');}
+.page-store .shop-tab[data-aba="jogadores"] .st-name::before{background-image:url('/icons/ui/32/conta.png');}
+.page-store .deal-badge{display:flex!important;align-items:center;justify-content:center;gap:6px;}
+.page-store .deal-badge::before{content:"";width:20px;height:20px;background:url('/icons/ui/20/valor-fixo.png') center/contain no-repeat;image-rendering:pixelated;}
+.page-store .deal-badge.open::before{background-image:url('/icons/ui/20/aceita-propostas.png');}
+.page-store .card-share,.page-store .card-report{display:inline-flex!important;align-items:center;justify-content:center;gap:5px;}
+.page-store .card-share::before,.page-store .card-report::before{content:"";width:20px;height:20px;background:center/contain no-repeat;image-rendering:pixelated;}
+.page-store .card-share::before{background-image:url('/icons/ui/20/compartilhar.png');}
+.page-store .card-report::before{background-image:url('/icons/ui/20/denunciar.png');}
+.page-store header,.page-auction header,.page-calculator header{border-left:3px solid var(--sector,var(--gold));padding-left:18px!important;background:linear-gradient(90deg,rgba(240,180,41,.05),transparent 68%);}
+.page-auction header{--sector:#9b5de5;background:linear-gradient(90deg,rgba(155,93,229,.08),transparent 68%);}
+.page-calculator header{--sector:#4da3ff;background:linear-gradient(90deg,rgba(77,163,255,.07),transparent 68%);}
+.page-auction .rules .t{display:flex;align-items:center;gap:8px;}
+.page-auction .rules .t::before{content:"";width:32px;height:32px;background:url('/icons/ui/32/leilao.png') center/contain no-repeat;image-rendering:pixelated;}
+.page-calculator .panel{position:relative;overflow:hidden;}
+.page-calculator .panel::before{content:"TERMINAL DE ANÁLISE";display:block;margin:-1px -1px 16px;padding:7px 11px;border-bottom:1px solid var(--line2);font-family:var(--px);font-size:7px;color:var(--blue);letter-spacing:.08em;background:rgba(77,163,255,.045);}
+@media(max-width:700px){.nav a{gap:4px}.nav .nav-icon{width:18px;height:18px;flex-basis:18px}}

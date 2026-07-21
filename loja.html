@@ -313,13 +313,13 @@
 <div class="wrap">
 
   <nav class="nav">
-    <a class="home" href="/">▪ POKECENTRAL</a>
-    <a href="/rentabilidade">QUANTO RENDE</a>
-    <a href="/preco">QUANTO VALE</a>
-    <a class="on" href="/loja">LOJA</a>
-    <a href="/leilao">LEILAO</a>
+    <a class="home" href="/"><img class="nav-icon" src="/icons/ui/20/hub.png" alt="">POKECENTRAL</a>
+    <a href="/rentabilidade"><img class="nav-icon" src="/icons/ui/20/rentabilidade.png" alt="">QUANTO RENDE</a>
+    <a href="/preco"><img class="nav-icon" src="/icons/ui/20/preco.png" alt="">QUANTO VALE</a>
+    <a class="on" href="/loja"><img class="nav-icon" src="/icons/ui/20/loja.png" alt="">LOJA</a>
+    <a href="/leilao"><img class="nav-icon" src="/icons/ui/20/leilao.png" alt="">LEILAO</a>
     <a class="wa" id="navWa" href="#" target="_blank" rel="noopener">WHATSAPP</a>
-    <a class="conta" id="navConta" href="#">🎮 ENTRAR</a>
+    <a class="conta" id="navConta" href="#"><img class="nav-icon" src="/icons/ui/20/conta.png" alt="">ENTRAR</a>
   </nav>
 
   <header>
@@ -328,13 +328,13 @@
   </header>
 
   <button type="button" class="vender-cta" id="venderCta">
-    <span class="vt">🧑 Tem um Pokémon pra vender?</span>
+    <span class="vt">Tem um Pokémon pra vender?</span>
     <span class="vb">ANUNCIAR GRÁTIS AQUI →</span>
   </button>
 
   <div class="shop-tabs" role="tablist" aria-label="Escolha a loja">
-    <button class="shop-tab on" data-aba="oficial" aria-selected="true"><span class="st-name">🏅 LOJA OFICIAL</span><span class="st-desc">Pokémon do PokeCentral</span><span class="st-count" id="tabCountOficial">0 disponíveis</span></button>
-    <button class="shop-tab" data-aba="jogadores" aria-selected="false"><span class="st-name">🧑 LOJA DOS JOGADORES</span><span class="st-desc">Anúncios da comunidade</span><span class="st-count" id="tabCountJogadores">0 disponíveis</span></button>
+    <button class="shop-tab on" data-aba="oficial" aria-selected="true"><span class="st-name">LOJA OFICIAL</span><span class="st-desc">Pokémon do PokeCentral</span><span class="st-count" id="tabCountOficial">0 disponíveis</span></button>
+    <button class="shop-tab" data-aba="jogadores" aria-selected="false"><span class="st-name">LOJA DOS JOGADORES</span><span class="st-desc">Anúncios da comunidade</span><span class="st-count" id="tabCountJogadores">0 disponíveis</span></button>
   </div>
 
   <div class="store-context" id="storeContext"><span class="sc-icon">🏅</span><div><div class="sc-kicker">VOCÊ ESTÁ VENDO</div><div class="sc-text"><b>Loja Oficial:</b> Pokémon anunciados pelo próprio PokeCentral.</div></div></div>
@@ -727,8 +727,8 @@ function cardHtml(p){
   var aceita = p.aceita_oferta === true;
   var tier = qualityTier(p.qualidade);
   var ofertaBadge = aceita
-    ? '<div class="deal-badge open">💬 ACEITA PROPOSTAS</div>'
-    : '<div class="deal-badge">🔒 VALOR FIXO</div>';
+    ? '<div class="deal-badge open">ACEITA PROPOSTAS</div>'
+    : '<div class="deal-badge">VALOR FIXO</div>';
   var propostaMsg = aceita
     ? 'Olá! Vi o '+p.nome+' (IV '+p.iv+', Nv. '+p.nivel+') anunciado por '+brl(p.preco)+' no PokeCentral. Você aceita uma proposta?'
     : 'Olá! Tenho interesse no '+p.nome+' (IV '+p.iv+', Nv. '+p.nivel+') anunciado por '+brl(p.preco)+' no PokeCentral. Ainda está disponível?';
@@ -766,8 +766,8 @@ function cardHtml(p){
       '<div class="card-obs" title="'+esc(p.obs||'')+'">'+esc(p.obs||'')+'</div>'+
       '<div class="card-price">'+brl(p.preco)+'</div>'+
       '<div class="card-bottom">'+ofertaBadge+rodape+
-      '<button type="button" class="card-share" data-share="'+p.id+'">🔗 compartilhar</button>'+
-      (ehOficial(p) ? '' : '<button type="button" class="card-report" data-den="'+p.id+'">🚩 denunciar</button>')+
+      '<button type="button" class="card-share" data-share="'+p.id+'">compartilhar</button>'+
+      (ehOficial(p) ? '' : '<button type="button" class="card-report" data-den="'+p.id+'">denunciar</button>')+
       '</div>'+
     '</div></div>';
 }
@@ -1014,11 +1014,11 @@ function atualizarNavConta(session){
   if(!el) return;
   if(session && session.user){
     el.classList.add('logado');
-    el.textContent = '👤 ' + (nomeDiscord(session).split(' ')[0] || 'conta');
+    el.innerHTML = '<img class="nav-icon" src="/icons/ui/20/conta.png" alt="">' + esc(nomeDiscord(session).split(' ')[0] || 'conta');
     el.onclick = function(e){ e.preventDefault(); abrirPainel(); };
   } else {
     el.classList.remove('logado');
-    el.textContent = '🎮 ENTRAR';
+    el.innerHTML = '<img class="nav-icon" src="/icons/ui/20/conta.png" alt="">ENTRAR';
     el.onclick = function(e){ e.preventDefault(); sb.auth.signInWithOAuth({ provider:'discord', options:{ redirectTo: location.href, scopes:'identify email' } }); };
   }
 }
@@ -1784,7 +1784,7 @@ function mostrarProduto(id){
     '<div style="color:var(--muted);margin-bottom:6px">IV '+esc(p.iv)+' · Nível '+esc(p.nivel)+(p.qualidade?' · Qualidade '+esc(p.qualidade):'')+'</div>'+
     (p.obs?'<div style="color:var(--faint);font-size:12.5px;margin-bottom:8px">'+esc(p.obs)+'</div>':'')+
     '<div style="font-family:var(--px);font-size:16px;color:var(--gold);margin-bottom:6px">'+brl(p.preco)+'</div>'+
-    (aceitaModal?'<div class="deal-badge open">💬 ACEITA PROPOSTAS</div>':'<div class="deal-badge">🔒 VALOR FIXO</div>')+
+    (aceitaModal?'<div class="deal-badge open">ACEITA PROPOSTAS</div>':'<div class="deal-badge">VALOR FIXO</div>')+
     cta +
     '<button class="mini" id="prodShare" style="margin-top:12px;width:100%">🔗 copiar link deste Pokémon</button>';
   $('prodShare').addEventListener('click', function(){ copiarLinkProduto(p.id, this); });
