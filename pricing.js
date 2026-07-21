@@ -1,87 +1,96 @@
 /* =====================================================================
-   pricing.js — fonte ÚNICA da curva de preço do PokeCentral.
-   Usado por preco.html (calculadora) e leilao.html (sugestão de lote).
-   Mudou a curva? Muda aqui, e as duas páginas atualizam juntas.
+   pricing.js — modelo conservador de preço do PokeCentral.
+   Compartilhado por preco.html, loja.html e leilao.html.
+   O custo/RNG de captura NÃO define o preço do exemplar.
    ===================================================================== */
 (function(global){
-
-  /* Constantes de calibração. Ajuste aqui pra recalibrar tudo. */
   var CFG = {
-    BREAKPOINT_IV: 150,   /* acima disso a curva desacelera            */
-    ANCHOR_PRICE:  3,     /* preço observado no IV 100 (R$)            */
-    ANCHOR_RATIO:  8/3,   /* multiplica a cada 20 pts de IV até o breakpoint (IV120 ≈ R$8) */
-    ANCHOR_STEP:   20,
-    QUAL_BASE:     1.75,  /* qualidade que os preços de referência assumem */
-    QUAL_PESO:     1,     /* expoente da qualidade (força do efeito)   */
-    SHINY_MULT:    2.5,   /* prêmio de shiny — chute, sem âncora       */
-    TAIL_GROWTH:   15,    /* %/10pts acima do breakpoint               */
-    LEVEL_PER_TEN: 0.5    /* R$ por 10 níveis                          */
+    VERSION:       2,
+    BREAKPOINT_IV: 150,
+    BASE_IV:       120,
+    BASE_PRICE:    12,
+    IV_RATE:       0.018,
+    IV_TAIL_RATE:  0.008,
+    QUAL_BASE:     1.75,
+    QUAL_PESO:     3,
+    SHINY_MULT:    1.35,
+    LEVEL_SCALE:   10,
+    LEVEL_REF:     350,
+    LEVEL_EXP:     1.7,
+    LEVEL_CAP:     12
   };
 
-  function num(v, d){ v = parseFloat(v); return isFinite(v) ? v : d; }
+  function num(v,d){ v=parseFloat(v); return isFinite(v)?v:d; }
+  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+  function normName(v){ return String(v||'').trim().toLowerCase(); }
 
-  /* preço-base só pelo IV (sem qualidade/shiny/demanda) */
-  function basePrice(iv, tailGrowthPct){
-    var bp = CFG.BREAKPOINT_IV;
-    var priceAtBp = CFG.ANCHOR_PRICE * Math.pow(CFG.ANCHOR_RATIO, (bp-100)/CFG.ANCHOR_STEP);
-    if(iv <= bp) return CFG.ANCHOR_PRICE * Math.pow(CFG.ANCHOR_RATIO, (iv-100)/CFG.ANCHOR_STEP);
-    return priceAtBp * Math.pow(1 + num(tailGrowthPct, CFG.TAIL_GROWTH)/100, (iv-bp)/10);
+  function ivFactor(iv){
+    iv=clamp(num(iv,CFG.BASE_IV),0,192);
+    if(iv<=CFG.BREAKPOINT_IV) return Math.exp((iv-CFG.BASE_IV)*CFG.IV_RATE);
+    var ate=Math.exp((CFG.BREAKPOINT_IV-CFG.BASE_IV)*CFG.IV_RATE);
+    return ate*Math.exp((iv-CFG.BREAKPOINT_IV)*CFG.IV_TAIL_RATE);
+  }
+  function qualityFactor(q,base,peso){
+    q=Math.max(num(q,CFG.QUAL_BASE),0.1);
+    base=Math.max(num(base,CFG.QUAL_BASE),0.1);
+    return Math.pow(q/base,num(peso,CFG.QUAL_PESO));
+  }
+  function levelBonus(level){
+    level=Math.max(num(level,1),1);
+    var bonus=CFG.LEVEL_SCALE*Math.pow(Math.max(level-1,0)/CFG.LEVEL_REF,CFG.LEVEL_EXP);
+    return Math.min(bonus,CFG.LEVEL_CAP);
   }
 
-  /* preço "justo".  p = {iv, qual, level, demand, shiny, + overrides opcionais} */
-  function fair(p){
-    p = p || {};
-    var iv        = num(p.iv, 0);
-    var qual      = num(p.qual, CFG.QUAL_BASE);
-    var level     = Math.max(num(p.level, 1), 1);
-    var demand    = num(p.demand, 1);
-    var tail      = num(p.tail, CFG.TAIL_GROWTH);
-    var perTen    = num(p.levelPerTen, CFG.LEVEL_PER_TEN);
-    var qualBase  = num(p.qualBase, CFG.QUAL_BASE);
-    var qualPeso  = num(p.qualPeso, CFG.QUAL_PESO);
-    var shinyMult = num(p.shinyMult, CFG.SHINY_MULT);
-
-    var shinyFactor = p.shiny ? shinyMult : 1;
-    var qualFactor  = qualBase > 0 ? Math.pow(Math.max(qual, 0.01)/qualBase, qualPeso) : 1;
-    var levelBonus  = (level/10) * perTen;
-
-    return basePrice(iv, tail) * demand * qualFactor * shinyFactor + levelBonus;
+  function model(p){
+    p=p||{};
+    var demand=clamp(num(p.demand,1),0.5,2);
+    var shiny=p.shiny?num(p.shinyMult,CFG.SHINY_MULT):1;
+    return CFG.BASE_PRICE*ivFactor(p.iv)*qualityFactor(p.qual,p.qualBase,p.qualPeso)*demand*shiny+levelBonus(p.level);
   }
 
-  /* 3 preços de venda (rápida / referência / flex) */
-  function prices(p){
-    var f = fair(p);
-    return { fast: f*0.8, fair: f, flex: f*1.25 };
+  function refValue(r){ return num(r.preco_vendido,0)>0?num(r.preco_vendido,0):num(r.preco_pedido,0); }
+  function weightedMedian(items){
+    items.sort(function(a,b){return a.v-b.v;});
+    var total=items.reduce(function(s,x){return s+x.w;},0),acc=0;
+    for(var i=0;i<items.length;i++){ acc+=items[i].w; if(acc>=total/2)return items[i].v; }
+    return items.length?items[items.length-1].v:null;
+  }
+  function comparable(p,refs){
+    refs=Array.isArray(refs)?refs:[];
+    var alvoNome=normName(p.name), alvoShiny=!!p.shiny, alvoModel=model(p), itens=[];
+    refs.forEach(function(r){
+      var valor=refValue(r); if(!(valor>0) || !!r.shiny!==alvoShiny)return;
+      var mesmo=alvoNome && normName(r.pokemon_nome)===alvoNome;
+      var venda=num(r.preco_vendido,0)>0;
+      var refModel=model({iv:r.iv,qual:r.qualidade,level:r.nivel,shiny:r.shiny,demand:1});
+      var razao=clamp(alvoModel/Math.max(refModel,1),0.5,2);
+      var conf={alta:1.35,media:1,baixa:.7,muito_baixa:.4}[r.confianca]||.7;
+      var peso=(venda?3:1)*(mesmo?2.5:1)*conf;
+      itens.push({v:valor*razao,w:peso,mesmo:mesmo,venda:venda});
+    });
+    if(!itens.length)return null;
+    var mesmas=itens.filter(function(x){return x.mesmo;});
+    var usadas=mesmas.length?mesmas:itens;
+    var med=weightedMedian(usadas);
+    var vendas=usadas.filter(function(x){return x.venda;}).length;
+    var blend=mesmas.length?(vendas?(mesmas.length>=2?0.65:0.5):(mesmas.length>=2?0.4:0.25)):(vendas>=2?0.35:0.2);
+    return {value:med,count:usadas.length,sales:vendas,sameSpecies:mesmas.length,blend:blend};
   }
 
-  /* incremento sugerido pela faixa de valor do lote */
-  function sugerirIncremento(fairV){
-    if(fairV <= 30)  return 2;
-    if(fairV <= 100) return 5;
-    return 10;
+  function fair(p,refs){
+    var base=model(p), comp=comparable(p,refs);
+    return comp?base*(1-comp.blend)+comp.value*comp.blend:base;
+  }
+  function prices(p,refs){
+    var m=model(p),comp=comparable(p,refs),f=comp?m*(1-comp.blend)+comp.value*comp.blend:m;
+    var confidence=!comp?'baixa':(comp.sameSpecies>=2&&comp.sales>=1?'alta':(comp.sales>=1||comp.count>=3?'média':'baixa'));
+    return {fast:f*.85,fair:f,flex:f*1.15,model:m,market:comp,confidence:confidence};
+  }
+  function sugerirIncremento(v){ if(v<=30)return 2;if(v<=100)return 5;return 10; }
+  function auction(p,refs){
+    var pr=prices(p,refs);
+    return {fast:pr.fast,fair:pr.fair,flex:pr.flex,inicial:pr.fair*.6,incremento:sugerirIncremento(pr.fair),arremate:pr.flex,confidence:pr.confidence};
   }
 
-  /* sugestão completa pra abrir um leilão a partir das infos do Pokémon.
-     Modelo de 2 números: começa no piso real (venda rápida) e sobe até o compre já. */
-  function auction(p){
-    var pr = prices(p);
-    return {
-      fast:       pr.fast,
-      fair:       pr.fair,
-      flex:       pr.flex,
-      inicial:    pr.fair * 0.6,            /* chamariz: abre em 60% do justo pra atrair o 1º lance */
-      incremento: sugerirIncremento(pr.fair),
-      arremate:   pr.flex                   /* "compre já" ~= flex        */
-    };
-  }
-
-  global.PokePrice = {
-    CFG: CFG,
-    basePrice: basePrice,
-    fair: fair,
-    prices: prices,
-    auction: auction,
-    sugerirIncremento: sugerirIncremento
-  };
-
+  global.PokePrice={CFG:CFG,model:model,fair:fair,prices:prices,auction:auction,sugerirIncremento:sugerirIncremento,comparable:comparable};
 })(window);
