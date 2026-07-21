@@ -718,14 +718,10 @@ function cardHtml(p){
   } else {
     var link = contatoLink(p.vendedor_contato, propostaMsg);
     if(contatoTipo(p.vendedor_contato) === 'dc'){
-      var direto = contatoDiretoDc(p.vendedor_contato);
-      var nota = direto
-        ? 'abre direto no Discord de <b style="color:var(--pink)">'+esc(p.vendedor_nome||'vendedor')+'</b>'
-        : (contatoTexto(p.vendedor_contato)[0]==='@' ? 'chame <b style="color:var(--pink)">'+esc(contatoTexto(p.vendedor_contato))+'</b> no servidor' : 'abre o contato do vendedor no Discord');
-      rodape = '<div class="card-action-area"><div class="card-action-note">'+nota+'</div><a class="card-cta" href="'+esc(link||DISCORD_COMUNIDADE)+'" target="_blank" rel="noopener">'+(aceita?'💬 NEGOCIAR NO DISCORD ▸':'💬 CHAMAR NO DISCORD ▸')+'</a></div>';
+      rodape = '<div class="card-action-area"><a class="card-cta" href="'+esc(link||DISCORD_COMUNIDADE)+'" target="_blank" rel="noopener">'+(aceita?'💬 NEGOCIAR NO DISCORD ▸':'💬 CHAMAR NO DISCORD ▸')+'</a></div>';
     } else {
       rodape = link
-        ? '<div class="card-action-area"><div class="card-action-note">abre uma conversa no WhatsApp de <b style="color:var(--green)">'+esc(p.vendedor_nome||'vendedor')+'</b></div><a class="card-cta" href="'+esc(link)+'" target="_blank" rel="noopener">'+(aceita?'📱 FAZER PROPOSTA ▸':'📱 FALAR NO WHATSAPP ▸')+'</a></div>'
+        ? '<div class="card-action-area"><a class="card-cta" href="'+esc(link)+'" target="_blank" rel="noopener">'+(aceita?'📱 FAZER PROPOSTA ▸':'📱 FALAR NO WHATSAPP ▸')+'</a></div>'
         : (p.vendedor_contato
             ? '<div class="card-action-area"><div class="card-action-note">Contato informado pelo vendedor</div><div class="card-contato">Contato: '+esc(contatoTexto(p.vendedor_contato))+'</div></div>'
             : '<div class="card-action-area"><div class="card-action-note">Contato não informado</div><div class="card-contato" style="color:var(--faint)">contato pelo Discord da comunidade</div></div>');
