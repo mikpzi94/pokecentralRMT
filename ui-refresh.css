@@ -1,0 +1,138 @@
+/* PokeCentral — identidade visual compartilhada */
+:root{
+  --ui-radius:14px;
+  --ui-radius-sm:9px;
+  --ui-shadow:0 18px 50px rgba(0,0,0,.28);
+  --ui-glow:0 0 0 1px rgba(240,180,41,.08),0 14px 35px rgba(0,0,0,.24);
+}
+
+html{scroll-behavior:smooth;}
+body{
+  background:
+    radial-gradient(circle at 12% 5%,rgba(240,180,41,.075),transparent 28rem),
+    radial-gradient(circle at 88% 18%,rgba(143,196,90,.045),transparent 24rem),
+    var(--bg);
+  font-size:15px;
+}
+.wrap{max-width:1120px!important;}
+.nav{
+  position:sticky;top:0;z-index:40;
+  margin-inline:-10px;padding-inline:12px!important;
+  background:rgba(15,13,9,.88);backdrop-filter:blur(14px);
+  border-bottom-color:rgba(240,180,41,.22)!important;
+}
+.nav a{transition:color .18s ease,transform .18s ease;}
+.nav a:hover{transform:translateY(-1px);}
+header{padding:34px 0 26px!important;}
+header h1{font-size:clamp(18px,3vw,30px)!important;letter-spacing:-.025em;}
+header p{max-width:780px;font-size:15px!important;color:var(--muted);}
+.sec-head{margin-top:34px!important;margin-bottom:18px!important;}
+.sec-head h2{font-size:13px!important;letter-spacing:.02em;}
+
+button,input,select,textarea,a{border-radius:var(--ui-radius-sm);}
+button,a{transition:transform .18s ease,border-color .18s ease,color .18s ease,background .18s ease,box-shadow .18s ease;}
+button:hover,.btn:hover{transform:translateY(-1px);}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(240,180,41,.10);}
+.pitch,.rules,.trust,.warn,.apoio,.ed-panel,.store-context,.comunidade-aviso{
+  border-radius:var(--ui-radius)!important;box-shadow:var(--ui-glow);
+}
+
+/* Loja */
+.page-store .vender-cta{
+  border-radius:var(--ui-radius);padding:16px 18px!important;
+  background:linear-gradient(135deg,rgba(143,196,90,.12),rgba(143,196,90,.025));
+  box-shadow:0 12px 34px rgba(0,0,0,.22);
+}
+.page-store .shop-tabs{gap:14px;}
+.page-store .shop-tab{
+  min-height:112px;border-radius:var(--ui-radius);padding:18px!important;text-align:left;
+  position:relative;overflow:hidden;background:linear-gradient(145deg,var(--panel),var(--panel2));
+}
+.page-store .shop-tab::after{
+  content:"";position:absolute;inset:auto 0 0;height:4px;background:transparent;
+}
+.page-store .shop-tab.on{box-shadow:0 16px 40px rgba(0,0,0,.28);transform:translateY(-2px);}
+.page-store .shop-tab.on::after{background:var(--gold);}
+.page-store .shop-tab[data-aba="jogadores"].on::after{background:var(--green);}
+.page-store .shop-tab .st-name{font-size:12px!important;}
+.page-store .filters{
+  padding:13px;background:rgba(29,25,18,.72);border:1px solid var(--line);
+  border-radius:var(--ui-radius);box-shadow:var(--ui-glow);
+}
+.page-store .filters input,.page-store .filters select{min-height:44px;border-radius:8px!important;}
+.page-store .grid{grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:18px;align-items:stretch;}
+.page-store .card{
+  position:relative;overflow:hidden;border:1px solid var(--line2)!important;border-radius:var(--ui-radius);
+  background:linear-gradient(165deg,rgba(35,30,21,.98),rgba(22,19,14,.98));
+  box-shadow:0 14px 32px rgba(0,0,0,.25);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+.page-store .card::before{content:"";position:absolute;z-index:2;left:0;right:0;top:0;height:4px;background:var(--tier,var(--gold));}
+.page-store .card:hover{transform:translateY(-5px);border-color:var(--tier,var(--gold))!important;box-shadow:0 20px 46px rgba(0,0,0,.38),0 0 22px color-mix(in srgb,var(--tier,var(--gold)) 16%,transparent);}
+.page-store .card-img{height:230px!important;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.055),transparent 55%),#111!important;}
+.page-store .card-img img{width:100%;height:100%;object-fit:contain!important;}
+.page-store .card-body{padding:15px 15px 16px!important;gap:8px!important;}
+.page-store .card-name{font-size:11px!important;}
+.page-store .card-meta{display:flex;align-items:center;min-height:22px;}
+.page-store .card-price{font-size:16px!important;margin:4px 0!important;}
+.page-store .deal-badge{border-radius:7px;text-align:center;padding:7px!important;}
+.page-store .card-cta{border-radius:8px;padding:11px 7px!important;}
+.page-store .card-share,.page-store .card-report{padding:5px!important;}
+.page-store .card.tier-legendary{--tier:#ff7b27;}
+.page-store .card.tier-mythic{--tier:#8d2de2;}
+.page-store .card.tier-ancient{--tier:#c69216;}
+.page-store .card.tier-divine{--tier:#c9e1ef;}
+.page-store .tier-badge{
+  display:inline-flex;align-items:center;width:max-content;border:1px solid var(--tier,var(--line2));
+  color:var(--tier,var(--muted));border-radius:999px;padding:3px 8px;font-size:10px;font-weight:700;
+}
+
+/* Leilão */
+.page-auction .rules{background:linear-gradient(145deg,rgba(240,180,41,.08),rgba(29,25,18,.8));}
+.page-auction .lote{border-radius:var(--ui-radius)!important;overflow:hidden;box-shadow:var(--ui-shadow);margin-bottom:22px!important;}
+.page-auction .lote-top{gap:22px!important;padding:20px!important;}
+.page-auction .lote-img{border-radius:10px;overflow:hidden;background:#111;}
+.page-auction .lote-nome{font-size:14px!important;}
+.page-auction .bid-now{border-radius:10px!important;background:rgba(240,180,41,.055);}
+.page-auction .clock{font-size:13px!important;}
+
+/* HUB */
+.page-home .hero{border-radius:0 0 22px 22px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.3);}
+.page-home .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(240,180,41,.11),transparent 48%);pointer-events:none;}
+.page-home .brand-mark{font-size:13px!important;}
+.page-home .tools,.page-home .market{gap:18px!important;}
+.page-home .tool,.page-home .mk,.page-home .mini-card,.page-home .lot{
+  border-radius:var(--ui-radius)!important;overflow:hidden;box-shadow:var(--ui-glow);
+  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+.page-home .tool:hover,.page-home .mk:hover,.page-home .mini-card:hover,.page-home .lot:hover{transform:translateY(-4px);box-shadow:var(--ui-shadow);}
+
+.page-home .tool-ico,.page-home .mk-ico{border-radius:12px!important;overflow:hidden;}
+
+.tier-legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-3px 0 18px;color:var(--faint);font-size:11px;}
+.tier-legend .tier-pill{border:1px solid currentColor;border-radius:999px;padding:4px 10px;font-weight:700;background:rgba(0,0,0,.12);}
+.tier-legend .legendary{color:#ff7b27}.tier-legend .mythic{color:#8d2de2}.tier-legend .ancient{color:#c69216}.tier-legend .divine{color:#c9e1ef}
+
+/* Calculadoras */
+.page-calculator header{padding-bottom:18px!important;}
+.page-calculator .panel,.page-calculator .route,.page-calculator .pcard,.page-calculator .headline{
+  border-radius:var(--ui-radius)!important;box-shadow:var(--ui-glow);
+}
+.page-calculator label{font-family:var(--mono)!important;font-size:12px!important;font-weight:600;letter-spacing:.02em!important;}
+.page-calculator input,.page-calculator select,.page-calculator textarea{min-height:44px;border-radius:8px!important;}
+.page-calculator .pcard-val,.page-calculator .out-big{font-size:17px!important;}
+
+@media(max-width:700px){
+  body{padding-inline:11px!important;}
+  .nav{margin-inline:-11px;overflow-x:auto;justify-content:flex-start!important;}
+  header{padding-top:25px!important;}
+  .page-store .shop-tabs{display:grid;grid-template-columns:1fr;}
+  .page-store .shop-tab{min-height:auto;}
+  .page-store .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .page-store .card-img{height:170px!important;}
+  .page-store .card-body{padding:11px!important;}
+  .page-auction .lote-top{padding:14px!important;gap:14px!important;}
+}
+@media(max-width:430px){
+  .page-store .grid{grid-template-columns:1fr;}
+  .page-store .card-img{height:250px!important;}
+}

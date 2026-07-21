@@ -17,7 +17,7 @@ create or replace function notifica_novo_anuncio()
 begin
   if new.status = 'pendente' then
     perform net.http_post(
-      url     := 'COLE_A_URL_AQUI',
+      url     := 'https://discord.com/api/webhooks/1528798114792607817/dgbl6nSvxI6EIzG2l_673we9ptNQqpkYOJ1XpXWOlTQIeKO1AWMfPePVq7s8Qz_BImVW',
       headers := jsonb_build_object('Content-Type','application/json'),
       body    := jsonb_build_object(
         'content',

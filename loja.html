@@ -305,8 +305,9 @@
   
 </style>
   <link rel="stylesheet" href="/apoio.css">
+  <link rel="stylesheet" href="/ui-refresh.css">
 </head>
-<body>
+<body class="page-store">
 <div class="wrap">
 
   <nav class="nav">
@@ -351,6 +352,10 @@
   </div>
 
   <div class="store-context" id="storeContext"><span class="sc-icon">🏅</span><div><div class="sc-kicker">VOCÊ ESTÁ VENDO</div><div class="sc-text"><b>Loja Oficial:</b> Pokémon anunciados pelo próprio PokeCentral.</div></div></div>
+
+  <div class="tier-legend" aria-label="Cores dos tiers de qualidade">
+    <span>Qualidade:</span><span class="tier-pill legendary">Lendária</span><span class="tier-pill mythic">Mítica</span><span class="tier-pill ancient">Anciã</span><span class="tier-pill divine">Divina</span>
+  </div>
 
   <div class="filters">
     <input type="text" id="search" placeholder="buscar por nome ou vendedor...">
@@ -606,6 +611,14 @@ function ivColor(iv){
   if(iv>=180) return 'var(--pink)'; if(iv>=160) return 'var(--purple)';
   if(iv>=140) return 'var(--gold)'; if(iv>=120) return 'var(--green)'; return 'var(--blue)';
 }
+function qualityTier(qualidade){
+  var q = parseFloat(String(qualidade == null ? '' : qualidade).replace(',','.')) || 0;
+  if(q >= 4) return { cls:'tier-divine', name:'Divina' };
+  if(q >= 3) return { cls:'tier-ancient', name:'Anciã' };
+  if(q >= 2) return { cls:'tier-mythic', name:'Mítica' };
+  if(q >= 1.7) return { cls:'tier-legendary', name:'Lendária' };
+  return { cls:'', name:'' };
+}
 function waLink(msg){ return 'https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent(msg); }
 function spriteUrl(id){ return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+id+'.png'; }
 function aviso(el, txt, tipo){
@@ -702,6 +715,7 @@ function contatoDiretoDc(c){   /* true = leva no perfil/link do vendedor; false 
 
 function cardHtml(p){
   var aceita = p.aceita_oferta === true;
+  var tier = qualityTier(p.qualidade);
   var ofertaBadge = aceita
     ? '<div class="deal-badge open">💬 ACEITA PROPOSTAS</div>'
     : '<div class="deal-badge">🔒 VALOR FIXO</div>';
@@ -728,7 +742,7 @@ function cardHtml(p){
     }
   }
 
-  return '<div class="card">'+
+  return '<div class="card '+tier.cls+'">'+
     '<div class="card-img">'+img+'<div class="iv-badge" style="background:'+ivColor(p.iv)+'">IV '+esc(p.iv)+'</div></div>'+
     '<div class="card-body">'+
       (ehOficial(p) ? '' :
@@ -738,6 +752,7 @@ function cardHtml(p){
           (repInfo(p.user_id) ? '⭐ '+repInfo(p.user_id).media.toFixed(1)+' ('+repInfo(p.user_id).n+')' : 'sem avaliações')+' ›</div>')+
       '<div class="card-name">'+esc(p.nome)+'</div>'+
       '<div class="card-meta">Nível '+esc(p.nivel)+(p.qualidade ? ' · Qualidade '+esc(p.qualidade) : '')+'</div>'+
+      (tier.name ? '<div class="tier-badge">'+tier.name+' ×'+esc(p.qualidade)+'</div>' : '')+
       (p.obs ? '<div class="card-obs" title="'+esc(p.obs)+'">'+esc(p.obs)+'</div>' : '')+
       '<div class="card-price">'+brl(p.preco)+'</div>'+
       '<div class="card-bottom">'+ofertaBadge+rodape+
