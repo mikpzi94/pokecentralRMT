@@ -503,7 +503,7 @@
       </div>
 
       <div class="ed-panel" id="painelCatalogo">
-        <div class="ed-title"><span id="catTitle">CATÁLOGO</span> <span id="pendCount"></span></div>
+        <div class="ed-title"><span id="catTitle">CATÁLOGO</span> <span id="pendCount"></span> <button type="button" class="mini" id="btnLimparOrfas" style="display:none;float:right" title="apagar prints que não pertencem mais a nenhum anúncio">LIMPAR IMAGENS</button></div>
         <div id="mgFiltros" style="display:none;gap:6px;margin-bottom:8px;flex-wrap:wrap">
           <input type="text" id="mgSearch" placeholder="filtrar por nome ou vendedor..." style="flex:1;min-width:150px">
           <select id="mgSort">
@@ -570,6 +570,13 @@ var cropState = {};   /* estado do recorte quadrado da foto */
 /* ---------- helpers ---------- */
 function brl(n){ return 'R$ ' + Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function caminhoDoPrint(url){
+  if(!url) return null;
+  try {
+    var parte = new URL(url).pathname.split('/prints/')[1];
+    return parte ? decodeURIComponent(parte) : null;
+  } catch(e){ return null; }
+}
 function ivColor(iv){
   iv = Number(iv)||0;
   if(iv>=180) return 'var(--pink)'; if(iv>=160) return 'var(--purple)';
@@ -851,6 +858,7 @@ function aplicarPapel(session){
   $('btnSalvar').textContent = ehAdmin ? '+ PUBLICAR NA LOJA' : '+ PUBLICAR MEU ANÚNCIO';
   $('wrapContato').style.display = ehAdmin ? 'none' : 'block';
   $('fotoReq').style.display = ehAdmin ? 'none' : 'block';
+  $('btnLimparOrfas').style.display = ehAdmin ? 'inline-block' : 'none';
   if(!ehAdmin) aplicarTipoContato();
   if(ehAdmin){
     $('adminTabs').style.display = 'flex';
@@ -888,6 +896,34 @@ document.querySelectorAll('.atab').forEach(function(b){
 });
 $('mgSearch').addEventListener('input', renderTabela);
 $('mgSort').addEventListener('change', renderTabela);
+
+/* limpeza manual e segura: só o admin consegue executar as RPCs */
+$('btnLimparOrfas').addEventListener('click', function(){
+  var btn = this;
+  btn.disabled = true;
+  aviso($('mgMsg'), 'verificando imagens sem anúncio…', '');
+  var orfas = [];
+  sb.rpc('listar_imagens_orfas').then(function(r){
+    if(r.error) throw r.error;
+    orfas = r.data || [];
+    var qtd = orfas.length, bytes = orfas.reduce(function(t,x){ return t+(Number(x.tamanho)||0); },0);
+    if(!qtd){ aviso($('mgMsg'), '✓ nenhuma imagem órfã encontrada', 'ok'); return null; }
+    var mb = (bytes/1024/1024).toFixed(2).replace('.',',');
+    if(!confirm('Foram encontradas '+qtd+' imagens órfãs ('+mb+' MB).\n\nApagar definitivamente do Storage?')) return null;
+    var lotes = [];
+    for(var i=0;i<orfas.length;i+=100) lotes.push(orfas.slice(i,i+100).map(function(x){ return x.caminho; }));
+    return lotes.reduce(function(fila, caminhos){
+      return fila.then(function(){ return sb.storage.from('prints').remove(caminhos); }).then(function(x){ if(x.error) throw x.error; });
+    }, Promise.resolve()).then(function(){ return { quantidade:qtd, bytes:bytes }; });
+  }).then(function(resultado){
+    if(resultado){
+      var qtd = Number(resultado.quantidade)||0, mb = ((Number(resultado.bytes)||0)/1024/1024).toFixed(2).replace('.',',');
+      aviso($('mgMsg'), '✓ '+qtd+' imagens removidas · '+mb+' MB liberados', 'ok');
+    }
+  }).catch(function(e){
+    aviso($('mgMsg'), 'não foi possível limpar: '+(e.message||e)+' — rode supabase_imagens.sql primeiro', 'err');
+  }).finally(function(){ btn.disabled = false; });
+});
 
 function aplicarTipoContato(){
   var dc = $('fContatoTipo').value === 'dc';
@@ -1042,7 +1078,7 @@ function gerarRecorte(){
     var dw = sw*f, dh = sh*f, dx = (out-dw)/2, dy = (out-dh)/2;
     try { ctx.drawImage($('cropImg'), sx, sy, sw, sh, dx, dy, dw, dh); }
     catch(e){ resolve(null); return; }
-    canvas.toBlob(function(blob){ resolve(blob); }, 'image/jpeg', 0.85);
+    otimizarCanvasWebP(canvas, 180*1024).then(resolve).catch(function(){ resolve(null); });
   });
 }
 function cropPointerDown(e){
@@ -1109,10 +1145,31 @@ function atualizarSugestao(){
 ['fIv','fQual','fNivel'].forEach(function(id){ $(id).addEventListener('input', atualizarSugestao); });
 ['fDemanda','fShiny'].forEach(function(id){ $(id).addEventListener('change', atualizarSugestao); });
 
-/* ---------- compressão de imagem (protege storage/banda) ---------- */
-function comprimirImagem(file, maxDim, qualidade){
-  return new Promise(function(resolve){
-    if(!file || !/^image\//.test(file.type) || /gif/i.test(file.type)){ resolve(file); return; }
+/* ---------- WebP compacto (protege storage e banda) ---------- */
+function otimizarCanvasWebP(canvas, maxBytes){
+  return new Promise(function(resolve, reject){
+    var qualidades = [0.82, 0.74, 0.66, 0.58, 0.50], tentativa = 0;
+    function gerar(){
+      var q = qualidades[Math.min(tentativa, qualidades.length-1)];
+      canvas.toBlob(function(blob){
+        if(!blob){ reject(new Error('seu navegador não conseguiu gerar WebP')); return; }
+        if(blob.type !== 'image/webp'){ reject(new Error('seu navegador não suporta imagem WebP')); return; }
+        if(blob.size <= maxBytes || tentativa >= 7){ resolve(blob); return; }
+        tentativa++;
+        if(tentativa < qualidades.length){ gerar(); return; }
+        var menor = document.createElement('canvas');
+        menor.width = Math.max(480, Math.round(canvas.width*0.85));
+        menor.height = Math.max(480, Math.round(canvas.height*0.85));
+        menor.getContext('2d').drawImage(canvas, 0, 0, menor.width, menor.height);
+        canvas = menor; gerar();
+      }, 'image/webp', q);
+    }
+    gerar();
+  });
+}
+function comprimirImagem(file, maxDim){
+  return new Promise(function(resolve, reject){
+    if(!file || !/^image\//.test(file.type)){ reject(new Error('arquivo de imagem inválido')); return; }
     var img = new Image();
     img.onload = function(){
       var escala = Math.min(1, maxDim / Math.max(img.width, img.height));
@@ -1120,12 +1177,11 @@ function comprimirImagem(file, maxDim, qualidade){
       var canvas = document.createElement('canvas');
       canvas.width = cw; canvas.height = ch;
       canvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
-      canvas.toBlob(function(blob){
-        URL.revokeObjectURL(img.src);
-        resolve((blob && blob.size < file.size) ? blob : file);   /* se não reduziu, usa o original */
-      }, 'image/jpeg', qualidade);
+      otimizarCanvasWebP(canvas, 180*1024).then(function(blob){
+        URL.revokeObjectURL(img.src); resolve(blob);
+      }).catch(reject);
     };
-    img.onerror = function(){ resolve(file); };
+    img.onerror = function(){ reject(new Error('não foi possível ler a imagem')); };
     img.src = URL.createObjectURL(file);
   });
 }
@@ -1162,12 +1218,14 @@ $('btnSalvar').addEventListener('click', function(){
   btn.disabled = true;
   aviso($('addMsg'), 'enviando…', '');
 
+  var caminhoEnviado = null;
   var etapa = arquivoSelecionado
     ? gerarRecorte().then(function(recorte){
-        return recorte || comprimirImagem(arquivoSelecionado, 1200, 0.72);   /* recorte quadrado; se falhar, imagem inteira comprimida */
+        return recorte || comprimirImagem(arquivoSelecionado, 900);
       }).then(function(blob){
-        var base = arquivoSelecionado.name.replace(/\.\w+$/, '');
-        return sb.storage.from('prints').upload('loja/'+Date.now()+'-'+base+'.jpg', blob, {upsert:true, contentType:'image/jpeg'});
+        var base = arquivoSelecionado.name.replace(/\.\w+$/, '').replace(/[^a-z0-9_-]+/gi,'-').slice(0,60) || 'pokemon';
+        caminhoEnviado = 'loja/'+Date.now()+'-'+base+'.webp';
+        return sb.storage.from('prints').upload(caminhoEnviado, blob, {upsert:false, contentType:'image/webp', cacheControl:'31536000'});
       }).then(function(up){
         if(up.error) throw up.error;
         return sb.storage.from('prints').getPublicUrl(up.data.path).data.publicUrl;
@@ -1182,6 +1240,7 @@ $('btnSalvar').addEventListener('click', function(){
       nivel: parseInt($('fNivel').value) || 1,
       preco: preco,
       print: url,
+      print_path: caminhoEnviado,
       poke_id: parseInt($('fPokeId').value) || null,
       obs: $('fObs').value.trim() || null,
       disponivel: true
@@ -1208,8 +1267,11 @@ $('btnSalvar').addEventListener('click', function(){
     btn.disabled = false;
     return carregar();
   }).catch(function(e){
-    aviso($('addMsg'), 'erro: '+(e.message||e), 'err');
-    btn.disabled = false;
+    var limpar = caminhoEnviado ? sb.storage.from('prints').remove([caminhoEnviado]) : Promise.resolve();
+    Promise.resolve(limpar).finally(function(){
+      aviso($('addMsg'), 'erro: '+(e.message||e), 'err');
+      btn.disabled = false;
+    });
   });
 });
 
@@ -1327,7 +1389,12 @@ function renderTabela(){
       sb.from('pokemons').delete().eq('id', id).select().then(function(r){
         if(r.error){ aviso($('mgMsg'), 'erro: '+r.error.message, 'err'); return; }
         if(!r.data || !r.data.length){ aviso($('mgMsg'), 'não apagou — a política RLS não deixou apagar com essa conta. Confira as policies de DELETE da tabela pokemons no Supabase.', 'err'); return; }
-        carregar();
+        var caminho = item.print_path || caminhoDoPrint(item.print);
+        var fim = caminho ? sb.storage.from('prints').remove([caminho]) : Promise.resolve({});
+        Promise.resolve(fim).then(function(sr){
+          if(sr && sr.error) aviso($('mgMsg'), 'anúncio apagado, mas o print não foi removido: '+sr.error.message, 'err');
+          carregar();
+        });
       });
     });
   });

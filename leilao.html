@@ -412,6 +412,11 @@ var lotes = [], lances = [], sessao = null, arquivo = null, estadoAberto = {}, s
 
 function brl(n){ return 'R$ ' + Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function caminhoDoPrint(url){
+  if(!url) return null;
+  try { var p = new URL(url).pathname.split('/prints/')[1]; return p ? decodeURIComponent(p) : null; }
+  catch(e){ return null; }
+}
 function ivColor(iv){
   iv = Number(iv)||0;
   if(iv>=180) return 'var(--pink)'; if(iv>=160) return 'var(--purple)';
@@ -899,6 +904,26 @@ $('btnSug').addEventListener('click', function(){
 ['lDemanda','lShiny'].forEach(function(id){ $(id).addEventListener('change', atualizarSugestao); });
 
 /* ---------- criar lote ---------- */
+function otimizarPrintLeilao(file){
+  return new Promise(function(resolve, reject){
+    var img = new Image();
+    img.onload = function(){
+      var escala = Math.min(1, 900/Math.max(img.width,img.height));
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width*escala); canvas.height = Math.round(img.height*escala);
+      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+      var qs=[0.82,0.74,0.66,0.58,0.50], i=0;
+      function gerar(){ canvas.toBlob(function(blob){
+        if(!blob || blob.type!=='image/webp'){ reject(new Error('seu navegador não conseguiu gerar WebP')); return; }
+        if(blob.size<=180*1024 || i===qs.length-1){ URL.revokeObjectURL(img.src); resolve(blob); return; }
+        i++; gerar();
+      },'image/webp',qs[i]); }
+      gerar();
+    };
+    img.onerror=function(){ reject(new Error('não foi possível ler a imagem')); };
+    img.src=URL.createObjectURL(file);
+  });
+}
 $('btnCriar').addEventListener('click', function(){
   var btn = this;
   var nome = $('lNome').value.trim();
@@ -910,8 +935,13 @@ $('btnCriar').addEventListener('click', function(){
   btn.disabled = true;
   aviso($('admMsg'), 'criando…', '');
 
+  var caminhoLoteEnviado = null;
   var etapa = arquivo
-    ? sb.storage.from('prints').upload('leilao/'+Date.now()+'-'+arquivo.name, arquivo, {upsert:true})
+    ? otimizarPrintLeilao(arquivo).then(function(blob){
+        var base=arquivo.name.replace(/\.\w+$/,'').replace(/[^a-z0-9_-]+/gi,'-').slice(0,60)||'pokemon';
+        caminhoLoteEnviado='leilao/'+Date.now()+'-'+base+'.webp';
+        return sb.storage.from('prints').upload(caminhoLoteEnviado, blob, {upsert:false,contentType:'image/webp',cacheControl:'31536000'});
+      })
         .then(function(up){ if(up.error) throw up.error;
           return sb.storage.from('prints').getPublicUrl(up.data.path).data.publicUrl; })
     : Promise.resolve(null);
@@ -923,6 +953,7 @@ $('btnCriar').addEventListener('click', function(){
       iv: parseInt($('lIv').value) || null,
       nivel: parseInt($('lNivel').value) || 1,
       print: url,
+      print_path: caminhoLoteEnviado,
       poke_id: parseInt($('lPokeId').value) || null,
       obs: $('lObs').value.trim() || null,
       lance_inicial: inicial,
@@ -945,8 +976,8 @@ $('btnCriar').addEventListener('click', function(){
     btn.disabled = false;
     return carregar();
   }).catch(function(e){
-    aviso($('admMsg'), 'erro: '+(e.message||e), 'err');
-    btn.disabled = false;
+    var limpar=caminhoLoteEnviado ? sb.storage.from('prints').remove([caminhoLoteEnviado]) : Promise.resolve();
+    Promise.resolve(limpar).finally(function(){ aviso($('admMsg'), 'erro: '+(e.message||e), 'err'); btn.disabled=false; });
   });
 });
 
@@ -975,7 +1006,14 @@ function renderAdmin(){
       if(!confirm('Apagar o lote "'+l.nome+'" e todos os lances dele?')) return;
       sb.from('lotes').delete().eq('id', id).then(function(r){
         if(r.error) aviso($('mgMsg'), 'erro: '+r.error.message, 'err');
-        else carregar();
+        else {
+          var caminho=l.print_path||caminhoDoPrint(l.print);
+          var fim=caminho ? sb.storage.from('prints').remove([caminho]) : Promise.resolve({});
+          Promise.resolve(fim).then(function(sr){
+            if(sr&&sr.error) aviso($('mgMsg'),'lote apagado, mas o print não foi removido: '+sr.error.message,'err');
+            carregar();
+          });
+        }
       });
     });
   });
