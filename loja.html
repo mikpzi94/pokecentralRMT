@@ -493,7 +493,7 @@
             <select id="fShiny"><option value="0" selected>Não</option><option value="1">Sim ✨</option></select>
           </div>
           <div><label>Preço (R$)</label><input type="number" id="fPreco" step="0.5" placeholder="30"></div>
-          <div><label>Negociação</label><select id="fOferta"><option value="0" selected>Preço firme</option><option value="1">Aceito propostas</option></select></div>
+          <div><label>Negociação</label><select id="fOferta"><option value="0" selected>Valor fixo</option><option value="1">Aceito propostas</option></select></div>
           <div><label>pokeId (opcional)</label><input type="number" id="fPokeId" placeholder="76"></div>
           <div style="grid-column:1/-1">
             <div class="sug" id="sugBox" style="display:none">
@@ -699,7 +699,7 @@ function cardHtml(p){
   var aceita = p.aceita_oferta === true;
   var ofertaBadge = aceita
     ? '<div class="deal-badge open">💬 ACEITA PROPOSTAS</div>'
-    : '<div class="deal-badge">🔒 PREÇO FIRME</div>';
+    : '<div class="deal-badge">🔒 VALOR FIXO</div>';
   var propostaMsg = aceita
     ? 'Olá! Vi o '+p.nome+' (IV '+p.iv+', Nv. '+p.nivel+') anunciado por '+brl(p.preco)+' no PokeCentral. Você aceita uma proposta?'
     : 'Olá! Tenho interesse no '+p.nome+' (IV '+p.iv+', Nv. '+p.nivel+') anunciado por '+brl(p.preco)+' no PokeCentral. Ainda está disponível?';
@@ -1368,7 +1368,7 @@ function renderTabela(){
           ? '<div style="font-size:10px;color:var(--red)">motivo: '+esc(p.motivo_rejeicao)+'</div>'
           : '<div style="font-size:11px;color:var(--red);border:2px solid var(--red);padding:6px;margin-top:4px">✕ Rejeitado — <b>'+esc(p.motivo_rejeicao)+'</b><br><span style="color:var(--muted)">corrija e crie o anúncio de novo.</span></div>')
       : '';
-    var ofertaEdit = '<select data-k="aceita_oferta" style="margin-top:4px;font-size:10px;padding:4px"><option value="0"'+(p.aceita_oferta?'':' selected')+'>preço firme</option><option value="1"'+(p.aceita_oferta?' selected':'')+'>aceita propostas</option></select>';
+    var ofertaEdit = '<select data-k="aceita_oferta" style="margin-top:4px;font-size:10px;padding:4px"><option value="0"'+(p.aceita_oferta?'':' selected')+'>valor fixo</option><option value="1"'+(p.aceita_oferta?' selected':'')+'>aceita propostas</option></select>';
     var origem = (ehAdmin && !oficial) ? '<div style="color:var(--pink);font-size:10.5px;margin-top:2px" title="vendedor">🧑 '+esc(p.vendedor_nome||'?')+(p.vendedor_contato?' · <span style="color:var(--faint)">'+(contatoTipo(p.vendedor_contato)==='dc'?'💬 ':'📱 ')+esc(contatoTexto(p.vendedor_contato))+'</span>':'')+'</div>' : '';
     var acoes;
     if(ehAdmin && p.status==='pendente'){
@@ -1757,7 +1757,7 @@ function mostrarProduto(id){
     '<div style="color:var(--muted);margin-bottom:6px">IV '+esc(p.iv)+' · Nível '+esc(p.nivel)+(p.qualidade?' · Qualidade '+esc(p.qualidade):'')+'</div>'+
     (p.obs?'<div style="color:var(--faint);font-size:12.5px;margin-bottom:8px">'+esc(p.obs)+'</div>':'')+
     '<div style="font-family:var(--px);font-size:16px;color:var(--gold);margin-bottom:6px">'+brl(p.preco)+'</div>'+
-    (aceitaModal?'<div class="deal-badge open">💬 ACEITA PROPOSTAS</div>':'<div class="deal-badge">🔒 PREÇO FIRME</div>')+
+    (aceitaModal?'<div class="deal-badge open">💬 ACEITA PROPOSTAS</div>':'<div class="deal-badge">🔒 VALOR FIXO</div>')+
     cta +
     '<button class="mini" id="prodShare" style="margin-top:12px;width:100%">🔗 copiar link deste Pokémon</button>';
   $('prodShare').addEventListener('click', function(){ copiarLinkProduto(p.id, this); });
