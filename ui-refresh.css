@@ -66,9 +66,9 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(240,180,41,.10
   background:linear-gradient(165deg,rgba(35,30,21,.98),rgba(22,19,14,.98));
   box-shadow:0 14px 32px rgba(0,0,0,.25);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
 }
-.page-store .card::before{content:"";position:absolute;z-index:2;left:0;right:0;top:0;height:4px;background:var(--tier,var(--gold));}
-.page-store .card:hover{transform:translateY(-5px);border-color:var(--tier,var(--gold))!important;box-shadow:0 20px 46px rgba(0,0,0,.38),0 0 22px color-mix(in srgb,var(--tier,var(--gold)) 16%,transparent);}
-.page-store .card-img{height:230px!important;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.055),transparent 55%),#111!important;}
+
+.page-store .card:hover{transform:translateY(-5px);border-color:var(--tier,var(--line2))!important;box-shadow:0 20px 46px rgba(0,0,0,.38),0 0 22px color-mix(in srgb,var(--tier,var(--gold)) 16%,transparent);}
+.page-store .card-img{height:230px!important;margin:8px 8px 0;border:2px solid var(--tier,var(--line2));border-radius:10px;box-sizing:border-box;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.055),transparent 55%),#111!important;}
 .page-store .card-img img{width:100%;height:100%;object-fit:contain!important;}
 .page-store .card-body{padding:15px 15px 16px!important;gap:8px!important;}
 .page-store .card-name{font-size:11px!important;}
@@ -86,6 +86,28 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(240,180,41,.10
   color:var(--tier,var(--muted));border-radius:999px;padding:3px 8px;font-size:10px;font-weight:700;
 }
 
+.page-store header{padding:24px!important;margin-bottom:14px!important;}
+.page-store header p{max-width:none;}
+.page-store .store-context{border:0!important;background:transparent!important;box-shadow:none!important;padding:0!important;margin:-4px 0 12px!important;display:block!important;}
+.page-store .store-context .sc-icon,.page-store .store-context .sc-kicker{display:none;}
+.page-store .store-context .sc-text{font-size:11.5px!important;}
+.page-store .beta-note{margin:-3px 0 14px;padding:9px 12px;border-left:3px solid var(--gold);background:rgba(240,180,41,.055);color:var(--muted);font-size:11.5px;line-height:1.55;border-radius:0 8px 8px 0;}
+.page-store .filter-more{flex:1 0 100%;margin:0;border:0;background:transparent;}
+.page-store .filter-more summary{display:inline-block;padding:4px 2px;font-family:var(--px);font-size:7px;color:var(--faint);cursor:pointer;list-style:none;}
+.page-store .filter-more summary::-webkit-details-marker{display:none;}
+.page-store .filter-more summary::before{content:'▸ ';color:var(--gold);}
+.page-store .filter-more[open] summary::before{content:'▾ ';}
+.page-store .filter-more div{margin-top:8px;}
+.page-store .filter-more input{width:100%;box-sizing:border-box;}
+.page-store .shop-help-list{display:grid;gap:10px;margin-top:28px;}
+.page-store .shop-help{border:1px solid var(--line2);border-radius:var(--ui-radius);background:var(--panel);overflow:hidden;box-shadow:var(--ui-glow);}
+.page-store .shop-help summary{padding:15px 17px;font-family:var(--px);font-size:8px;color:var(--gold);cursor:pointer;list-style:none;}
+.page-store .shop-help summary::-webkit-details-marker{display:none;}
+.page-store .shop-help-body{padding:0 17px 17px;color:var(--muted);font-size:12.5px;line-height:1.75;}
+.page-store .shop-help-body .steps{margin:2px 0 15px;}
+.page-store .shop-help-body ul{margin:0 0 12px;padding-left:18px;}
+.page-store .shop-help-body b{color:var(--text);}
+.page-store .shop-help-body a{color:var(--green);}
 /* Leilão */
 .page-auction .rules{background:linear-gradient(145deg,rgba(240,180,41,.08),rgba(29,25,18,.8));}
 .page-auction .lote{border-radius:var(--ui-radius)!important;overflow:hidden;box-shadow:var(--ui-shadow);margin-bottom:22px!important;}

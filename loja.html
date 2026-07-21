@@ -109,7 +109,7 @@
   .card-obs{
     font-size:11.5px;color:var(--faint);line-height:1.5;
     display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;
-    overflow:hidden;
+    overflow:hidden;height:4.5em;
   }
   .card-price{font-family:var(--px);font-size:12px;color:var(--gold);margin-top:2px;}
   .card-bottom{margin-top:auto;display:flex;flex-direction:column;gap:7px;}
@@ -322,29 +322,13 @@
 
   <header>
     <h1>Pokémon <span>à venda</span></h1>
-    <p>
-      Duas lojas num lugar só: a <b>Oficial</b> (Pokémon do próprio PokeCentral) e a de <b>Jogadores</b> (vendedores da comunidade).
-      Todo anúncio tem <b>print real</b> do jogo — nada de sprite genérico. Cada Pokémon é único: sumiu da lista, foi vendido.
-    </p>
+    <p>Compre diretamente do PokeCentral ou de vendedores da comunidade.</p>
   </header>
 
   <button type="button" class="vender-cta" id="venderCta">
     <span class="vt">🧑 Tem um Pokémon pra vender?</span>
     <span class="vb">ANUNCIAR GRÁTIS AQUI →</span>
   </button>
-
-  <div class="pitch">
-    <b>▸ Por que comprar em vez de farmar?</b><br>
-    É <span class="hi">atalho de tempo</span>, não investimento: um lendário bom pode custar 20+ horas de farm pra sair.
-    Comprando, você já começa produzindo hoje. Lembrando que o jogo está em beta e
-    <span class="hi">tudo reseta no lançamento</span> — compre pelo tempo que economiza agora, não pra guardar.
-  </div>
-
-  <div class="steps" id="steps"></div>
-
-  <div class="sec-head">
-    <h2 id="storeTitle">Loja Oficial</h2><span class="count" id="count"></span><div class="rule"></div>
-  </div>
 
   <div class="shop-tabs" role="tablist" aria-label="Escolha a loja">
     <button class="shop-tab on" data-aba="oficial" aria-selected="true"><span class="st-name">🏅 LOJA OFICIAL</span><span class="st-desc">Pokémon do PokeCentral</span><span class="st-count" id="tabCountOficial">0 disponíveis</span></button>
@@ -353,20 +337,28 @@
 
   <div class="store-context" id="storeContext"><span class="sc-icon">🏅</span><div><div class="sc-kicker">VOCÊ ESTÁ VENDO</div><div class="sc-text"><b>Loja Oficial:</b> Pokémon anunciados pelo próprio PokeCentral.</div></div></div>
 
-  <div class="tier-legend" aria-label="Cores dos tiers de qualidade">
-    <span>Qualidade:</span><span class="tier-pill legendary">Lendária</span><span class="tier-pill mythic">Mítica</span><span class="tier-pill ancient">Anciã</span><span class="tier-pill divine">Divina</span>
-  </div>
+  <div class="beta-note">⚠ O jogo está em beta e os Pokémon serão resetados no lançamento. Compre pelo tempo economizado agora.</div>
 
   <div class="filters">
     <input type="text" id="search" placeholder="buscar por nome ou vendedor...">
+    <select id="tierFilter" aria-label="Filtrar por tier">
+      <option value="">qualquer tier</option>
+      <option value="legendary">Lendária</option>
+      <option value="mythic">Mítica</option>
+      <option value="ancient">Anciã</option>
+      <option value="divine">Divina</option>
+    </select>
+    <input type="number" id="ivFilter" min="0" max="192" step="1" inputmode="numeric" placeholder="IV mínimo (0–192)" aria-label="IV mínimo">
     <select id="sortSel">
       <option value="recent">mais recentes</option>
       <option value="priceAsc">menor preço</option>
       <option value="priceDesc">maior preço</option>
       <option value="ivDesc">maior IV</option>
     </select>
-    <input type="number" id="ivFilter" min="0" max="192" step="1" inputmode="numeric" placeholder="IV mínimo (0–192)" aria-label="IV mínimo">
-    <input type="text" id="qualFilter" inputmode="decimal" placeholder="Qualidade mínima (ex: 1,70)" aria-label="Qualidade mínima">
+    <details class="filter-more">
+      <summary>MAIS FILTROS</summary>
+      <div><input type="text" id="qualFilter" inputmode="decimal" placeholder="Qualidade mínima (ex: 1,70)" aria-label="Qualidade mínima"></div>
+    </details>
   </div>
 
   <div class="comunidade-aviso" id="comunidadeAviso" style="display:none">
@@ -382,15 +374,27 @@
     <div id="soldList"></div>
   </div>
 
-  <div class="warn">
-    <div class="t">ANTES DE FECHAR</div>
-    <ul>
-      <li>O jogo está em <b>beta e tudo reseta no lançamento</b> (menos diamante da loja oficial, que volta com +25%). Compre pelo tempo que economiza agora.</li>
-      <li>Combine o preço <b>antes</b>. Se alguém te apressar ou mudar o valor no meio, desconfie — inclusive de mim.</li>
-      <li>Se preferir, use um <b>intermediário confiável</b> da comunidade. Não me ofendo, é o certo a fazer com quem você ainda não conhece.</li>
-      <li>Cuidado com print falso e estorno de Pix. Vale pros dois lados.</li>
-      <li>Multi-conta tem <b>limite de 4 por IP</b> e VPN parece ser passível de ban — informação da comunidade, confirme no Discord oficial.</li>
-    </ul>
+<div class="shop-help-list">
+    <details class="shop-help">
+      <summary>🛡 COMO COMPRAR COM SEGURANÇA</summary>
+      <div class="shop-help-body">
+        <div class="steps" id="steps"></div>
+        <ul>
+          <li>Combine o preço, a forma de pagamento e a entrega <b>antes</b>.</li>
+          <li>Se alguém te apressar ou mudar o valor no meio, desconfie.</li>
+          <li>Com desconhecidos, considere um <b>intermediário confiável</b> da comunidade.</li>
+          <li>Cuidado com print falso e estorno de Pix. Vale para os dois lados.</li>
+        </ul>
+        <a href="/negociar">guia completo para negociar sem golpe →</a>
+      </div>
+    </details>
+    <details class="shop-help">
+      <summary>▸ VALE A PENA COMPRAR EM VEZ DE FARMAR?</summary>
+      <div class="shop-help-body">
+        Comprar é um <b>atalho de tempo</b>, não investimento: um lendário bom pode exigir muitas horas de farm.
+        Você começa a usar ou produzir com ele agora, mas o jogo está em beta e os Pokémon serão resetados no lançamento.
+      </div>
+    </details>
   </div>
 
   <div class="apoio">
@@ -520,7 +524,7 @@
             </div>
             <div id="contatoHint" style="font-size:11px;color:var(--faint);margin-top:4px">Número com DDD. O botão no anúncio abre a conversa no WhatsApp.</div>
           </div>
-          <div style="grid-column:1/-1"><label>Observação (opcional)</label><input type="text" id="fObs" placeholder="meta forte, ótimo pra farm de moeda"></div>
+          <div style="grid-column:1/-1"><label>Descrição (opcional) <span id="obsCount" style="float:right;color:var(--faint)">0/160</span></label><input type="text" id="fObs" maxlength="160" oninput="$('obsCount').textContent=this.value.length+'/160'" placeholder="meta forte, ótimo pra farm de moeda"></div>
         </div>
         <button class="btn go" id="btnSalvar">+ PUBLICAR NA LOJA</button>
         <div class="msg" id="addMsg"></div>
@@ -751,9 +755,9 @@ function cardHtml(p){
         '<div class="card-rep" data-rev="'+esc(p.user_id||'')+'">'+
           (repInfo(p.user_id) ? '⭐ '+repInfo(p.user_id).media.toFixed(1)+' ('+repInfo(p.user_id).n+')' : 'sem avaliações')+' ›</div>')+
       '<div class="card-name">'+esc(p.nome)+'</div>'+
-      '<div class="card-meta">Nível '+esc(p.nivel)+(p.qualidade ? ' · Qualidade '+esc(p.qualidade) : '')+'</div>'+
+      '<div class="card-meta">Nível '+esc(p.nivel)+'</div>'+
       (tier.name ? '<div class="tier-badge">'+tier.name+' ×'+esc(p.qualidade)+'</div>' : '')+
-      (p.obs ? '<div class="card-obs" title="'+esc(p.obs)+'">'+esc(p.obs)+'</div>' : '')+
+      '<div class="card-obs" title="'+esc(p.obs||'')+'">'+esc(p.obs||'')+'</div>'+
       '<div class="card-price">'+brl(p.preco)+'</div>'+
       '<div class="card-bottom">'+ofertaBadge+rodape+
       '<button type="button" class="card-share" data-share="'+p.id+'">🔗 compartilhar</button>'+
@@ -788,7 +792,6 @@ function render(){
   var totalJogadores = lista.filter(function(p){ return p.status==='aprovado' && p.disponivel!==false && !ehOficial(p); }).length;
   $('tabCountOficial').textContent = totalOficial+' disponíve'+(totalOficial===1?'l':'is');
   $('tabCountJogadores').textContent = totalJogadores+' disponíve'+(totalJogadores===1?'l':'is');
-  $('storeTitle').textContent = aba==='oficial' ? 'Loja Oficial' : 'Loja dos Jogadores';
   $('storeContext').innerHTML = aba==='oficial'
     ? '<span class="sc-icon">🏅</span><div><div class="sc-kicker">VOCÊ ESTÁ VENDO</div><div class="sc-text"><b>Loja Oficial:</b> Pokémon anunciados pelo próprio PokeCentral. A negociação é feita diretamente comigo.</div></div>'
     : '<span class="sc-icon">🧑</span><div><div class="sc-kicker">VOCÊ ESTÁ VENDO</div><div class="sc-text"><b>Loja dos Jogadores:</b> anúncios da comunidade. Você fala e negocia diretamente com cada vendedor.</div></div>';
@@ -798,6 +801,7 @@ function render(){
   var ordem = $('sortSel').value;
   var ivMin = parseFloat($('ivFilter').value) || 0;
   var qualMin = parseFloat(String($('qualFilter').value||'').replace(',','.')) || 0;
+  var tierFiltro = $('tierFilter').value;
 
   var itens = lista.filter(function(p){
     return p.status === 'aprovado' && p.disponivel !== false &&
@@ -809,12 +813,11 @@ function render(){
   });
   if(ivMin) itens = itens.filter(function(p){ return (Number(p.iv)||0) >= ivMin; });
   if(qualMin) itens = itens.filter(function(p){ return (parseFloat(String(p.qualidade).replace(',','.'))||0) >= qualMin; });
+  if(tierFiltro) itens = itens.filter(function(p){ return qualityTier(p.qualidade).cls === 'tier-'+tierFiltro; });
 
   if(ordem==='priceAsc') itens.sort(function(a,b){ return a.preco-b.preco; });
   else if(ordem==='priceDesc') itens.sort(function(a,b){ return b.preco-a.preco; });
   else if(ordem==='ivDesc') itens.sort(function(a,b){ return (b.iv||0)-(a.iv||0); });
-
-  $('count').textContent = itens.length>0 ? '('+itens.length+')' : '';
   $('comunidadeAviso').style.display = (aba === 'jogadores') ? 'block' : 'none';
 
   if(itens.length===0){
@@ -822,7 +825,7 @@ function render(){
     $('grid').innerHTML = '<div class="empty">' +
       (aba === 'jogadores'
         ? 'Ainda não tem anúncio de jogador aqui. 🧑<br>Seja o primeiro — anuncie o teu de graça.<br><br><a href="#" onclick="abrirPainel();return false;">quero anunciar →</a>'
-        : (termo || ivMin || qualMin
+        : (termo || ivMin || qualMin || tierFiltro
             ? 'Nenhum Pokémon com esses filtros.'
             : 'Nenhum Pokémon à venda no momento.<br>Me chama no WhatsApp que eu te aviso quando entrar algo — ou encomendo o que você procura.<br><br>' +
               '<a href="'+waLink('Olá! Vi que a vitrine do PokeCentral está vazia. Estou procurando um Pokémon específico, dá pra encomendar?')+'" target="_blank" rel="noopener">falar no WhatsApp →</a>')) +
@@ -863,7 +866,7 @@ function render(){
 }
 
 function resetRender(){ mostrados = PAGINA; render(); }
-['search','sortSel','ivFilter','qualFilter'].forEach(function(id){ $(id).addEventListener('input', resetRender); });
+['search','sortSel','ivFilter','qualFilter','tierFilter'].forEach(function(id){ $(id).addEventListener('input', resetRender); });
 
 document.querySelectorAll('.shop-tab').forEach(function(b){
   b.addEventListener('click', function(){
@@ -1313,6 +1316,7 @@ $('btnSalvar').addEventListener('click', function(){
     if(!ehAdmin && cTipo==='wa'){ try { localStorage.setItem('pc_wa', cRaw.replace(/\D/g,'')); } catch(e){} }   /* guarda o número pros próximos */
     var novoStatus = (r.data && r.data[0] && r.data[0].status) || 'pendente';
     ['fNome','fQual','fIv','fNivel','fPreco','fPokeId','fObs','fContato'].forEach(function(i){ $(i).value=''; });
+    $('obsCount').textContent='0/160';
     $('fDemanda').value='1.0'; $('fShiny').value='0'; $('fOferta').value='0'; $('sugBox').style.display='none';
     if(!ehAdmin) aplicarTipoContato();   /* recoloca o número salvo no campo */
     arquivoSelecionado = null; cropState = {};
