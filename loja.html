@@ -432,6 +432,7 @@
         <button type="button" class="atab" data-atab="jogadores">🧑 JOGADORES <span id="atabPend" style="color:var(--gold)"></span></button>
         <button type="button" class="atab" data-atab="denuncias">🚩 DENÚNCIAS <span id="atabDen" style="color:var(--red)"></span></button>
         <button type="button" class="atab" data-atab="reviews">⭐ REVIEWS</button>
+        <button type="button" class="atab" data-atab="vendas">📊 VENDAS <span id="atabVendas" style="color:var(--gold)"></span></button>
       </div>
 
       <div class="ed-panel" id="painelForm">
@@ -526,6 +527,11 @@
       <div class="ed-panel" id="reviewsPanel" style="display:none">
         <div class="ed-title">⭐ REPUTAÇÃO</div>
         <div id="revAdminBody"></div>
+      </div>
+      <div class="ed-panel" id="vendasPanel" style="display:none">
+        <div class="ed-title">📊 VENDAS E REFERÊNCIAS</div>
+        <div id="vendasAdminBody"></div>
+        <div class="msg" id="vendasMsg"></div>
       </div>
 
     </div>
@@ -879,6 +885,8 @@ function aplicarPapel(session){
     $('painelForm').style.display = 'block';
     $('painelCatalogo').style.display = 'block';
     $('denunciasPanel').style.display = 'none';
+    $('reviewsPanel').style.display = 'none';
+    $('vendasPanel').style.display = 'none';
     $('catTitle').textContent = 'MEUS ANÚNCIOS';
   }
 }
@@ -889,11 +897,13 @@ function aplicarAbaAdmin(){
   $('painelCatalogo').style.display = (abaAdmin==='loja' || abaAdmin==='jogadores') ? 'block' : 'none';
   $('denunciasPanel').style.display = (abaAdmin==='denuncias') ? 'block' : 'none';
   $('reviewsPanel').style.display   = (abaAdmin==='reviews') ? 'block' : 'none';
+  $('vendasPanel').style.display    = (abaAdmin==='vendas') ? 'block' : 'none';
   $('catTitle').textContent = (abaAdmin==='jogadores') ? 'MODERAÇÃO — JOGADORES' : 'MINHA LOJA';
   $('mgFiltros').style.display = (abaAdmin==='jogadores') ? 'flex' : 'none';
   if(abaAdmin==='loja' || abaAdmin==='jogadores') renderTabela();
   if(abaAdmin==='denuncias') carregarDenuncias();
   if(abaAdmin==='reviews') renderReviewsAdmin();
+  if(abaAdmin==='vendas') carregarVendas();
 }
 
 document.querySelectorAll('.atab').forEach(function(b){
@@ -1251,6 +1261,7 @@ $('btnSalvar').addEventListener('click', function(){
       preco: preco,
       print: url,
       print_path: caminhoEnviado,
+      shiny: $('fShiny').value === '1',
       poke_id: parseInt($('fPokeId').value) || null,
       obs: $('fObs').value.trim() || null,
       disponivel: true
@@ -1383,9 +1394,23 @@ function renderTabela(){
     btn.addEventListener('click', function(){
       var id = this.closest('tr').dataset.id;
       var item = lista.filter(function(x){ return x.id === id; })[0];
-      sb.from('pokemons').update({ disponivel: item.disponivel === false }).eq('id', id).select().then(function(r){
-        if(r.error){ aviso($('mgMsg'), 'erro: '+r.error.message, 'err'); return; }
-        if(!r.data || !r.data.length){ aviso($('mgMsg'), 'não salvou — RLS não permitiu update com essa conta.', 'err'); return; }
+      if(item.disponivel === false){
+        sb.from('pokemons').update({disponivel:true}).eq('id',id).select().then(function(r){
+          if(r.error){ aviso($('mgMsg'),'erro: '+r.error.message,'err'); return; }
+          carregar().then(renderTabela);
+        });
+        return;
+      }
+      var valor = prompt('Por quanto "'+item.nome+'" foi vendido?\n\nDigite o valor final em reais.\nDeixe vazio para usar o preço anunciado ('+brl(item.preco)+').\nDigite 0 se preferir não informar.\nCancelar mantém o anúncio ativo.', item.preco);
+      if(valor === null) return;
+      var final = valor.trim()==='' ? Number(item.preco) : Number(String(valor).replace(',','.'));
+      if(!isFinite(final) || final<0){ aviso($('mgMsg'),'valor inválido','err'); return; }
+      var acao = final===0
+        ? sb.from('pokemons').update({disponivel:false}).eq('id',id).select()
+        : sb.rpc('marcar_pokemon_vendido',{p_anuncio_id:String(id),p_preco_final:final});
+      acao.then(function(r){
+        if(r.error){ aviso($('mgMsg'),'erro: '+r.error.message+' — rode supabase_vendas_reais.sql','err'); return; }
+        aviso($('mgMsg'), final===0 ? '✓ marcado como vendido' : '✓ vendido por '+brl(final)+' · referência enviada para revisão','ok');
         carregar().then(renderTabela);
       });
     });
@@ -1439,6 +1464,44 @@ function renderTabela(){
   });
 }
 
+/* ---------- vendas reais e referências de mercado ---------- */
+var vendasLista = [];
+function dinheiro(v){
+  return v == null || v === '' ? '—' : 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function carregarVendas(){
+  if(!ehAdmin) return;
+  $('vendasAdminBody').innerHTML = '<div style="color:var(--faint);font-size:11px">carregando…</div>';
+  sb.from('vendas_reais').select('*').order('criado_em',{ascending:false}).then(function(r){
+    if(r.error){ $('vendasAdminBody').innerHTML = '<div style="color:var(--red)">erro: '+esc(r.error.message)+'</div>'; return; }
+    vendasLista = r.data || [];
+    renderVendasAdmin();
+  });
+}
+function renderVendasAdmin(){
+  var pendentes = vendasLista.filter(function(v){ return v.status==='pendente'; }).length;
+  if($('atabVendas')) $('atabVendas').textContent = pendentes ? ' '+pendentes : '';
+  if(!vendasLista.length){ $('vendasAdminBody').innerHTML = '<div style="color:var(--faint);font-size:11px">Nenhuma referência recebida ainda.</div>'; return; }
+  $('vendasAdminBody').innerHTML = vendasLista.map(function(v){
+    var cor = v.status==='pendente' ? 'var(--gold)' : (v.status==='aprovado' ? 'var(--green)' : 'var(--red)');
+    return '<div data-vid="'+v.id+'" style="border:2px solid var(--line);padding:11px;margin-bottom:8px;background:var(--panel2)">'+
+      '<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>'+esc(v.pokemon_nome)+'</b><span style="color:'+cor+';font-size:10px">'+esc(v.status.toUpperCase())+'</span></div>'+
+      '<div style="color:var(--muted);font-size:11px;line-height:1.8">IV '+esc(v.iv == null ? '?' : v.iv)+' · Q '+esc(v.qualidade == null ? '?' : v.qualidade)+' · Nv '+esc(v.nivel == null ? '?' : v.nivel)+(v.shiny?' · ✨ SHINY':'')+'<br>'+esc(v.tipo==='venda'?'VENDA':'ANÚNCIO')+' · pedido '+dinheiro(v.preco_pedido)+' · fechado <b style="color:var(--green)">'+dinheiro(v.preco_vendido)+'</b> · '+esc(v.origem)+'<br>enviado por '+esc(v.autor_nome||'usuário')+' · '+esc(v.data_referencia||'')+(v.observacao?'<br>Obs.: '+esc(v.observacao):'')+'</div>'+
+      (v.status==='pendente'?'<div style="margin-top:8px"><button class="mini go" data-vacao="aprovar">APROVAR</button> <button class="mini" data-vacao="rejeitar">REJEITAR</button></div>':'')+
+    '</div>';
+  }).join('');
+  $('vendasAdminBody').querySelectorAll('[data-vacao]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var box=this.closest('[data-vid]'), id=box.dataset.vid;
+      var status=this.dataset.vacao==='aprovar'?'aprovado':'rejeitado';
+      sb.from('vendas_reais').update({status:status}).eq('id',id).select().then(function(r){
+        if(r.error || !r.data || !r.data.length){ aviso($('vendasMsg'),'não foi possível salvar: '+(r.error?r.error.message:'RLS bloqueou'),'err'); return; }
+        aviso($('vendasMsg'),status==='aprovado'?'✓ referência aprovada':'referência rejeitada','ok');
+        carregarVendas();
+      });
+    });
+  });
+}
 /* ---------- denúncias + banimento (B2) ---------- */
 function denunciar(id){
   if(!sessaoAtual || !sessaoAtual.user){

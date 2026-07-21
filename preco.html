@@ -119,7 +119,16 @@
     display:inline-block;margin-top:12px;font-family:var(--px);font-size:8px;
     border:2px solid var(--green);color:var(--green);padding:9px 11px;text-decoration:none;
   }
-  .contrib a:hover{background:var(--green);color:var(--bg);}
+  .contrib a:hover{background:var(--green);color:var(--bg);}  .sale-form{display:none;margin-top:14px;border-top:2px solid rgba(143,196,90,.25);padding-top:14px;}
+  .sale-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+  .sale-grid label{font-size:10px;color:var(--faint);display:block;}
+  .sale-grid input,.sale-grid select,.sale-grid textarea{width:100%;box-sizing:border-box;margin-top:5px;background:var(--bg);border:2px solid var(--line2);color:var(--text);padding:9px;font-family:var(--mono);}
+  .sale-wide{grid-column:1/-1;}
+  .sale-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:11px;}
+  .sale-btn{font-family:var(--px);font-size:8px;border:2px solid var(--green);color:var(--green);background:transparent;padding:9px 11px;cursor:pointer;}
+  .sale-btn:hover{background:var(--green);color:var(--bg);}
+  .sale-msg{font-size:11px;color:var(--muted);}
+  @media(max-width:560px){.sale-grid{grid-template-columns:1fr}.sale-wide{grid-column:auto}}
   
   
   .apoio{border:2px solid var(--line2);background:var(--panel);padding:16px;margin-top:24px;text-align:center;}
@@ -279,14 +288,26 @@
   </div>
 
   <div class="contrib">
-    <b>▸ Vendeu por um preço diferente?</b><br>
-    Essa curva melhora com venda real, não com chute. Se você fechou uma venda, me manda espécie, IV, nível e o valor
-    que eu uso pra recalibrar — e todo mundo que usar a calculadora ganha com isso.
+    <b>▸ Vendeu um Pokémon?</b><br>
+    Registre o <b>valor realmente fechado</b>. A informação entra como pendente, passa por revisão e ajuda a calculadora a ficar mais próxima do mercado — sem expor seu contato publicamente.
     <br>
-    <!-- TROQUE o número: DDI+DDD, só números -->
-    <a href="https://wa.me/5511994309545?text=Vendi%20um%20Pok%C3%A9mon%20e%20quero%20contribuir%20com%20a%20calculadora%3A%20esp%C3%A9cie%20___%2C%20IV%20___%2C%20n%C3%ADvel%20___%2C%20vendido%20por%20R%24___" target="_blank" rel="noopener">CONTRIBUIR COM UMA VENDA</a>
+    <button type="button" class="sale-btn" id="saleOpen">REGISTRAR VENDA REAL</button>
+    <div class="sale-form" id="saleForm">
+      <div class="sale-grid">
+        <label class="sale-wide">Pokémon *<input id="saleNome" maxlength="60" placeholder="ex: Charizard"></label>
+        <label>IV<input id="saleIv" type="number" min="0" max="192"></label>
+        <label>Qualidade<input id="saleQual" type="number" min="0.1" max="10" step="0.01"></label>
+        <label>Nível<input id="saleNivel" type="number" min="1"></label>
+        <label>É shiny?<select id="saleShiny"><option value="0">Não</option><option value="1">Sim</option></select></label>
+        <label>Preço anunciado (opcional)<input id="salePedido" type="number" min="0.01" step="0.01" placeholder="R$"></label>
+        <label>Valor realmente vendido *<input id="saleVendido" type="number" min="0.01" step="0.01" placeholder="R$"></label>
+        <label>Onde negociou?<select id="saleOrigem"><option value="whatsapp">WhatsApp</option><option value="discord">Discord</option><option value="externa">Outro lugar</option></select></label>
+        <label>Data da venda<input id="saleData" type="date"></label>
+        <label class="sale-wide">Observação (opcional)<textarea id="saleObs" rows="2" maxlength="300" placeholder="Algo que ajude a conferir a referência"></textarea></label>
+      </div>
+      <div class="sale-actions"><button type="button" class="sale-btn" id="saleSend">ENVIAR PARA REVISÃO</button><span class="sale-msg" id="saleMsg"></span></div>
+    </div>
   </div>
-
   <div class="apoio">
     <div class="apoio-t">❤ APOIO OPCIONAL</div>
     <p>O PokeCentral é <b>grátis</b> e vai continuar assim. Se quiser dar uma força com os custos do projeto, é <b>100% opcional</b> — e sem custo pra você: se ainda não joga, criar sua conta pelo meu <b>referral</b> já ajuda.</p>
@@ -295,6 +316,7 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="pricing.js"></script>
 <script>
 var BREAKPOINT_IV = PokePrice.CFG.BREAKPOINT_IV;
@@ -365,6 +387,46 @@ function buildPriceTable(p){
   });
 }
 
+/* contribuição estruturada de vendas reais */
+var saleSb = supabase.createClient(
+  'https://gimluwxoaxfxpbcfosrj.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpbWx1d3hvYXhmeHBiY2Zvc3JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MDIxMzYsImV4cCI6MjA5OTk3ODEzNn0.uT05zvrnqU_sLnVQBFpHkw7TJL-WBUDaSqJ26RVPaSE'
+);
+function saleVal(id){ return document.getElementById(id).value.trim(); }
+function saleNumero(id){ var v=saleVal(id).replace(',','.'); return v===''?null:Number(v); }
+function saleNomeUsuario(u){ var m=u.user_metadata||{}; return m.full_name||m.name||m.user_name||m.preferred_username||u.email||'usuário'; }
+function preencherVenda(){
+  document.getElementById('saleIv').value=document.getElementById('p-iv').value;
+  document.getElementById('saleQual').value=document.getElementById('p-qual').value;
+  document.getElementById('saleNivel').value=document.getElementById('p-level').value;
+  document.getElementById('saleShiny').value=document.getElementById('p-shiny').value;
+  if(!document.getElementById('saleData').value) document.getElementById('saleData').value=new Date().toISOString().slice(0,10);
+}
+document.getElementById('saleOpen').addEventListener('click',function(){
+  var f=document.getElementById('saleForm'); f.style.display=f.style.display==='block'?'none':'block';
+  if(f.style.display==='block') preencherVenda();
+});
+document.getElementById('saleSend').addEventListener('click',async function(){
+  var msg=document.getElementById('saleMsg'), btn=this;
+  var nome=saleVal('saleNome'), vendido=saleNumero('saleVendido');
+  if(!nome || !vendido || vendido<=0){ msg.textContent='Preencha o Pokémon e o valor vendido.'; msg.style.color='var(--red)'; return; }
+  var sr=await saleSb.auth.getSession(), session=sr.data.session;
+  if(!session){
+    localStorage.setItem('pc_venda_pendente',JSON.stringify({nome:nome,iv:saleVal('saleIv'),qual:saleVal('saleQual'),nivel:saleVal('saleNivel'),shiny:saleVal('saleShiny'),pedido:saleVal('salePedido'),vendido:saleVal('saleVendido'),origem:saleVal('saleOrigem'),data:saleVal('saleData'),obs:saleVal('saleObs')}));
+    msg.textContent='Abrindo o Discord para confirmar quem enviou…';
+    await saleSb.auth.signInWithOAuth({provider:'discord',options:{redirectTo:location.href,scopes:'identify email'}}); return;
+  }
+  btn.disabled=true; msg.textContent='enviando…'; msg.style.color='var(--muted)';
+  var r=await saleSb.from('vendas_reais').insert({autor_id:session.user.id,autor_nome:saleNomeUsuario(session.user),pokemon_nome:nome,iv:saleNumero('saleIv'),qualidade:saleNumero('saleQual'),nivel:saleNumero('saleNivel'),shiny:saleVal('saleShiny')==='1',preco_pedido:saleNumero('salePedido'),preco_vendido:vendido,tipo:'venda',origem:saleVal('saleOrigem'),observacao:saleVal('saleObs')||null,data_referencia:saleVal('saleData')||new Date().toISOString().slice(0,10)});
+  btn.disabled=false;
+  if(r.error){ msg.textContent='Não foi possível enviar: '+r.error.message; msg.style.color='var(--red)'; return; }
+  msg.textContent='✓ Enviado para revisão. Obrigado por ajudar!'; msg.style.color='var(--green)';
+  localStorage.removeItem('pc_venda_pendente'); document.getElementById('saleVendido').value=''; document.getElementById('salePedido').value=''; document.getElementById('saleObs').value='';
+});
+(function restaurarVenda(){
+  var raw=localStorage.getItem('pc_venda_pendente'); if(!raw) return;
+  try{ var v=JSON.parse(raw); document.getElementById('saleNome').value=v.nome||''; document.getElementById('saleIv').value=v.iv||''; document.getElementById('saleQual').value=v.qual||''; document.getElementById('saleNivel').value=v.nivel||''; document.getElementById('saleShiny').value=v.shiny||'0'; document.getElementById('salePedido').value=v.pedido||''; document.getElementById('saleVendido').value=v.vendido||''; document.getElementById('saleOrigem').value=v.origem||'externa'; document.getElementById('saleData').value=v.data||''; document.getElementById('saleObs').value=v.obs||''; document.getElementById('saleForm').style.display='block'; }catch(e){}
+})();
 ["p-iv","p-qual","p-level","p-tailgrowth","p-levelvalue","p-qualbase","p-qualweight","p-shinymult"].forEach(function(id){
   document.getElementById(id).addEventListener("input", calcPrice);
 });
