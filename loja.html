@@ -108,16 +108,17 @@
   .card-meta{font-size:11.5px;color:var(--muted);}
   .card-obs{font-size:11.5px;color:var(--faint);line-height:1.5;}
   .card-price{font-family:var(--px);font-size:12px;color:var(--gold);margin-top:2px;}
-  .deal-badge{display:inline-block;margin:5px 0 2px;padding:4px 6px;border:1px solid var(--line2);font-family:var(--px);font-size:6.5px;letter-spacing:.03em;color:var(--muted);}
+  .card-footer{margin-top:auto;display:flex;flex-direction:column;gap:6px;}
+  .deal-badge{display:block;width:100%;margin:0;padding:5px 7px;border:1px solid var(--line2);font-family:var(--px);font-size:6.5px;letter-spacing:.03em;color:var(--muted);}
   .deal-badge.open{border-color:var(--green);color:var(--green);background:rgba(143,196,90,.08);}
   .card-cta{
     margin-top:auto;font-family:var(--px);font-size:8px;text-align:center;text-decoration:none;
     border:2px solid var(--green);color:var(--green);padding:10px 6px;line-height:1.6;
   }
   .card-cta:hover{background:var(--green);color:var(--bg);}
-  .card-action-area{margin-top:auto;display:flex;flex-direction:column;gap:6px;}
+  .card-action-area{margin-top:0;display:flex;flex-direction:column;gap:6px;}
   .card-action-area .card-cta{margin-top:0;display:block;}
-  .card-action-note{min-height:34px;font-size:10.5px;color:var(--faint);line-height:1.45;text-align:center;display:flex;align-items:center;justify-content:center;}
+  .card-action-note{height:38px;font-size:10.5px;color:var(--faint);line-height:1.45;text-align:center;display:flex;align-items:center;justify-content:center;overflow:hidden;}
 
   .shop-tabs{display:flex;gap:10px;margin-bottom:18px;}
   .shop-tab{
@@ -738,8 +739,8 @@ function cardHtml(p){
       '<div class="card-name">'+esc(p.nome)+'</div>'+
       '<div class="card-meta">Nível '+esc(p.nivel)+(p.qualidade ? ' · Qualidade '+esc(p.qualidade) : '')+'</div>'+
       (p.obs ? '<div class="card-obs">'+esc(p.obs)+'</div>' : '')+
-      '<div class="card-price">'+brl(p.preco)+'</div>'+ofertaBadge+
-      rodape+
+      '<div class="card-price">'+brl(p.preco)+'</div>'+
+      '<div class="card-footer">'+ofertaBadge+rodape+'</div>'+
       '<button type="button" class="card-share" data-share="'+p.id+'">🔗 compartilhar</button>'+
       (ehOficial(p) ? '' : '<button type="button" class="card-report" data-den="'+p.id+'">🚩 denunciar</button>')+
     '</div></div>';
