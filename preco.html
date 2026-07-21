@@ -172,7 +172,7 @@
     </p>
 
     <div class="grid main">
-      <div><label for="p-name">Espécie do Pokémon</label><input type="text" id="p-name" list="pokemonNames" maxlength="60" placeholder="digite e selecione..." autocomplete="off"><datalist id="pokemonNames"></datalist><div id="p-species-status" style="font-size:10px;margin-top:5px;color:var(--faint)">Selecione um nome válido da Pokédex.</div></div>
+      <div><label for="p-name">Espécie do Pokémon</label><select id="p-name"><option value="">Escolha um Pokémon...</option></select><div id="p-species-status" style="font-size:10px;margin-top:5px;color:var(--faint)">Lista oficial do jogo — não é possível digitar um nome errado.</div></div>
       <div>
         <label for="p-iv">IV do Pokémon (0 – 192)</label>
         <input type="number" id="p-iv" value="120" min="0" max="192" step="1">
@@ -371,7 +371,7 @@ function saleVal(id){ return document.getElementById(id).value.trim(); }
 function saleNumero(id){ var v=saleVal(id).replace(',','.'); return v===''?null:Number(v); }
 function saleNomeUsuario(u){ var m=u.user_metadata||{}; return m.full_name||m.name||m.user_name||m.preferred_username||u.email||'usuário'; }
 function preencherVenda(){
-  document.getElementById('saleNome').value=document.getElementById('p-name').value;
+  document.getElementById('saleNome').value=selectedSpecies?selectedSpecies.name:'';
   document.getElementById('saleIv').value=document.getElementById('p-iv').value;
   document.getElementById('saleQual').value=document.getElementById('p-qual').value;
   document.getElementById('saleNivel').value=document.getElementById('p-level').value;
@@ -404,18 +404,18 @@ document.getElementById('saleSend').addEventListener('click',async function(){
   try{ var v=JSON.parse(raw); document.getElementById('saleNome').value=v.nome||''; document.getElementById('saleIv').value=v.iv||''; document.getElementById('saleQual').value=v.qual||''; document.getElementById('saleNivel').value=v.nivel||''; document.getElementById('saleShiny').value=v.shiny||'0'; document.getElementById('salePedido').value=v.pedido||''; document.getElementById('saleVendido').value=v.vendido||''; document.getElementById('saleOrigem').value=v.origem||'externa'; document.getElementById('saleData').value=v.data||''; document.getElementById('saleObs').value=v.obs||''; document.getElementById('saleForm').style.display='block'; }catch(e){}
 })();
 (function prepararEspecies(){
-  var dl=document.getElementById('pokemonNames');
-  (window.PokeSpecies||[]).forEach(function(sp){ var o=document.createElement('option'); o.value=sp.name; dl.appendChild(o); });
-  function escolher(){
-    var digitado=document.getElementById('p-name').value.trim().toLowerCase();
-    selectedSpecies=(window.PokeSpecies||[]).filter(function(sp){return sp.name.toLowerCase()===digitado;})[0]||null;
+  var campo=document.getElementById('p-name');
+  (window.PokeSpecies||[]).forEach(function(sp){
+    var o=document.createElement('option'); o.value=String(sp.id); o.textContent=sp.name; campo.appendChild(o);
+  });
+  campo.addEventListener('change',function(){
+    var id=Number(this.value);
+    selectedSpecies=(window.PokeSpecies||[]).filter(function(sp){return sp.id===id;})[0]||null;
     var st=document.getElementById('p-species-status');
-    if(selectedSpecies){ document.getElementById('p-name').value=selectedSpecies.name; st.textContent='✓ '+selectedSpecies.name+' selecionado'; st.style.color='var(--green)'; }
-    else { st.textContent=digitado?'Selecione uma opção válida da lista.':'Selecione um nome válido da Pokédex.'; st.style.color=digitado?'var(--red)':'var(--faint)'; }
+    if(selectedSpecies){ st.textContent='✓ '+selectedSpecies.name+' selecionado'; st.style.color='var(--green)'; }
+    else { st.textContent='Escolha um Pokémon da lista oficial.'; st.style.color='var(--faint)'; }
     calcPrice();
-  }
-  document.getElementById('p-name').addEventListener('input',escolher);
-  document.getElementById('p-name').addEventListener('change',escolher);
+  });
 })();
 ["p-iv","p-qual","p-level"].forEach(function(id){
   document.getElementById(id).addEventListener("input", calcPrice);
