@@ -231,3 +231,14 @@ header::after{content:"●  ●  ●";position:absolute;right:28px;top:10px;colo
 .page-auction .lote{position:relative;}.page-auction .lote::before{content:"AUC-03 // LOTE AUTENTICADO";display:block;padding:7px 12px;border-bottom:2px solid rgba(var(--sector-rgb),.42);background:rgba(var(--sector-rgb),.07);font-family:var(--px);font-size:6px;color:var(--sector);letter-spacing:.07em;}
 @keyframes pcCursor{50%{opacity:.25}}
 @media(max-width:760px){.nav::before{display:none}.wrap::before,.wrap::after{display:none}header::after{right:8px;top:8px}.page-home .hero::after{left:8px;bottom:7px;font-size:5px}.sec-head h2::after{display:none}}
+/* IMAGENS OFICIAIS DA CENTRAL — hero e cenários laterais */
+.page-home .hero{background:#0f0d09 url('/assets/visual/central-banner.jpg') center center/cover no-repeat!important;padding:0!important;min-height:510px;}
+.page-home .hero::before{background:linear-gradient(90deg,rgba(15,13,9,.03),rgba(15,13,9,.18) 48%,rgba(15,13,9,.02) 76%)!important;z-index:1;}
+.page-home .hero::after{display:none!important;}
+.page-home .hero-in{display:block!important;position:relative;z-index:2;min-height:510px;}
+.page-home .hero-txt{width:min(610px,58%);padding:210px 0 34px 42px!important;margin:0!important;box-sizing:border-box;}
+.page-home .hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:19px;}
+.page-home .hero-actions a{font-family:var(--px);font-size:7px;padding:11px 13px;border:2px solid var(--gold);color:var(--gold);background:rgba(15,13,9,.82);text-decoration:none;box-shadow:3px 3px 0 rgba(0,0,0,.55);}
+.page-home .hero-actions a:last-child{border-color:var(--green);color:var(--green);}.page-home .hero-actions a:hover{background:var(--gold);color:var(--bg);}.page-home .hero-actions a:last-child:hover{background:var(--green);color:var(--bg);}
+@media(min-width:1500px){body{background-image:url('/assets/visual/left-banner.jpg'),url('/assets/visual/right-banner.jpg'),radial-gradient(circle at 12% 5%,rgba(240,180,41,.075),transparent 28rem),radial-gradient(circle at 88% 18%,rgba(143,196,90,.045),transparent 24rem)!important;background-repeat:no-repeat,no-repeat,no-repeat,no-repeat!important;background-position:left 82px,right 82px,12% 5%,88% 18%!important;background-size:min(31vw,520px) auto,min(31vw,520px) auto,auto,auto!important;background-attachment:fixed,fixed,scroll,scroll!important;}}
+@media(max-width:640px){.page-home .hero{min-height:540px;background-size:180% auto!important;background-position:left top!important;}.page-home .hero-in{min-height:540px;}.page-home .hero-txt{width:100%;padding:215px 18px 24px!important;background:linear-gradient(180deg,transparent 0 145px,rgba(15,13,9,.74) 205px,rgba(15,13,9,.95) 100%);}.page-home .hero h1{font-size:14px!important;line-height:1.6!important}.page-home .hero p{font-size:12px!important;line-height:1.65!important}.page-home .hero-actions a{font-size:6px;flex:1;text-align:center;}}
