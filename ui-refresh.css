@@ -353,3 +353,21 @@ header::after{content:"●  ●  ●";position:absolute;right:28px;top:10px;colo
 .page-store .pedido-manage b{color:var(--text);}
 .page-store .pedido-status{font-family:var(--px);font-size:6px;color:var(--gold);}
 @media(max-width:700px){.page-store .shop-tabs{grid-template-columns:1fr}.page-store .pedidos-intro{align-items:stretch;flex-direction:column}.page-store .pedido-grid{grid-template-columns:1fr}}
+/* Correção da grade de canais: título acima, Oficial > Jogadores > Pedidos */
+.page-store .shop-tabs::before{
+  grid-column:1/-1;
+  width:100%;
+  box-sizing:border-box;
+  margin-bottom:0;
+}
+.page-store .shop-tabs .shop-tab{
+  min-width:0;
+  width:100%;
+  box-sizing:border-box;
+}
+.page-store .shop-tab[data-aba="pedidos"] .st-name::before{
+  background-image:url('/icons/ui/32/vender-pokemon.png');
+}
+@media(min-width:701px){
+  .page-store .shop-tabs{grid-template-columns:repeat(3,minmax(0,1fr));}
+}
