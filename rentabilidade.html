@@ -162,19 +162,27 @@
 
   <header>
     <h1>Calculadora de <span>lucro</span></h1>
-    <p>
-      Duas coisas: quantas capturas de cada raridade saem por hora, e quanto cada rota de RMT rende em dinheiro real.
-      Todos os campos são editáveis — preencha com o que você observa no jogo hoje, porque preço de mercado muda de hora em hora.
-    </p>
+    <p>Compare capturas por hora e o retorno das rotas usando os números que você observa no jogo hoje.</p>
   </header>
 
-  <div class="headline" id="headline">Preencha os campos abaixo com o que você vê no jogo hoje — a calculadora responde aqui quanto renderia no seu caso.</div>
-
-  <div class="risk-note">
-    ⚠ <b>Antes de começar:</b> RMT é <b>permitido</b> neste jogo — pode farmar e vender tranquilo. O cuidado real é o limite de
-    <b>4 contas por IP</b> hoje: o ideal é não passar disso pra evitar possível ban. E o jogo está em <b>beta e reseta tudo no lançamento</b>
-    — trate como grana de curto prazo. Os números aqui são estimativa, não promessa.
+  <div class="calc-help-grid">
+    <details class="calc-help">
+      <summary><span>COMO USAR</span><small>preencha com seus números atuais</small></summary>
+      <div class="calc-help-body">
+        <p>Informe sua taxa de captura, horas de farm, contas e preços praticados agora. Os campos são manuais porque o mercado pode mudar rapidamente após atualizações.</p>
+        <p>As rotas são comparadas separadamente; a combinação entre elas aparece na alocação sugerida.</p>
+      </div>
+    </details>
+    <details class="calc-help">
+      <summary><span>LIMITES E RISCO</span><small>4 contas, beta e estimativas</small></summary>
+      <div class="calc-help-body">
+        <p>RMT é permitido no jogo, mas o limite atual é de 4 contas por IP. O ideal é não ultrapassar esse número para evitar possíveis punições.</p>
+        <p>O jogo está em beta e reseta no lançamento. Os resultados são estimativas de curto prazo, não promessa de lucro.</p>
+      </div>
+    </details>
   </div>
+
+  <div class="headline" id="headline">Preencha os campos abaixo com o que você vê no jogo hoje — a calculadora responde aqui quanto renderia no seu caso.</div>
 
   <div class="toolbar">
     <button type="button" id="btnShare">🔗 copiar meu cenário</button>
@@ -183,10 +191,7 @@
 
   <section>
     <div class="sec-head"><h2>1. Qualidade por hora</h2><div class="rule"></div></div>
-    <p class="sec-desc">
-      As porcentagens de cada faixa são fixas (definidas pelo jogo) e valem pra qualquer espécie.
-      O que muda de um Pokémon/nível/local pro outro é só a <b>taxa de captura</b> — o número depois do "/h" na tela de caça.
-    </p>
+    <p class="sec-desc">Informe a taxa de captura exibida no jogo; as faixas de qualidade são aplicadas automaticamente.</p>
     <div class="panel">
       <div style="max-width:240px">
         <label for="catches">Capturas por hora</label>

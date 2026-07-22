@@ -170,20 +170,28 @@
 
   <header>
     <h1>Calculadora de <span>preço</span></h1>
-    <p>Estima uma faixa de venda usando <b>espécie</b>, <b>qualidade</b>, <b>IV</b>, <b>nível</b>, demanda e shiny. Quando existem referências aprovadas, a calculadora compara com anúncios e vendas reais semelhantes — vendas concluídas pesam mais.</p>
-    <p>A qualidade tem mais impacto no poder que o IV, conforme a Poképedia oficial. Mesmo assim, poder e dificuldade de captura <b>não viram preço automaticamente</b>: o mercado e a procura continuam sendo a principal referência.</p>
+    <p>Estime uma faixa de anúncio usando espécie, qualidade, IV, nível, demanda e referências do mercado.</p>
   </header>
 
-  <div class="warn">
-    <b>▸ Lembre do beta.</b> Tudo reseta no lançamento (menos diamante da loja oficial, que volta com +25%).
-    IVs muito altos e shinies continuam sendo extremamente raros, mas o reset reduz a liquidez: use a faixa sugerida como ponto de partida e não como venda garantida.
+  <div class="calc-help-grid">
+    <details class="calc-help">
+      <summary><span>COMO A ESTIMATIVA FUNCIONA</span><small>dados usados e limites</small></summary>
+      <div class="calc-help-body">
+        <p>A calculadora considera espécie, qualidade, IV, nível, demanda e shiny. Quando há referências aprovadas, anúncios semelhantes entram na comparação e vendas concluídas recebem mais peso.</p>
+        <p>Qualidade e IV influenciam o poder, mas raridade e dificuldade de captura não viram preço automaticamente. Procura e liquidez continuam sendo decisivas.</p>
+      </div>
+    </details>
+    <details class="calc-help">
+      <summary><span>BETA E INTERPRETAÇÃO</span><small>reset, liquidez e faixa sugerida</small></summary>
+      <div class="calc-help-body">
+        <p>O jogo está em beta e os Pokémon serão resetados no lançamento. IVs altos e shinies continuam raros, mas o reset reduz a liquidez.</p>
+        <p>Use as faixas como ponto de partida para negociar, não como preço garantido de venda.</p>
+      </div>
+    </details>
   </div>
 
   <div class="panel">
-    <p class="note" style="margin-top:0">
-      Copia os números que aparecem no status do seu Pokémon (IV, qualidade, nível), escolhe a demanda e marca se é shiny.
-      A calculadora devolve 3 sugestões de preço. Não sabe o que é cada campo? Abre a ajuda logo abaixo.
-    </p>
+    <p class="note" style="margin-top:0">Preencha os status do Pokémon. A calculadora devolve venda rápida, preço justo e teto de anúncio.</p>
 
     <div class="grid main">
       <div>

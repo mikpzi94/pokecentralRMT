@@ -260,3 +260,58 @@ header::after{content:"●  ●  ●";position:absolute;right:28px;top:10px;colo
 .page-home .home-info-body{border-top:1px solid var(--line2);padding:13px 14px 15px;color:var(--muted);font-size:11.5px;line-height:1.7;}.page-home .home-info-body p{margin:0 0 10px}.page-home .home-info-body p:last-child{margin-bottom:0}.page-home .home-info-body ul{margin:0 0 11px;padding-left:18px}.page-home .home-info-body b{color:var(--text)}.page-home .home-info-body>a{font-family:var(--px);font-size:6px;color:var(--green);}
 .page-home .home-links{display:grid;gap:8px}.page-home .home-links>a{display:flex;flex-direction:column;gap:3px;padding:9px;border:1px solid var(--line2);font-family:var(--mono);font-size:11px;text-decoration:none;color:var(--green)}.page-home .home-links>a small{color:var(--faint)}
 @media(max-width:800px){.page-home .home-info-grid{grid-template-columns:1fr}.page-home .home-info summary{min-height:auto;padding:12px 36px 12px 12px}}
+/* Calculadoras compactas — ajuda sob demanda */
+.page-calculator .calc-help-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin:0 0 18px;
+}
+.page-calculator .calc-help{
+  border:2px solid var(--line2);
+  background:rgba(18,16,12,.86);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.025);
+}
+.page-calculator .calc-help[open]{border-color:var(--blue)}
+.page-calculator .calc-help summary{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  min-height:52px;
+  padding:12px 42px 11px 14px;
+  cursor:pointer;
+  list-style:none;
+}
+.page-calculator .calc-help summary::-webkit-details-marker{display:none}
+.page-calculator .calc-help summary::after{
+  content:'+';
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  color:var(--blue);
+  font:700 18px/1 'Press Start 2P',monospace;
+}
+.page-calculator .calc-help[open] summary::after{content:'−'}
+.page-calculator .calc-help summary span{
+  color:var(--blue);
+  font:700 9px/1.5 'Press Start 2P',monospace;
+}
+.page-calculator .calc-help summary small{
+  color:var(--muted);
+  font-size:11px;
+}
+.page-calculator .calc-help-body{
+  padding:0 14px 12px;
+  border-top:1px solid var(--line2);
+}
+.page-calculator .calc-help-body p{
+  margin:10px 0 0;
+  color:var(--text2);
+  font-size:12px;
+  line-height:1.7;
+}
+@media(max-width:700px){
+  .page-calculator .calc-help-grid{grid-template-columns:1fr}
+}
