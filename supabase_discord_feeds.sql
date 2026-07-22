@@ -28,6 +28,9 @@ declare
   preco_txt text;
   link text;
   embed jsonb;
+  qualidade_num numeric;
+  mencoes text := '<@&1529519273008173258>';
+  cargos jsonb := jsonb_build_array('1529519273008173258');
 begin
   if new.status <> 'aprovado' or new.disponivel is false then
     return new;
@@ -45,6 +48,25 @@ begin
   if hook is null or hook not like 'https://discord.com/api/webhooks/%' then
     raise warning 'Webhook discord_webhook_loja ausente ou inválido';
     return new;
+  end if;
+
+  begin
+    qualidade_num := nullif(replace(new.qualidade::text,',','.'),'')::numeric;
+  exception when others then
+    qualidade_num := null;
+  end;
+
+  if coalesce(new.shiny,false) or coalesce(qualidade_num,0) >= 2 then
+    mencoes := mencoes || ' <@&1529519484719595550>';
+    cargos := cargos || jsonb_build_array('1529519484719595550');
+  end if;
+  if coalesce(new.iv,0) >= 150 then
+    mencoes := mencoes || ' <@&1529519518903304232>';
+    cargos := cargos || jsonb_build_array('1529519518903304232');
+  end if;
+  if coalesce(qualidade_num,0) >= 2 then
+    mencoes := mencoes || ' <@&1529519562310025439>';
+    cargos := cargos || jsonb_build_array('1529519562310025439');
   end if;
 
   preco_txt := 'R$ ' || replace(to_char(coalesce(new.preco,0), 'FM999999990.00'), '.', ',');
@@ -72,9 +94,9 @@ begin
     headers := jsonb_build_object('Content-Type','application/json'),
     body := jsonb_build_object(
       'username','PokeCentral · Loja',
-      'content','**Novo Pokémon disponível na loja!**',
+      'content',mencoes || chr(10) || '**Novo Pokémon disponível na loja!**',
       'embeds',jsonb_build_array(embed),
-      'allowed_mentions',jsonb_build_object('parse',jsonb_build_array())
+      'allowed_mentions',jsonb_build_object('parse',jsonb_build_array(),'roles',cargos)
     )
   );
   return new;
@@ -104,6 +126,8 @@ declare
   requisitos text := '';
   orcamento text;
   link text;
+  mencoes text := '<@&1529519394823082224>';
+  cargos jsonb := jsonb_build_array('1529519394823082224');
 begin
   if new.status <> 'aprovado' or new.ativo is false or new.expira_em <= now() then
     return new;
@@ -121,6 +145,19 @@ begin
   if hook is null or hook not like 'https://discord.com/api/webhooks/%' then
     raise warning 'Webhook discord_webhook_pedidos ausente ou inválido';
     return new;
+  end if;
+
+  if new.shiny = 'obrigatorio' or coalesce(new.qualidade_min,0) >= 2 then
+    mencoes := mencoes || ' <@&1529519484719595550>';
+    cargos := cargos || jsonb_build_array('1529519484719595550');
+  end if;
+  if coalesce(new.iv_min,0) >= 150 then
+    mencoes := mencoes || ' <@&1529519518903304232>';
+    cargos := cargos || jsonb_build_array('1529519518903304232');
+  end if;
+  if coalesce(new.qualidade_min,0) >= 2 then
+    mencoes := mencoes || ' <@&1529519562310025439>';
+    cargos := cargos || jsonb_build_array('1529519562310025439');
   end if;
 
   if new.iv_min is not null then requisitos := requisitos || 'IV ' || new.iv_min || '+'; end if;
@@ -153,7 +190,7 @@ begin
     headers := jsonb_build_object('Content-Type','application/json'),
     body := jsonb_build_object(
       'username','PokeCentral · Pedidos',
-      'content','**Novo pedido publicado pela comunidade!**',
+      'content',mencoes || chr(10) || '**Novo pedido publicado pela comunidade!**',
       'embeds',jsonb_build_array(jsonb_build_object(
         'title','📋 Procuro: ' || coalesce(new.pokemon_nome,'Pokémon'),
         'url',link,
@@ -162,7 +199,7 @@ begin
         'color',5088255,
         'footer',jsonb_build_object('text','PokeCentral · pedido ativo por 7 dias')
       )),
-      'allowed_mentions',jsonb_build_object('parse',jsonb_build_array())
+      'allowed_mentions',jsonb_build_object('parse',jsonb_build_array(),'roles',cargos)
     )
   );
   return new;
@@ -192,6 +229,9 @@ declare
   detalhes text;
   link text;
   embed jsonb;
+  qualidade_num numeric;
+  mencoes text := '<@&1529519454285987913>';
+  cargos jsonb := jsonb_build_array('1529519454285987913');
 begin
   select decrypted_secret into hook
     from vault.decrypted_secrets
@@ -201,6 +241,21 @@ begin
   if hook is null or hook not like 'https://discord.com/api/webhooks/%' then
     raise warning 'Webhook discord_webhook_leilao ausente ou inválido';
     return new;
+  end if;
+
+  begin
+    qualidade_num := nullif(replace(new.qualidade::text,',','.'),'')::numeric;
+  exception when others then
+    qualidade_num := null;
+  end;
+
+  if coalesce(qualidade_num,0) >= 2 then
+    mencoes := mencoes || ' <@&1529519484719595550> <@&1529519562310025439>';
+    cargos := cargos || jsonb_build_array('1529519484719595550','1529519562310025439');
+  end if;
+  if coalesce(new.iv,0) >= 150 then
+    mencoes := mencoes || ' <@&1529519518903304232>';
+    cargos := cargos || jsonb_build_array('1529519518903304232');
   end if;
 
   link := 'https://pokecentral-rmt.vercel.app/l/' || new.id::text;
@@ -229,9 +284,9 @@ begin
     headers := jsonb_build_object('Content-Type','application/json'),
     body := jsonb_build_object(
       'username','PokeCentral · Leilão',
-      'content','**Um novo leilão começou!**',
+      'content',mencoes || chr(10) || '**Um novo leilão começou!**',
       'embeds',jsonb_build_array(embed),
-      'allowed_mentions',jsonb_build_object('parse',jsonb_build_array())
+      'allowed_mentions',jsonb_build_object('parse',jsonb_build_array(),'roles',cargos)
     )
   );
   return new;
