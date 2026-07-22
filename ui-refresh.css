@@ -366,7 +366,7 @@ header::after{content:"●  ●  ●";position:absolute;right:28px;top:10px;colo
   box-sizing:border-box;
 }
 .page-store .shop-tab[data-aba="pedidos"] .st-name::before{
-  background-image:url('/icons/ui/32/vender-pokemon.png');
+  background-image:url('/icons/pedidos.png');
 }
 @media(min-width:701px){
   .page-store .shop-tabs{grid-template-columns:repeat(3,minmax(0,1fr));}
