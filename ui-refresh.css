@@ -210,7 +210,7 @@ header::before{content:"POKECENTRAL // SYSTEM";position:absolute;left:12px;top:-
 body{--sector:var(--gold);--sector-rgb:240,180,41;--sector-name:"RECEPÇÃO";--sector-code:"CENTRAL-00";}
 body.page-calculator{--sector:#4da3ff;--sector-rgb:77,163,255;--sector-name:"LABORATÓRIO";--sector-code:"LAB-01";}
 body.page-store{--sector:#8fc45a;--sector-rgb:143,196,90;--sector-name:"TERMINAL DE COMÉRCIO";--sector-code:"MKT-02";}
-body.page-auction{--sector:#9b5de5;--sector-rgb:155,93,229;--sector-name:"ARENA DE NEGOCIAÇÃO";--sector-code:"AUC-03";}
+body.page-auction{--sector:#9b5de5;--sector-rgb:155,93,229;--sector-name:"ARENA DE NEGOCIAÇÃO";--sector-code:"AUC-04";}
 .wrap{position:relative;}
 .wrap::before,.wrap::after{content:"";position:fixed;top:92px;bottom:20px;width:2px;pointer-events:none;opacity:.22;background:repeating-linear-gradient(180deg,var(--sector) 0 16px,transparent 16px 25px);}
 .wrap::before{left:max(8px,calc(50% - 576px));}.wrap::after{right:max(8px,calc(50% - 576px));}
@@ -222,13 +222,13 @@ header::after{content:"●  ●  ●";position:absolute;right:28px;top:10px;colo
 .page-home .hero::after{content:"CENTRAL-00 // RECEPÇÃO  •  SISTEMA ONLINE";position:absolute;left:18px;bottom:12px;padding:5px 8px;border:1px solid var(--gold);background:rgba(12,10,7,.86);font-family:var(--px);font-size:6px;color:var(--gold);letter-spacing:.06em;z-index:4;}
 .page-home .tool,.page-home .mk,.page-store .shop-tab,.page-store .card,.page-auction .lote,.page-calculator .panel{clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,8px 100%,0 calc(100% - 8px));}
 .page-home .tool::after,.page-home .mk::after{position:absolute;right:9px;top:8px;font-family:var(--px);font-size:6px;color:var(--tint,var(--gold));letter-spacing:.06em;opacity:.85;}
-.page-home .tool[href="/rentabilidade"]::after{content:"LAB-01A";}.page-home .tool[href="/preco"]::after{content:"LAB-01B";}.page-home .mk-store::after{content:"MKT-02";}.page-home .mk-orders::after{content:"REQ-04";}.page-home .mk-auction-secondary::after{content:"AUC-03";}
+.page-home .tool[href="/rentabilidade"]::after{content:"LAB-01A";}.page-home .tool[href="/preco"]::after{content:"LAB-01B";}.page-home .mk-store::after{content:"MKT-02";}.page-home .mk-orders::after{content:"REQ-03";}.page-home .mk-auction-secondary::after{content:"AUC-04";}
 .sec-head h2::after{content:" // " var(--sector-name);color:var(--sector);opacity:.72;font-size:6px;}
 .page-store .shop-tabs::before{content:"SELECIONE O CANAL DE COMÉRCIO";display:block;flex:0 0 100%;font-family:var(--px);font-size:6px;color:var(--sector);letter-spacing:.08em;margin-bottom:-5px;}
 .page-store .shop-tabs{flex-wrap:wrap;}
 .page-store .shop-tab.on::before{content:"▶";position:absolute;right:12px;top:12px;color:var(--sector);font-family:var(--px);font-size:9px;animation:pcCursor .85s steps(2,end) infinite;}
 .page-calculator .panel::before{content:var(--sector-code) " // TERMINAL DE ANÁLISE";color:var(--sector);}
-.page-auction .lote{position:relative;}.page-auction .lote::before{content:"AUC-03 // LOTE AUTENTICADO";display:block;padding:7px 12px;border-bottom:2px solid rgba(var(--sector-rgb),.42);background:rgba(var(--sector-rgb),.07);font-family:var(--px);font-size:6px;color:var(--sector);letter-spacing:.07em;}
+.page-auction .lote{position:relative;}.page-auction .lote::before{content:"AUC-04 // LOTE AUTENTICADO";display:block;padding:7px 12px;border-bottom:2px solid rgba(var(--sector-rgb),.42);background:rgba(var(--sector-rgb),.07);font-family:var(--px);font-size:6px;color:var(--sector);letter-spacing:.07em;}
 @keyframes pcCursor{50%{opacity:.25}}
 @media(max-width:760px){.nav::before{display:none}.wrap::before,.wrap::after{display:none}header::after{right:8px;top:8px}.page-home .hero::after{left:8px;bottom:7px;font-size:5px}.sec-head h2::after{display:none}}
 /* IMAGENS OFICIAIS DA CENTRAL — hero e cenários laterais */
