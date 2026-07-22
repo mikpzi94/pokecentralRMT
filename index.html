@@ -125,7 +125,7 @@
   .tool:hover .tool-cta{background:var(--tint);color:var(--bg);}
 
   /* ---------- mercado ---------- */
-  .market{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:16px;}
+  .market{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-bottom:16px;}
   .mk{border:2px solid var(--line);border-top:4px solid var(--tint);background:var(--panel);padding:20px;}
   .mk-head{display:flex;gap:14px;align-items:center;margin-bottom:14px;}
   .mk-ico{width:52px;height:52px;flex-shrink:0;border:2px solid var(--line);background:var(--panel2);display:flex;align-items:center;justify-content:center;}
@@ -155,7 +155,9 @@
   }
 
   /* mini cards de estoque */
-  .mini-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:14px;}
+  .mini-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px;}
+  @media(max-width:760px){.mini-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  @media(max-width:420px){.mini-grid{grid-template-columns:minmax(0,1fr);}}
   .mini-card{border:2px solid var(--line);background:var(--panel2);text-decoration:none;color:inherit;display:block;}
   .mini-card:hover{border-color:var(--gold);}
   .mini-img{aspect-ratio:1/1;background:var(--panel3);display:flex;align-items:center;justify-content:center;overflow:hidden;}
