@@ -191,14 +191,17 @@ begin
     body := jsonb_build_object(
       'username','PokeCentral · Pedidos',
       'content',mencoes || chr(10) || '**Novo pedido publicado pela comunidade!**',
-      'embeds',jsonb_build_array(jsonb_build_object(
+      'embeds',jsonb_build_array(jsonb_strip_nulls(jsonb_build_object(
         'title','📋 Procuro: ' || coalesce(new.pokemon_nome,'Pokémon'),
         'url',link,
         'description',requisitos || chr(10) || '**Orçamento: ' || orcamento || '**' || chr(10) ||
                       'Comprador: ' || coalesce(new.comprador_nome,'Jogador'),
         'color',5088255,
+        'thumbnail',case when new.poke_id is not null then jsonb_build_object(
+          'url','https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/' || new.poke_id::text || '.png'
+        ) else null end,
         'footer',jsonb_build_object('text','PokeCentral · pedido ativo por 7 dias')
-      )),
+      ))),
       'allowed_mentions',jsonb_build_object('parse',jsonb_build_array(),'roles',cargos)
     )
   );

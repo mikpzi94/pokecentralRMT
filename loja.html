@@ -162,6 +162,21 @@
   }
   .load-more:hover{border-color:var(--gold);color:var(--gold);}
 
+  .pd-poke-combo{position:relative;width:100%;}
+  .pd-poke-results{
+    display:none;position:absolute;z-index:80;top:calc(100% + 4px);left:0;right:0;
+    max-height:260px;overflow-y:auto;background:var(--panel2);border:2px solid var(--gold);
+    box-shadow:0 12px 28px rgba(0,0,0,.6);padding:6px;
+  }
+  .pd-poke-results.open{display:block;}
+  .pd-poke-option{
+    width:100%;display:flex;align-items:center;gap:9px;border:0;background:transparent;
+    color:var(--muted);font-family:var(--mono);font-size:12px;text-align:left;padding:7px 9px;cursor:pointer;
+  }
+  .pd-poke-option:hover,.pd-poke-option:focus{background:var(--panel3);color:var(--gold);outline:none;}
+  .pd-poke-option img{width:34px;height:34px;object-fit:contain;image-rendering:pixelated;flex:0 0 34px;}
+  .pd-poke-empty{padding:10px;color:var(--red);font-size:11px;}
+
   .btn-discord{
     font-family:var(--px);font-size:9px;letter-spacing:.03em;padding:13px 12px;cursor:pointer;
     background:#5865F2;border:2px solid #5865F2;color:#fff;
@@ -577,7 +592,7 @@
         <div class="ed-title">📋 <span id="pedidoPainelTitulo">CRIAR PEDIDO</span> <span id="pedidoSlots"></span></div>
         <p class="note">Informe exatamente o que procura e um orçamento real. Pedidos válidos entram no ar na hora, expiram em 7 dias e podem ser encerrados quando você encontrar o Pokémon.</p>
         <div class="ed-grid" id="pedidoForm">
-          <div><label>Pokémon procurado</label><input type="text" id="pdNome" maxlength="40" placeholder="Gengar"></div>
+          <div><label>Pokémon procurado</label><div class="pd-poke-combo" id="pdPokeCombo"><input type="text" id="pdNome" maxlength="40" placeholder="Comece a escrever..." autocomplete="off" aria-autocomplete="list" aria-controls="pdPokeResults"><input type="hidden" id="pdPokeId"><div class="pd-poke-results" id="pdPokeResults" role="listbox"></div></div></div>
           <div><label>IV mínimo</label><input type="number" id="pdIv" min="0" max="192" placeholder="150"></div>
           <div><label>Qualidade mínima</label><input type="number" id="pdQual" min="0.8" step="0.01" placeholder="1.78"></div>
           <div><label>Nível mínimo</label><input type="number" id="pdNivel" min="1" placeholder="qualquer"></div>
@@ -621,6 +636,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="pokemon-data.js"></script>
 <script src="pricing.js"></script>
 <script>
 /* ================= CONFIGURAÇÃO ================= */
@@ -1925,10 +1941,52 @@ function abrirCriarPedido(){
 $('novoPedidoCta').addEventListener('click',abrirCriarPedido);
 $('pdContatoTipo').addEventListener('change',function(){$('pdContatoWrap').style.display=this.value==='wa'?'block':'none'});
 $('pdObs').addEventListener('input',function(){$('pdObsCount').textContent=this.value.length+'/160'});
+
+(function prepararPokemonDoPedido(){
+  var input=$('pdNome'), idInput=$('pdPokeId'), resultados=$('pdPokeResults');
+  var especies=window.PokeSpecies||[];
+  function norm(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();}
+  function fechar(){resultados.classList.remove('open');}
+  function escolher(sp){
+    input.value=sp.name;
+    idInput.value=sp.id;
+    fechar();
+  }
+  function render(){
+    var termo=norm(input.value);
+    var lista=especies.filter(function(sp){return !termo||norm(sp.name).indexOf(termo)>=0;})
+      .sort(function(a,b){
+        var ai=norm(a.name).indexOf(termo),bi=norm(b.name).indexOf(termo);
+        return ai-bi||a.name.localeCompare(b.name);
+      }).slice(0,12);
+    resultados.innerHTML='';
+    if(!lista.length){
+      resultados.innerHTML='<div class="pd-poke-empty">Nenhum Pokémon encontrado.</div>';
+    }else lista.forEach(function(sp){
+      var b=document.createElement('button');
+      b.type='button'; b.className='pd-poke-option'; b.setAttribute('role','option');
+      b.innerHTML='<img src="'+spriteUrl(sp.id)+'" alt=""><span>'+esc(sp.name)+'</span>';
+      b.addEventListener('click',function(){escolher(sp)});
+      resultados.appendChild(b);
+    });
+    resultados.classList.add('open');
+  }
+  input.addEventListener('focus',render);
+  input.addEventListener('input',function(){idInput.value='';render()});
+  input.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){fechar();input.blur()}
+    if(e.key==='Enter'){
+      var primeiro=resultados.querySelector('.pd-poke-option');
+      if(primeiro){e.preventDefault();primeiro.click()}
+    }
+  });
+  document.addEventListener('click',function(e){if(!$('pdPokeCombo').contains(e.target))fechar()});
+})();
+
 $('btnPedidoSalvar').addEventListener('click',function(){
   if(!sessaoAtual||!meuUid){abrirCriarPedido();return}
-  var nome=$('pdNome').value.trim(), max=Number($('pdPrecoMax').value), min=Number($('pdPrecoMin').value)||null;
-  if(!nome){aviso($('pedidoMsg'),'informe qual Pokémon você procura','err');return}
+  var nome=$('pdNome').value.trim(), pokeId=parseInt($('pdPokeId').value), max=Number($('pdPrecoMax').value), min=Number($('pdPrecoMin').value)||null;
+  if(!nome||!pokeId){aviso($('pedidoMsg'),'escreva o nome e selecione um Pokémon da lista','err');return}
   if(!max||max<=0){aviso($('pedidoMsg'),'informe quanto você paga no máximo','err');return}
   if(min!=null&&min>max){aviso($('pedidoMsg'),'o valor inicial não pode ser maior que o máximo','err');return}
   var tipo=$('pdContatoTipo').value, contato;
@@ -1938,10 +1996,10 @@ $('btnPedidoSalvar').addEventListener('click',function(){
     var n=$('pdContato').value.replace(/\D/g,''); if(n.length<10){aviso($('pedidoMsg'),'WhatsApp inválido — use DDD + número','err');return} contato='wa:'+n;
   }
   var btn=this;btn.disabled=true;aviso($('pedidoMsg'),'enviando…','');
-  var reg={user_id:meuUid,comprador_nome:nomeDiscord(sessaoAtual),comprador_contato:contato,pokemon_nome:nome,iv_min:$('pdIv').value===''?null:Number($('pdIv').value),qualidade_min:$('pdQual').value===''?null:Number($('pdQual').value),nivel_min:$('pdNivel').value===''?null:Number($('pdNivel').value),shiny:$('pdShiny').value,preco_min:min,preco_max:max,obs:$('pdObs').value.trim()||null};
+  var reg={user_id:meuUid,comprador_nome:nomeDiscord(sessaoAtual),comprador_contato:contato,pokemon_nome:nome,poke_id:pokeId,iv_min:$('pdIv').value===''?null:Number($('pdIv').value),qualidade_min:$('pdQual').value===''?null:Number($('pdQual').value),nivel_min:$('pdNivel').value===''?null:Number($('pdNivel').value),shiny:$('pdShiny').value,preco_min:min,preco_max:max,obs:$('pdObs').value.trim()||null};
   sb.from('pedidos').insert(reg).select().then(function(r){
     if(r.error) throw r.error;
-    ['pdNome','pdIv','pdQual','pdNivel','pdPrecoMin','pdPrecoMax','pdObs'].forEach(function(id){$(id).value=''});$('pdObsCount').textContent='0/160';
+    ['pdNome','pdPokeId','pdIv','pdQual','pdNivel','pdPrecoMin','pdPrecoMax','pdObs'].forEach(function(id){$(id).value=''});$('pdPokeResults').classList.remove('open');$('pdObsCount').textContent='0/160';
     aviso($('pedidoMsg'),'✓ pedido publicado e já está no ar','ok');return carregar();
   }).catch(function(e){aviso($('pedidoMsg'),'erro: '+(e.message||e)+' — rode supabase_pedidos.sql no Supabase','err')}).finally(function(){btn.disabled=false});
 });
