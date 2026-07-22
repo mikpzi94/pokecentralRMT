@@ -1921,8 +1921,9 @@ function renderPedidos(){
     var req=[]; if(p.iv_min!=null) req.push('IV '+p.iv_min+'+'); if(p.qualidade_min!=null) req.push('Qual. '+p.qualidade_min+'+'); if(p.nivel_min!=null) req.push('Nv. '+p.nivel_min+'+'); req.push(shinyPedido(p.shiny));
     var msg='Olá! Vi no PokeCentral que você procura um '+p.pokemon_nome+'. Tenho um que pode atender ao seu pedido. Podemos conversar?';
     var link=contatoLink(p.comprador_contato,msg);
+    var pokeImg=p.poke_id?'<div class="pedido-pokemon-img"><img loading="lazy" src="'+spriteUrl(p.poke_id)+'" alt="'+esc(p.pokemon_nome)+'" onerror="this.parentElement.style.display=\'none\'"></div>':'';
     return '<article class="pedido-card" id="pedido-'+p.id+'"><div class="pedido-buyer">🧑 '+esc(p.comprador_nome||'Comprador')+(confiaveis[p.user_id]?' <span class="selo-conf">✔ Confiável</span>':'')+'</div>'+
-      '<div class="pedido-name">'+esc(p.pokemon_nome)+'</div><div class="pedido-req">'+req.map(function(x){return '<span>'+esc(x)+'</span>'}).join('')+'</div>'+
+      '<div class="pedido-pokemon">'+pokeImg+'<div class="pedido-pokemon-info"><div class="pedido-name">'+esc(p.pokemon_nome)+'</div><div class="pedido-req">'+req.map(function(x){return '<span>'+esc(x)+'</span>'}).join('')+'</div></div></div>'+
       '<div class="pedido-budget">PAGA '+pedidoOrcamento(p)+'</div><div class="pedido-obs">'+esc(p.obs||'Sem observações adicionais.')+'</div><div class="pedido-expira">'+pedidoPrazo(p)+'</div>'+
       '<div class="pedido-actions">'+(link?'<a href="'+esc(link)+'" target="_blank" rel="noopener">TENHO ESTE POKÉMON →</a>':'')+'<button type="button" data-pdshare="'+p.id+'">compartilhar pedido</button></div></article>';
   }).join('');

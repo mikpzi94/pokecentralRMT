@@ -198,7 +198,7 @@ begin
                       'Comprador: ' || coalesce(new.comprador_nome,'Jogador'),
         'color',5088255,
         'thumbnail',case when new.poke_id is not null then jsonb_build_object(
-          'url','https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/' || new.poke_id::text || '.png'
+          'url','https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' || new.poke_id::text || '.png'
         ) else null end,
         'footer',jsonb_build_object('text','PokeCentral · pedido ativo por 7 dias')
       ))),
