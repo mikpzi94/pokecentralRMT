@@ -315,3 +315,18 @@ header::after{content:"●  ●  ●";position:absolute;right:28px;top:10px;colo
 @media(max-width:700px){
   .page-calculator .calc-help-grid{grid-template-columns:1fr}
 }
+/* Caixas expansíveis independentes — uma aberta não estica as vizinhas */
+.page-home .home-info-grid,
+.page-auction .auction-help-grid,
+.page-calculator .calc-help-grid,
+.page-store .shop-help-list{
+  align-items:start;
+}
+.page-home .home-info,
+.page-auction .auction-help,
+.page-calculator .calc-help,
+.page-store .shop-help{
+  align-self:start;
+  width:100%;
+  box-sizing:border-box;
+}
