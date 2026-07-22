@@ -12,7 +12,7 @@ create table if not exists capturas_rng (
   variante            text not null default 'normal',
   ball                text not null,
   custo_ball          numeric check (custo_ball is null or (custo_ball > 0 and custo_ball <= 1000000)),
-  valor_alvo          numeric not null check (valor_alvo > 0 and valor_alvo <= 1000000000),
+  valor_alvo          numeric check (valor_alvo is null or (valor_alvo > 0 and valor_alvo <= 1000000000)),
   tentativas          int not null check (tentativas between 1 and 100000),
   buff_profissao      numeric not null default 0 check (buff_profissao between 0 and 100),
   boost_multiplicador numeric not null default 1 check (boost_multiplicador between 0.01 and 100),
@@ -24,6 +24,9 @@ create table if not exists capturas_rng (
 );
 
 alter table capturas_rng enable row level security;
+
+-- Compatibilidade caso a primeira versão da tabela já tenha sido criada.
+alter table capturas_rng alter column valor_alvo drop not null;
 
 create index if not exists idx_rng_status_data on capturas_rng(status, criado_em desc);
 create index if not exists idx_rng_pokemon on capturas_rng(lower(pokemon_nome));
