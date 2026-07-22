@@ -371,3 +371,22 @@ header::after{content:"●  ●  ●";position:absolute;right:28px;top:10px;colo
 @media(min-width:701px){
   .page-store .shop-tabs{grid-template-columns:repeat(3,minmax(0,1fr));}
 }
+/* Filtros extras da loja */
+.page-store .filter-more .filter-extra-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+  width:100%;
+}
+.page-store .filter-extra-grid input,
+.page-store .filter-extra-grid select{
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+@media(max-width:800px){
+  .page-store .filter-more .filter-extra-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:480px){
+  .page-store .filter-more .filter-extra-grid{grid-template-columns:1fr;}
+}

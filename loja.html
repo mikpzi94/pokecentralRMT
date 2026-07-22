@@ -360,7 +360,12 @@
     </select>
     <details class="filter-more">
       <summary>MAIS FILTROS</summary>
-      <div><input type="text" id="qualFilter" inputmode="decimal" placeholder="Qualidade mínima (ex: 1,70)" aria-label="Qualidade mínima"></div>
+      <div class="filter-extra-grid">
+        <input type="text" id="qualFilter" inputmode="decimal" placeholder="Qualidade mínima (ex: 1,70)" aria-label="Qualidade mínima">
+        <select id="shinyFilter" aria-label="Filtrar por shiny"><option value="">shiny ou normal</option><option value="shiny">somente shiny</option><option value="normal">somente não shiny</option></select>
+        <input type="number" id="priceMinFilter" min="0" step="0.5" inputmode="decimal" placeholder="Valor mínimo (R$)" aria-label="Valor mínimo">
+        <input type="number" id="priceMaxFilter" min="0" step="0.5" inputmode="decimal" placeholder="Valor máximo (R$)" aria-label="Valor máximo">
+      </div>
     </details>
   </div>
 
@@ -862,6 +867,9 @@ function render(){
   var ivMin = parseFloat($('ivFilter').value) || 0;
   var qualMin = parseFloat(String($('qualFilter').value||'').replace(',','.')) || 0;
   var tierFiltro = $('tierFilter').value;
+  var shinyFiltro = $('shinyFilter').value;
+  var precoMinFiltro = parseFloat($('priceMinFilter').value) || 0;
+  var precoMaxFiltro = parseFloat($('priceMaxFilter').value) || 0;
 
   var itens = lista.filter(function(p){
     return p.status === 'aprovado' && p.disponivel !== false &&
@@ -874,6 +882,9 @@ function render(){
   if(ivMin) itens = itens.filter(function(p){ return (Number(p.iv)||0) >= ivMin; });
   if(qualMin) itens = itens.filter(function(p){ return (parseFloat(String(p.qualidade).replace(',','.'))||0) >= qualMin; });
   if(tierFiltro) itens = itens.filter(function(p){ return qualityTier(p.qualidade).cls === 'tier-'+tierFiltro; });
+  if(shinyFiltro) itens = itens.filter(function(p){ return shinyFiltro==='shiny' ? p.shiny===true : p.shiny!==true; });
+  if(precoMinFiltro) itens = itens.filter(function(p){ return Number(p.preco)>=precoMinFiltro; });
+  if(precoMaxFiltro) itens = itens.filter(function(p){ return Number(p.preco)<=precoMaxFiltro; });
 
   if(ordem==='priceAsc') itens.sort(function(a,b){ return a.preco-b.preco; });
   else if(ordem==='priceDesc') itens.sort(function(a,b){ return b.preco-a.preco; });
@@ -885,7 +896,7 @@ function render(){
     $('grid').innerHTML = '<div class="empty">' +
       (aba === 'jogadores'
         ? 'Ainda não tem anúncio de jogador aqui. 🧑<br>Seja o primeiro — anuncie o teu de graça.<br><br><a href="#" onclick="abrirPainel();return false;">quero anunciar →</a>'
-        : (termo || ivMin || qualMin || tierFiltro
+        : (termo || ivMin || qualMin || tierFiltro || shinyFiltro || precoMinFiltro || precoMaxFiltro
             ? 'Nenhum Pokémon com esses filtros.'
             : 'Nenhum Pokémon à venda no momento.<br>Me chama no WhatsApp que eu te aviso quando entrar algo — ou encomendo o que você procura.<br><br>' +
               '<a href="'+waLink('Olá! Vi que a vitrine do PokeCentral está vazia. Estou procurando um Pokémon específico, dá pra encomendar?')+'" target="_blank" rel="noopener">falar no WhatsApp →</a>')) +
@@ -926,7 +937,7 @@ function render(){
 }
 
 function resetRender(){ mostrados = PAGINA; render(); }
-['search','sortSel','ivFilter','qualFilter','tierFilter'].forEach(function(id){ $(id).addEventListener('input', resetRender); });
+['search','sortSel','ivFilter','qualFilter','tierFilter','shinyFilter','priceMinFilter','priceMaxFilter'].forEach(function(id){ $(id).addEventListener('input', resetRender); });
 
 document.querySelectorAll('.shop-tab').forEach(function(b){
   b.addEventListener('click', function(){
@@ -1876,9 +1887,13 @@ function shinyPedido(v){ return v==='obrigatorio'?'Shiny obrigatório':(v==='nao
 function renderPedidos(){
   var termo=($('search').value||'').toLowerCase(), ivMin=parseFloat($('ivFilter').value)||0;
   var qualMin=parseFloat(String($('qualFilter').value||'').replace(',','.'))||0;
+  var shinyFiltro=$('shinyFilter').value;
+  var precoMinFiltro=parseFloat($('priceMinFilter').value)||0, precoMaxFiltro=parseFloat($('priceMaxFilter').value)||0;
   var itens=pedidos.filter(pedidoPublico).filter(function(p){
+    var shinyOk=!shinyFiltro || (shinyFiltro==='shiny' ? p.shiny==='obrigatorio' : p.shiny==='nao');
     return (!termo || String(p.pokemon_nome||'').toLowerCase().indexOf(termo)>=0 || String(p.comprador_nome||'').toLowerCase().indexOf(termo)>=0)
-      && (!ivMin || Number(p.iv_min)>=ivMin) && (!qualMin || Number(p.qualidade_min)>=qualMin);
+      && (!ivMin || Number(p.iv_min)>=ivMin) && (!qualMin || Number(p.qualidade_min)>=qualMin)
+      && shinyOk && (!precoMinFiltro || Number(p.preco_max)>=precoMinFiltro) && (!precoMaxFiltro || Number(p.preco_max)<=precoMaxFiltro);
   });
   var ordem=$('sortSel').value;
   if(ordem==='priceAsc') itens.sort(function(a,b){return a.preco_max-b.preco_max});
