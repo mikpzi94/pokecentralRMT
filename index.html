@@ -322,7 +322,7 @@
           </div>
         </div>
         <div class="mk-body" id="leilaoBody">
-          <div class="loading-note">buscando lotes…</div>
+          <div class="loading-note">buscando leilões…</div>
         </div>
         <a class="mk-cta" href="/leilao" id="leilaoCta">VER LEILÕES ▸</a>
       </div>
@@ -504,7 +504,7 @@ function renderLeilao(){
     .sort(function(a,b){ return a.resta - b.resta; });
 
   if(!vivos.length){
-    $('leilaoSub').textContent = 'nenhum lote aberto';
+    $('leilaoSub').textContent = 'nenhum leilão aberto';
     $('leilaoBody').innerHTML =
       '<div class="empty-note"><b>Nenhum leilão rolando agora.</b><br>' +
       'Os leilões saem quando aparece um Pokémon bom demais pra ter preço de tabela. ' +
@@ -515,8 +515,7 @@ function renderLeilao(){
   var solo = vivos.length === 1;
   var mostrar = vivos.slice(0, solo ? 1 : 2);
 
-  $('leilaoSub').textContent = vivos.length + ' lote' + (vivos.length===1?'':'s') + ' aberto' +
-                               (vivos.length===1?'':'s') + ' · encerrando primeiro';
+  $('leilaoSub').textContent = vivos.length + (vivos.length===1 ? ' leilão aberto' : ' leilões abertos') + ' · encerrando primeiro';
 
   $('leilaoBody').innerHTML = mostrar.map(function(x){
     var l = x.lote, a = x.ap;
@@ -539,7 +538,7 @@ function renderLeilao(){
       '</div></div>';
   }).join('') +
   (vivos.length > mostrar.length
-    ? '<div class="more-note">+ '+(vivos.length-mostrar.length)+' lote(s) aberto(s) na página do leilão</div>'
+    ? '<div class=\"more-note\">+ '+(vivos.length-mostrar.length)+(vivos.length-mostrar.length===1?' leilão ativo':' leilões ativos')+' na página</div>'
     : '');
 }
 
@@ -552,7 +551,7 @@ Promise.all([
   lancesTodos = (r[1] && !r[1].error) ? (r[1].data || []) : [];
 
   if(!lotesAbertos.length){
-    $('leilaoSub').textContent = 'nenhum lote aberto';
+    $('leilaoSub').textContent = 'nenhum leilão aberto';
     $('leilaoBody').innerHTML =
       '<div class="empty-note"><b>Nenhum leilão rolando agora.</b><br>' +
       'Os leilões saem quando aparece um Pokémon bom demais pra ter preço de tabela. ' +
