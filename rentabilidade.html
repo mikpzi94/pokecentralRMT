@@ -5,8 +5,8 @@
 <meta name="theme-color" content="#f0b429">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculadora de lucro — PokeCentral</title>
-<meta name="description" content="Compare as rotas de RMT do Poke Idle World em R$/hora por conta e descubra qual rende mais com os preços de hoje.">
+<title>Quanto rende seu farm? — PokeCentral</title>
+<meta name="description" content="Simule quanto seu farm rende e registre sessões reais para descobrir sua média por hora no Poke Idle World.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -142,6 +142,47 @@
   .apoio p b{color:var(--text);}
   .apoio-btn{display:inline-block;font-family:var(--px);font-size:9px;color:var(--green);border:2px solid var(--green);padding:11px 16px;text-decoration:none;transition:background .15s,color .15s;}
   .apoio-btn:hover{background:var(--green);color:var(--bg);}
+
+  /* ---------- experiência rápida + diário ---------- */
+  .mode-lead{margin:0 0 18px;color:var(--muted);font-size:12.5px;}
+  .quick-card,.journal-card{border:2px solid var(--line);background:var(--panel);padding:18px;margin-bottom:18px;}
+  .quick-card{border-top:4px solid var(--green);}
+  .quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+  .quick-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px;}
+  .quick-card select,.journal-card input[type=text],.journal-card input[type=date]{
+    width:100%;background:var(--panel2);border:2px solid var(--line);color:var(--text);
+    font-family:var(--mono);font-size:13px;padding:9px 10px;outline:none;
+  }
+  .quick-card select:focus,.journal-card input:focus{border-color:var(--gold);}
+  .quick-help{color:var(--faint);font-size:11.5px;margin:11px 0 0;line-height:1.65;}
+  .quick-result{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:18px;}
+  .quick-result div{border:2px solid var(--line);background:var(--panel2);padding:12px;min-width:0;}
+  .quick-result span{display:block;color:var(--faint);font-size:10px;margin-bottom:5px;}
+  .quick-result b{display:block;color:var(--green);font-family:var(--px);font-size:10px;line-height:1.5;overflow-wrap:anywhere;}
+  .quick-empty{color:var(--faint);font-size:12px;margin-top:12px;}
+  .journal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+  .journal-actions{display:flex;align-items:end;}
+  .primary-action{width:100%;border:2px solid var(--green);background:transparent;color:var(--green);font-family:var(--px);font-size:8px;padding:12px;cursor:pointer;}
+  .primary-action:hover{background:var(--green);color:var(--bg);}
+  .journal-note{font-size:11px;color:var(--faint);margin:10px 0 0;}
+  .journal-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:16px 0;}
+  .journal-stat{border:2px solid var(--line);background:var(--panel2);padding:11px;}
+  .journal-stat span{display:block;color:var(--faint);font-size:10px;}
+  .journal-stat b{display:block;color:var(--gold);font-family:var(--px);font-size:9px;margin-top:5px;line-height:1.5;}
+  .journal-list{display:grid;gap:8px;}
+  .journal-row{display:grid;grid-template-columns:1fr auto;gap:12px;border-top:2px solid var(--line);padding-top:10px;font-size:11.5px;color:var(--muted);}
+  .journal-row b{color:var(--text);}
+  .journal-row button{border:0;background:transparent;color:var(--red);cursor:pointer;font-family:var(--px);font-size:7px;}
+  .advanced-mode{margin:28px 0 0;}
+  .advanced-mode>summary{list-style:none;border:2px solid var(--gold);background:rgba(240,180,41,.07);padding:15px 16px;cursor:pointer;font-family:var(--px);font-size:9px;color:var(--gold);display:flex;justify-content:space-between;gap:12px;line-height:1.6;}
+  .advanced-mode>summary::-webkit-details-marker{display:none;}
+  .advanced-mode>summary:after{content:'ABRIR +';color:var(--green);}
+  .advanced-mode[open]>summary:after{content:'FECHAR -';}
+  .advanced-body{padding-top:22px;}
+  @media(max-width:720px){
+    .quick-grid,.quick-fields,.journal-grid{grid-template-columns:1fr;}
+    .quick-result,.journal-stats{grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
 </style>
   <link rel="stylesheet" href="/apoio.css">
   <link rel="stylesheet" href="/ui-refresh.css">
@@ -161,15 +202,15 @@
   <a class="back" href="/">◀ VOLTAR PRO HUB</a>
 
   <header>
-    <h1>Calculadora de <span>lucro</span></h1>
-    <p>Compare capturas por hora e o retorno das rotas usando os números que você observa no jogo hoje.</p>
+    <h1>Quanto rende seu <span>farm?</span></h1>
+    <p>Faça uma conta rápida agora ou registre suas hunts para descobrir sua média real com o tempo.</p>
   </header>
 
   <div class="calc-help-grid">
     <details class="calc-help">
       <summary><span>COMO USAR</span><small>preencha com seus números atuais</small></summary>
       <div class="calc-help-body">
-        <p>Informe sua taxa de captura, horas de farm, contas e preços praticados agora. Os campos são manuais porque o mercado pode mudar rapidamente após atualizações.</p>
+        <p>Comece pelo modo rápido escolhendo apenas o que pretende vender. Se quiser comparar todas as rotas, abra o modo avançado no final da página.</p>
         <p>As rotas são comparadas separadamente; a combinação entre elas aparece na alocação sugerida.</p>
       </div>
     </details>
@@ -182,6 +223,60 @@
     </details>
   </div>
 
+  <section id="modoRapido">
+    <div class="sec-head"><h2>DESCUBRA QUANTO SEU FARM RENDE</h2><div class="rule"></div></div>
+    <p class="mode-lead">Escolha somente o que você pretende vender. A calculadora mostra o retorno estimado sem pedir dados das outras rotas.</p>
+    <div class="quick-card">
+      <div class="quick-grid">
+        <div>
+          <label for="qRoute">O que você pretende vender?</label>
+          <select id="qRoute">
+            <option value="moeda">Moeda do jogo</option>
+            <option value="diamante">Diamantes comprados com moeda</option>
+            <option value="pokemon">Pokémon sem upar</option>
+            <option value="pokemon-up">Pokémon depois de upar</option>
+          </select>
+        </div>
+        <div>
+          <label for="qHours">Quantas horas você farma por dia?</label>
+          <input type="number" id="qHours" min="0" step="0.5" placeholder="ex: 4">
+        </div>
+        <div>
+          <label for="qAccounts">Quantas contas estão farmando?</label>
+          <input type="number" id="qAccounts" min="0" max="4" step="1" placeholder="ex: 2">
+        </div>
+      </div>
+      <div class="quick-fields" id="qFields"></div>
+      <p class="quick-help" id="qHelp"></p>
+      <div class="quick-result" id="qResult">
+        <div><span>POR HORA</span><b>—</b></div><div><span>POR DIA</span><b>—</b></div>
+        <div><span>POR SEMANA</span><b>—</b></div><div><span>POR MÊS</span><b>—</b></div>
+      </div>
+      <p class="quick-empty" id="qEmpty">Preencha os campos para ver uma estimativa.</p>
+    </div>
+  </section>
+
+  <section id="diarioFarm">
+    <div class="sec-head"><h2>DIÁRIO DE FARM</h2><div class="rule"></div></div>
+    <p class="mode-lead">Registre sessões reais. Com o tempo, sua própria média fica mais útil que qualquer estimativa genérica.</p>
+    <div class="journal-card">
+      <div class="journal-grid">
+        <div><label for="jDate">Data</label><input type="date" id="jDate"></div>
+        <div><label for="jHours">Horas farmadas</label><input type="number" id="jHours" min="0" step="0.25" placeholder="ex: 3,5"></div>
+        <div><label for="jGross">Valor obtido ou estimado (R$)</label><input type="number" id="jGross" min="0" step="0.01" placeholder="vendas, loot e capturas"></div>
+        <div><label for="jCosts">Custos da sessão (R$)</label><input type="number" id="jCosts" min="0" step="0.01" placeholder="balls, compras etc."></div>
+        <div><label for="jNote">Observação</label><input type="text" id="jNote" maxlength="80" placeholder="hunt, mapa ou resultado"></div>
+        <div class="journal-actions"><button type="button" class="primary-action" id="jAdd">SALVAR SESSÃO</button></div>
+      </div>
+      <p class="journal-note">Os registros ficam somente neste navegador. “Valor estimado” não é venda confirmada; use sempre o mesmo critério para comparar suas sessões.</p>
+      <div class="journal-stats" id="jStats"></div>
+      <div class="journal-list" id="jList"></div>
+    </div>
+  </section>
+
+  <details class="advanced-mode">
+    <summary>COMPARAÇÃO AVANÇADA DAS ROTAS</summary>
+    <div class="advanced-body">
   <div class="headline" id="headline">Preencha os campos abaixo com o que você vê no jogo hoje — a calculadora responde aqui quanto renderia no seu caso.</div>
 
   <div class="toolbar">
@@ -321,6 +416,9 @@
       Em negociação P2P, use intermediário confiável e confirme o pagamento antes de entregar.
     </p>
   </section>
+
+    </div>
+  </details>
 
   <div class="apoio">
     <div class="apoio-t">❤ APOIO OPCIONAL</div>
@@ -544,6 +642,99 @@ function buildRecommendation(routes, accts, hpd){
   box.innerHTML = html;
 }
 
+/* ---------- modo rápido ---------- */
+var QUICK_FIELDS = {
+  moeda:[
+    {id:"qCoinHour",label:"Moeda farmada por hora (por conta)",placeholder:"ex: 650000",step:"1000"},
+    {id:"qCoinPrice",label:"Preço por 1 milhão de moeda (R$)",placeholder:"ex: 0,20",step:"0.01"}
+  ],
+  diamante:[
+    {id:"qCoinHour",label:"Moeda farmada por hora (por conta)",placeholder:"ex: 650000",step:"1000"},
+    {id:"qDiamondCost",label:"Custo de 1 diamante em moeda",placeholder:"ex: 600000",step:"1000"},
+    {id:"qDiamondPrice",label:"Venda de 1 diamante (R$)",placeholder:"ex: 0,19",step:"0.01"}
+  ],
+  pokemon:[
+    {id:"qPokeHours",label:"Horas médias até conseguir 1 vendável",placeholder:"ex: 8",step:"0.5"},
+    {id:"qPokePrice",label:"Preço médio de venda (R$)",placeholder:"ex: 15",step:"0.5"}
+  ],
+  "pokemon-up":[
+    {id:"qPokeHours",label:"Horas médias até conseguir o Pokémon",placeholder:"ex: 12",step:"0.5"},
+    {id:"qUpHours",label:"Horas gastas para upar",placeholder:"ex: 24",step:"0.5"},
+    {id:"qPokePrice",label:"Preço médio de venda (R$)",placeholder:"ex: 35",step:"1"}
+  ]
+};
+var QUICK_HELP = {
+  moeda:"Divide a moeda produzida por 1 milhão e aplica o preço de venda informado.",
+  diamante:"Calcula quantos diamantes sua moeda compra e aplica o preço de revenda.",
+  pokemon:"Transforma o tempo médio até uma captura vendável em retorno por hora.",
+  "pokemon-up":"Considera o tempo da captura e o tempo investido no up antes da venda."
+};
+function quickValue(id){var e=document.getElementById(id);return e?(parseFloat(e.value)||0):0}
+function renderQuickFields(){
+  var route=document.getElementById("qRoute").value, box=document.getElementById("qFields");
+  box.innerHTML=QUICK_FIELDS[route].map(function(f){
+    return '<div><label for="'+f.id+'">'+f.label+'</label><input type="number" id="'+f.id+'" min="0" step="'+f.step+'" placeholder="'+f.placeholder+'"></div>';
+  }).join("");
+  document.getElementById("qHelp").textContent=QUICK_HELP[route];
+  box.querySelectorAll("input").forEach(function(i){i.addEventListener("input",calcQuick)});
+  calcQuick();
+}
+function calcQuick(){
+  var route=document.getElementById("qRoute").value;
+  var hours=quickValue("qHours"), accounts=quickValue("qAccounts"), perHour=0, complete=false;
+  if(route==="moeda"){
+    complete=quickValue("qCoinHour")>0&&quickValue("qCoinPrice")>0;
+    perHour=(quickValue("qCoinHour")/1000000)*quickValue("qCoinPrice");
+  }else if(route==="diamante"){
+    complete=quickValue("qCoinHour")>0&&quickValue("qDiamondCost")>0&&quickValue("qDiamondPrice")>0;
+    perHour=(quickValue("qCoinHour")/(quickValue("qDiamondCost")||1))*quickValue("qDiamondPrice");
+  }else if(route==="pokemon"){
+    complete=quickValue("qPokeHours")>0&&quickValue("qPokePrice")>0;
+    perHour=quickValue("qPokePrice")/(quickValue("qPokeHours")||1);
+  }else{
+    complete=quickValue("qPokeHours")>0&&quickValue("qUpHours")>=0&&quickValue("qPokePrice")>0;
+    perHour=quickValue("qPokePrice")/((quickValue("qPokeHours")+quickValue("qUpHours"))||1);
+  }
+  complete=complete&&hours>0&&accounts>0;
+  var vals=complete?[perHour*accounts,perHour*accounts*hours,perHour*accounts*hours*7,perHour*accounts*hours*30]:null;
+  document.querySelectorAll("#qResult b").forEach(function(el,i){el.textContent=vals?brl(vals[i]):"—"});
+  document.getElementById("qEmpty").textContent=accounts>MAX_CONTAS
+    ?"Atenção: o limite atual informado pelo jogo é de 4 contas por IP."
+    :(complete?"Estimativa com os valores informados. Mercado, RNG e tempo de venda podem alterar o resultado.":"Preencha os campos para ver uma estimativa.");
+}
+
+/* ---------- diário local ---------- */
+var JOURNAL_KEY="pc_farm_journal_v1";
+var journal=[];
+function loadJournal(){try{journal=JSON.parse(localStorage.getItem(JOURNAL_KEY)||"[]");if(!Array.isArray(journal))journal=[]}catch(e){journal=[]}}
+function saveJournal(){try{localStorage.setItem(JOURNAL_KEY,JSON.stringify(journal))}catch(e){}renderJournal()}
+function escapeJournal(value){return String(value==null?"":value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function renderJournal(){
+  var totalHours=0,totalGross=0,totalCosts=0;
+  journal.forEach(function(x){totalHours+=Number(x.hours)||0;totalGross+=Number(x.gross)||0;totalCosts+=Number(x.costs)||0});
+  var net=totalGross-totalCosts, avg=totalHours>0?net/totalHours:0;
+  document.getElementById("jStats").innerHTML=
+    '<div class="journal-stat"><span>SESSÕES</span><b>'+journal.length+'</b></div>'+
+    '<div class="journal-stat"><span>HORAS</span><b>'+fmt(totalHours,2)+'</b></div>'+
+    '<div class="journal-stat"><span>LÍQUIDO</span><b>'+brl(net)+'</b></div>'+
+    '<div class="journal-stat"><span>MÉDIA / H</span><b>'+brl(avg)+'</b></div>';
+  var list=document.getElementById("jList");
+  if(!journal.length){list.innerHTML='<p class="journal-note">Nenhuma sessão registrada ainda.</p>';return}
+  list.innerHTML=journal.slice().reverse().map(function(x){
+    var n=(Number(x.gross)||0)-(Number(x.costs)||0);
+    return '<div class="journal-row"><div><b>'+x.date+' · '+fmt(x.hours,2)+'h · '+brl(n)+' líquido</b>'+
+      (x.note?'<br>'+escapeJournal(x.note) :"")+
+      '</div><button type="button" data-jdel="'+x.id+'">APAGAR</button></div>';
+  }).join("");
+  list.querySelectorAll("[data-jdel]").forEach(function(b){b.onclick=function(){journal=journal.filter(function(x){return String(x.id)!==String(b.dataset.jdel)});saveJournal()}});
+}
+function addJournal(){
+  var date=document.getElementById("jDate").value,hours=quickValue("jHours"),gross=quickValue("jGross"),costs=quickValue("jCosts");
+  if(!date||hours<=0){alert("Informe a data e quantas horas você farmou.");return}
+  journal.push({id:Date.now(),date:date,hours:hours,gross:gross,costs:costs,note:document.getElementById("jNote").value.trim()});
+  ["jHours","jGross","jCosts","jNote"].forEach(function(id){document.getElementById(id).value=""});
+  saveJournal();
+}
 /* ---------- persistência + compartilhamento ---------- */
 function saveState(){
   var o = {};
@@ -587,6 +778,14 @@ function limparCampos(){
 }
 
 /* ---------- init ---------- */
+document.getElementById("qRoute").addEventListener("change",renderQuickFields);
+document.getElementById("qHours").addEventListener("input",calcQuick);
+document.getElementById("qAccounts").addEventListener("input",calcQuick);
+renderQuickFields();
+document.getElementById("jDate").value=new Date().toISOString().slice(0,10);
+document.getElementById("jAdd").addEventListener("click",addJournal);
+loadJournal();
+renderJournal();
 document.getElementById("maxLabel").textContent = MAX_CONTAS;
 buildRarityTable();
 loadState();
