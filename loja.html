@@ -1931,7 +1931,7 @@ function renderPedidos(){
   var pid=new URLSearchParams(location.search).get('pedido'); if(pid){var el=$('pedido-'+pid);if(el){setTimeout(function(){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.borderColor='var(--gold)'},100)}}
 }
 function copiarPedido(id,btn){
-  var url=location.origin+'/loja?pedido='+encodeURIComponent(id), old=btn.textContent;
+  var url=location.origin+'/pedido/'+encodeURIComponent(id), old=btn.textContent;
   function ok(){btn.textContent='✓ link copiado';setTimeout(function(){btn.textContent=old},1800)}
   if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(ok).catch(function(){prompt('Copie o link:',url)}); else prompt('Copie o link:',url);
 }
