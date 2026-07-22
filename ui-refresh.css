@@ -239,3 +239,15 @@ header::after{content:"●  ●  ●";position:absolute;right:28px;top:10px;colo
 .page-home .hero-txt{width:min(610px,58%);padding:230px 0 38px 42px!important;margin:0!important;box-sizing:border-box;}
 @media(min-width:1500px){body{background-image:linear-gradient(rgba(15,13,9,.60),rgba(15,13,9,.60)),url('/assets/visual/left-banner.jpg'),linear-gradient(rgba(15,13,9,.60),rgba(15,13,9,.60)),url('/assets/visual/right-banner.jpg'),radial-gradient(circle at 12% 5%,rgba(240,180,41,.075),transparent 28rem),radial-gradient(circle at 88% 18%,rgba(143,196,90,.045),transparent 24rem)!important;background-repeat:no-repeat,no-repeat,no-repeat,no-repeat,no-repeat,no-repeat!important;background-position:left 82px,left 82px,right 82px,right 82px,12% 5%,88% 18%!important;background-size:min(31vw,520px) 1376px,min(31vw,520px) auto,min(31vw,520px) 1376px,min(31vw,520px) auto,auto,auto!important;background-attachment:fixed,fixed,fixed,fixed,scroll,scroll!important;}}
 @media(max-width:640px){.page-home .hero{min-height:500px;background-size:180% auto!important;background-position:left top!important;}.page-home .hero-in{min-height:500px;}.page-home .hero-txt{width:100%;padding:205px 18px 24px!important;background:linear-gradient(180deg,transparent 0 145px,rgba(15,13,9,.74) 195px,rgba(15,13,9,.95) 100%);}.page-home .hero h1{font-size:14px!important;line-height:1.6!important}.page-home .hero p{font-size:12px!important;line-height:1.65!important}}
+/* Leilão compacto — informação sob demanda */
+.page-auction .auction-help-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 18px;}
+.page-auction .auction-help{border:2px solid var(--line2);background:rgba(29,25,18,.86);box-shadow:var(--gba-shadow-sm);}
+.page-auction .auction-help summary{position:relative;display:flex;flex-direction:column;gap:5px;padding:13px 38px 13px 14px;cursor:pointer;list-style:none;}
+.page-auction .auction-help summary::-webkit-details-marker{display:none;}
+.page-auction .auction-help summary::after{content:"+";position:absolute;right:14px;top:50%;transform:translateY(-50%);font-family:var(--px);font-size:12px;color:var(--purple);}
+.page-auction .auction-help[open] summary::after{content:"−";}
+.page-auction .auction-help summary span{font-family:var(--px);font-size:8px;color:var(--gold);}
+.page-auction .auction-help summary small{font-size:11px;color:var(--faint);}
+.page-auction .auction-help-body{border-top:1px solid var(--line2);padding:13px 15px 15px;color:var(--muted);font-size:12px;line-height:1.75;}
+.page-auction .auction-help-body ol{margin:0 0 11px;padding-left:19px;}.page-auction .auction-help-body p{margin:0 0 10px;}.page-auction .auction-help-body b{color:var(--text);}.page-auction .auction-help-body a{color:var(--green);}
+@media(max-width:700px){.page-auction .auction-help-grid{grid-template-columns:1fr;gap:8px}.page-auction .auction-help summary{padding:11px 36px 11px 12px}}

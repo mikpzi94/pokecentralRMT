@@ -244,32 +244,31 @@
 
   <header>
     <h1>Leilão de <span>Pokémon</span></h1>
-    <p>
-      Aqui vão os Pokémon bons demais pra ter preço de tabela. <b>Os leilões são criados e curados só pelo PokeCentral</b> —
-      cada lote é vetado por mim, pra você ter certeza de que é raro e legítimo.
-    </p>
-    <p>
-      Qualquer um pode <b>dar lance</b>: é só entrar com <b>Discord</b> (seu nome aparece na lista). O horário de cada lance é gravado pelo
-      <b>servidor</b> e o registro é <b>imutável</b> — ninguém edita nem apaga um lance, nem eu.
-    </p>
+    <p>Lotes selecionados e montados pelo PokeCentral. Entre com <b>Discord</b>, confira o lance atual e participe diretamente pelo card.</p>
   </header>
 
-  <div class="rules">
-    <div class="t">COMO FUNCIONA</div>
-    <ol>
-      <li>Cada lote tem <b>lance inicial</b> e <b>incremento mínimo</b>. Seu lance precisa ser pelo menos o lance atual + o incremento.</li>
-      <li>Lance nos <b>últimos 5 minutos estende o prazo em 5 minutos</b>, quantas vezes for preciso. Não adianta esperar o último segundo.</li>
-      <li>Encerrado o prazo, o maior lance válido ganha. <b>Eu chamo o vencedor</b> pelo Discord.</li>
-      <li>O vencedor tem <b>24 horas</b> pra fechar. Passou, passo pro segundo colocado.</li>
-      <li>Lance é compromisso. Quem der calote não participa dos próximos.</li>
-      <li>Se o lote tiver <b>⚡ Compre já</b>, quem pagar esse valor <b>arremata na hora</b> e encerra o leilão — não precisa esperar o prazo.</li>
-    </ol>
-  </div>
-
-  <div style="border:2px solid var(--gold);background:rgba(240,180,41,.07);padding:14px 16px;margin-bottom:20px;font-size:13px;color:var(--muted);line-height:1.65">
-    <b style="color:var(--gold)">▸ Quer leiloar seu Pokémon?</b> Tem um bicho bom demais pra preço fixo? Fala comigo — eu confiro, a gente combina, e <b>eu monto o leilão</b> com toda a estrutura (lance imutável, ao vivo). Você só me passa o Pokémon.<br>
-    <a href="https://wa.me/5511994309545?text=Ol%C3%A1!%20Quero%20leiloar%20um%20Pok%C3%A9mon%20no%20PokeCentral." target="_blank" rel="noopener" style="color:var(--green)">chamar no WhatsApp →</a> &nbsp;·&nbsp;
-    <a href="/leilao-guia" style="color:var(--green)">como o leilão funciona →</a>
+  <div class="auction-help-grid">
+    <details class="auction-help">
+      <summary><span>COMO FUNCIONA</span><small>lances, prazo e segurança</small></summary>
+      <div class="auction-help-body">
+        <ol>
+          <li>Cada lote tem <b>lance inicial</b> e <b>incremento mínimo</b>.</li>
+          <li>Lance nos <b>últimos 5 minutos</b> estende o prazo em 5 minutos.</li>
+          <li>O maior lance válido ganha; o vencedor tem <b>24 horas</b> para fechar.</li>
+          <li><b>Compre já</b>, quando disponível, encerra o lote na hora.</li>
+          <li>Lance é compromisso. Calote impede participação futura.</li>
+        </ol>
+        <p><b>Registro verificável:</b> horários vêm do servidor e lances não podem ser editados nem apagados. Inválidos continuam visíveis e aparecem riscados.</p>
+        <a href="/leilao-guia">ver o guia completo →</a>
+      </div>
+    </details>
+    <details class="auction-help">
+      <summary><span>QUERO LEILOAR</span><small>envie seu Pokémon para curadoria</small></summary>
+      <div class="auction-help-body">
+        <p>Você envia as informações, eu confiro o Pokémon e monto o lote. Somente o PokeCentral cria leilões.</p>
+        <a href="https://wa.me/5511994309545?text=Ol%C3%A1!%20Quero%20leiloar%20um%20Pok%C3%A9mon%20no%20PokeCentral." target="_blank" rel="noopener">chamar no WhatsApp →</a>
+      </div>
+    </details>
   </div>
 
   <div class="me" id="me"></div>
@@ -278,11 +277,6 @@
   <div class="loading" id="loading">carregando lotes…</div>
   <div id="lotes"></div>
 
-  <div class="trust">
-    <b>▸ Por que confiar na lista?</b> Os lances ficam numa tabela com permissão só de leitura e inserção —
-    ninguém tem permissão de alterar ou apagar, incluindo o dono do site. O horário vem do servidor, não do seu computador.
-    Se um lance não respeitou a regra do incremento, ele aparece riscado, mas continua visível: nada é escondido.
-  </div>
 
   <div class="apoio">
     <div class="apoio-t">❤ APOIO OPCIONAL</div>
