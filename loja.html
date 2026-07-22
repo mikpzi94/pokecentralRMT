@@ -304,7 +304,7 @@
   .msg.err{color:var(--red);}
   .updated{font-size:11.5px;color:var(--faint);margin-top:18px;text-align:right;}
 
-  
+
 </style>
   <link rel="stylesheet" href="/apoio.css">
   <link rel="stylesheet" href="/ui-refresh.css">
@@ -335,6 +335,7 @@
   <div class="shop-tabs" role="tablist" aria-label="Escolha a loja">
     <button class="shop-tab on" data-aba="oficial" aria-selected="true"><span class="st-name">LOJA OFICIAL</span><span class="st-desc">Pokémon do PokeCentral</span><span class="st-count" id="tabCountOficial">0 disponíveis</span></button>
     <button class="shop-tab" data-aba="jogadores" aria-selected="false"><span class="st-name">LOJA DOS JOGADORES</span><span class="st-desc">Anúncios da comunidade</span><span class="st-count" id="tabCountJogadores">0 disponíveis</span></button>
+    <button class="shop-tab" data-aba="pedidos" aria-selected="false"><span class="st-name">PEDIDOS</span><span class="st-desc">O que os jogadores procuram</span><span class="st-count" id="tabCountPedidos">0 ativos</span></button>
   </div>
 
   <div class="store-context" id="storeContext"><span class="sc-icon">🏅</span><div><div class="sc-kicker">VOCÊ ESTÁ VENDO</div><div class="sc-text"><b>Loja Oficial:</b> Pokémon anunciados pelo próprio PokeCentral.</div></div></div>
@@ -365,6 +366,14 @@
 
   <div class="comunidade-aviso" id="comunidadeAviso" style="display:none">
     ⚠️ <b>Loja de jogadores:</b> anúncios de vendedores da comunidade. O <b>PokeCentral não intermedia</b> estas vendas — negocie por sua conta e use um intermediário. <a href="/negociar">como negociar sem golpe →</a>
+  </div>
+
+  <div id="pedidosPublico" style="display:none">
+    <div class="pedidos-intro">
+      <div><b>Está procurando um Pokémon específico?</b><span>Publique o que você busca, os requisitos e quanto pretende pagar.</span></div>
+      <button type="button" class="btn go" id="novoPedidoCta">+ CRIAR PEDIDO</button>
+    </div>
+    <div class="pedido-grid" id="pedidoGrid"></div>
   </div>
 
   <div class="loading" id="loading">carregando estoque…</div>
@@ -433,6 +442,7 @@
         <p style="font-size:12.5px;color:var(--muted);margin:0 0 8px;line-height:1.6">Entre com <b>Discord</b> pra:</p>
         <ul style="margin:0 0 14px;padding:0;list-style:none;font-size:12.5px;color:var(--muted);line-height:1.95">
           <li>🛒 anunciar seus Pokémon</li>
+          <li>📋 publicar o que você procura</li>
           <li>⭐ avaliar vendedores</li>
           <li>🚩 denunciar golpe</li>
         </ul>
@@ -458,6 +468,7 @@
       <div class="admin-tabs" id="adminTabs" style="display:none">
         <button type="button" class="atab on" data-atab="loja">🏅 MINHA LOJA</button>
         <button type="button" class="atab" data-atab="jogadores">🧑 JOGADORES <span id="atabPend" style="color:var(--gold)"></span></button>
+        <button type="button" class="atab" data-atab="pedidos">📋 PEDIDOS <span id="atabPedidos" style="color:var(--gold)"></span></button>
         <button type="button" class="atab" data-atab="denuncias">🚩 DENÚNCIAS <span id="atabDen" style="color:var(--red)"></span></button>
         <button type="button" class="atab" data-atab="reviews">⭐ REVIEWS</button>
         <button type="button" class="atab" data-atab="vendas">📊 VENDAS <span id="atabVendas" style="color:var(--gold)"></span></button>
@@ -557,6 +568,26 @@
         <div class="ed-title">⭐ REPUTAÇÃO</div>
         <div id="revAdminBody"></div>
       </div>
+      <div class="ed-panel" id="pedidosPanel" style="display:none">
+        <div class="ed-title">📋 <span id="pedidoPainelTitulo">CRIAR PEDIDO</span> <span id="pedidoSlots"></span></div>
+        <p class="note">Informe exatamente o que procura e um orçamento real. Pedidos válidos entram no ar na hora, expiram em 7 dias e podem ser encerrados quando você encontrar o Pokémon.</p>
+        <div class="ed-grid" id="pedidoForm">
+          <div><label>Pokémon procurado</label><input type="text" id="pdNome" maxlength="40" placeholder="Gengar"></div>
+          <div><label>IV mínimo</label><input type="number" id="pdIv" min="0" max="192" placeholder="150"></div>
+          <div><label>Qualidade mínima</label><input type="number" id="pdQual" min="0.8" step="0.01" placeholder="1.78"></div>
+          <div><label>Nível mínimo</label><input type="number" id="pdNivel" min="1" placeholder="qualquer"></div>
+          <div><label>Shiny</label><select id="pdShiny"><option value="opcional">Pode ser ou não</option><option value="nao">Não precisa ser shiny</option><option value="obrigatorio">Obrigatoriamente shiny</option></select></div>
+          <div><label>Pago de (R$) — opcional</label><input type="number" id="pdPrecoMin" min="0" step="0.5" placeholder="20"></div>
+          <div><label>Pago até (R$)</label><input type="number" id="pdPrecoMax" min="0.5" step="0.5" placeholder="30"></div>
+          <div><label>Contato</label><select id="pdContatoTipo"><option value="dc">💬 Meu Discord</option><option value="wa">📱 WhatsApp</option></select></div>
+          <div id="pdContatoWrap" style="display:none"><label>WhatsApp com DDD</label><input type="text" id="pdContato" placeholder="11 98888-7777"></div>
+          <div style="grid-column:1/-1"><label>Observações <span id="pdObsCount" style="float:right;color:var(--faint)">0/160</span></label><input type="text" id="pdObs" maxlength="160" placeholder="Ex.: procuro para o time de ataque"></div>
+        </div>
+        <button type="button" class="btn go" id="btnPedidoSalvar">+ PUBLICAR PEDIDO</button>
+        <div class="msg" id="pedidoMsg"></div>
+        <div class="pedido-gerenciar" id="pedidoGerenciar"></div>
+      </div>
+
       <div class="ed-panel" id="vendasPanel" style="display:none">
         <div class="ed-title">📊 VENDAS E REFERÊNCIAS</div>
         <div id="vendasAdminBody"></div>
@@ -596,7 +627,7 @@ var DISCORD_COMUNIDADE = 'https://discord.gg/6rAzSv9RQF';   /* servidor da comun
 
 var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 var $ = function(id){ return document.getElementById(id); };
-var lista = [];
+var lista = [], pedidos = [];
 var OWNER_ID = 'd3607434-85a0-46eb-8a17-16dd3d0b247a';   /* dono = anúncio oficial */
 var aba = 'oficial', mostrados = 24, PAGINA = 24;
 var arquivoSelecionado = null;
@@ -664,11 +695,13 @@ function carregar(){
   return Promise.all([
     sb.from('pokemons').select('*').order('criado_em', {ascending:false}),
     sb.from('reviews').select('*'),
-    sb.from('confiaveis').select('user_id')
+    sb.from('confiaveis').select('user_id'),
+    sb.from('pedidos').select('*').order('criado_em', {ascending:false})
   ]).then(function(res){
     if(res[0].error){ throw res[0].error; }
     lista = res[0].data || [];
     reviews = res[1].data || [];
+    pedidos = (res[3] && !res[3].error) ? (res[3].data || []) : [];
     confiaveis = {};
     (res[2].data || []).forEach(function(r){ confiaveis[r.user_id] = true; });
     repMap = {};
@@ -678,7 +711,7 @@ function carregar(){
       repMap[r.vendedor_id] = m;
     });
     render();
-    if($('areaAdmin') && $('areaAdmin').style.display === 'block') renderTabela();
+    if($('areaAdmin') && $('areaAdmin').style.display === 'block'){ renderTabela(); renderPedidosGerenciar(); }
   }).catch(function(e){
     $('loading').textContent = 'não consegui carregar o estoque.';
     console.error(e);
@@ -773,22 +806,30 @@ function cardHtml(p){
 }
 
 function renderSteps(){
-  var passos = (aba === 'jogadores')
-    ? [
-        'Clica no anúncio e fala <b>direto com o vendedor</b> (WhatsApp ou Discord).',
-        'Combinem <b>preço, pagamento e entrega</b> entre vocês.',
-        'O <b>PokeCentral não intermedia</b> essas vendas — vale usar um intermediário. <a href="/negociar">como negociar sem golpe →</a>'
-      ]
-    : [
-        'Clica no Pokémon e me chama no <b>WhatsApp</b> — a mensagem já vai pronta.',
-        'Confirmo o estoque e combinamos <b>preço e forma de pagamento</b>.',
-        'Pago, faço a <b>entrega no jogo</b> na hora. Sem intermediário, a não ser que você prefira.'
-      ];
+  var passos;
+  if(aba === 'pedidos'){
+    passos = [
+      'Confira os requisitos e o <b>orçamento máximo</b> informado pelo comprador.',
+      'Se tiver um Pokémon compatível, clique em <b>Tenho este Pokémon</b>.',
+      'Combinem pagamento e entrega diretamente. O <b>PokeCentral não intermedia</b> a negociação.'
+    ];
+  } else if(aba === 'jogadores'){
+    passos = [
+      'Clica no anúncio e fala <b>direto com o vendedor</b> (WhatsApp ou Discord).',
+      'Combinem <b>preço, pagamento e entrega</b> entre vocês.',
+      'O <b>PokeCentral não intermedia</b> essas vendas — vale usar um intermediário. <a href="/negociar">como negociar sem golpe →</a>'
+    ];
+  } else {
+    passos = [
+      'Clica no Pokémon e me chama no <b>WhatsApp</b> — a mensagem já vai pronta.',
+      'Confirmo o estoque e combinamos <b>preço e forma de pagamento</b>.',
+      'Pago, faço a <b>entrega no jogo</b> na hora. Sem intermediário, a não ser que você prefira.'
+    ];
+  }
   $('steps').innerHTML = passos.map(function(t, i){
     return '<div class="step"><div class="step-n">0'+(i+1)+'</div><p>'+t+'</p></div>';
   }).join('');
 }
-
 function render(){
   $('loading').style.display = 'none';
   $('grid').style.display = 'grid';
@@ -796,8 +837,21 @@ function render(){
 
   var totalOficial = lista.filter(function(p){ return p.status==='aprovado' && p.disponivel!==false && ehOficial(p); }).length;
   var totalJogadores = lista.filter(function(p){ return p.status==='aprovado' && p.disponivel!==false && !ehOficial(p); }).length;
+  var totalPedidos = pedidos.filter(pedidoPublico).length;
   $('tabCountOficial').textContent = totalOficial+' disponíve'+(totalOficial===1?'l':'is');
   $('tabCountJogadores').textContent = totalJogadores+' disponíve'+(totalJogadores===1?'l':'is');
+  $('tabCountPedidos').textContent = totalPedidos+' ativo'+(totalPedidos===1?'':'s');
+  $('pedidosPublico').style.display = aba==='pedidos' ? 'block' : 'none';
+  $('tierFilter').style.display = aba==='pedidos' ? 'none' : '';
+  if(aba==='pedidos'){
+    $('grid').style.display='none'; $('carregarMais').style.display='none'; $('soldStrip').style.display='none';
+    $('comunidadeAviso').style.display='none';
+    $('storeContext').innerHTML='<span class="sc-icon">📋</span><div><div class="sc-kicker">VOCÊ ESTÁ VENDO</div><div class="sc-text"><b>Pedidos:</b> Pokémon que jogadores querem comprar. O orçamento informado é obrigatório e a negociação acontece diretamente com o comprador.</div></div>';
+    document.querySelectorAll('.shop-tab').forEach(function(x){ x.setAttribute('aria-selected', x.dataset.aba===aba ? 'true' : 'false'); });
+    renderPedidos();
+    $('updated').textContent='pedidos ao vivo · '+totalPedidos+' ativo(s)';
+    return;
+  }
   $('storeContext').innerHTML = aba==='oficial'
     ? '<span class="sc-icon">🏅</span><div><div class="sc-kicker">VOCÊ ESTÁ VENDO</div><div class="sc-text"><b>Loja Oficial:</b> Pokémon anunciados pelo próprio PokeCentral. A negociação é feita diretamente comigo.</div></div>'
     : '<span class="sc-icon">🧑</span><div><div class="sc-kicker">VOCÊ ESTÁ VENDO</div><div class="sc-text"><b>Loja dos Jogadores:</b> anúncios da comunidade. Você fala e negocia diretamente com cada vendedor.</div></div>';
@@ -932,6 +986,10 @@ function aplicarPapel(session){
     $('denunciasPanel').style.display = 'none';
     $('reviewsPanel').style.display = 'none';
     $('vendasPanel').style.display = 'none';
+    $('pedidosPanel').style.display = 'block';
+    $('pedidoForm').style.display = 'grid';
+    $('btnPedidoSalvar').style.display = 'inline-block';
+    $('pedidoPainelTitulo').textContent = 'CRIAR PEDIDO';
     $('catTitle').textContent = 'MEUS ANÚNCIOS';
   }
 }
@@ -943,12 +1001,17 @@ function aplicarAbaAdmin(){
   $('denunciasPanel').style.display = (abaAdmin==='denuncias') ? 'block' : 'none';
   $('reviewsPanel').style.display   = (abaAdmin==='reviews') ? 'block' : 'none';
   $('vendasPanel').style.display    = (abaAdmin==='vendas') ? 'block' : 'none';
+  $('pedidosPanel').style.display   = (abaAdmin==='pedidos') ? 'block' : 'none';
+  $('pedidoForm').style.display = ehAdmin ? 'none' : 'grid';
+  $('btnPedidoSalvar').style.display = ehAdmin ? 'none' : 'inline-block';
+  $('pedidoPainelTitulo').textContent = ehAdmin ? 'MODERAÇÃO — PEDIDOS' : 'CRIAR PEDIDO';
   $('catTitle').textContent = (abaAdmin==='jogadores') ? 'MODERAÇÃO — JOGADORES' : 'MINHA LOJA';
   $('mgFiltros').style.display = (abaAdmin==='jogadores') ? 'flex' : 'none';
   if(abaAdmin==='loja' || abaAdmin==='jogadores') renderTabela();
   if(abaAdmin==='denuncias') carregarDenuncias();
   if(abaAdmin==='reviews') renderReviewsAdmin();
   if(abaAdmin==='vendas') carregarVendas();
+  if(abaAdmin==='pedidos') renderPedidosGerenciar();
 }
 
 document.querySelectorAll('.atab').forEach(function(b){
@@ -1797,6 +1860,93 @@ function abrirProdutoDaURL(){
   var pid = new URLSearchParams(location.search).get('p');
   if(pid) mostrarProduto(pid);
 }
+
+/* ---------- Pedidos de compra ---------- */
+function pedidoPublico(p){
+  return p.status==='aprovado' && p.ativo!==false && new Date(p.expira_em).getTime()>Date.now();
+}
+function pedidoPrazo(p){
+  var dias=Math.max(0,Math.ceil((new Date(p.expira_em).getTime()-Date.now())/86400000));
+  return dias===0?'expira hoje':'expira em '+dias+' dia'+(dias===1?'':'s');
+}
+function pedidoOrcamento(p){
+  return Number(p.preco_min)>0 ? brl(p.preco_min)+' a '+brl(p.preco_max) : 'até '+brl(p.preco_max);
+}
+function shinyPedido(v){ return v==='obrigatorio'?'Shiny obrigatório':(v==='nao'?'Shiny não necessário':'Shiny opcional'); }
+function renderPedidos(){
+  var termo=($('search').value||'').toLowerCase(), ivMin=parseFloat($('ivFilter').value)||0;
+  var qualMin=parseFloat(String($('qualFilter').value||'').replace(',','.'))||0;
+  var itens=pedidos.filter(pedidoPublico).filter(function(p){
+    return (!termo || String(p.pokemon_nome||'').toLowerCase().indexOf(termo)>=0 || String(p.comprador_nome||'').toLowerCase().indexOf(termo)>=0)
+      && (!ivMin || Number(p.iv_min)>=ivMin) && (!qualMin || Number(p.qualidade_min)>=qualMin);
+  });
+  var ordem=$('sortSel').value;
+  if(ordem==='priceAsc') itens.sort(function(a,b){return a.preco_max-b.preco_max});
+  else if(ordem==='priceDesc') itens.sort(function(a,b){return b.preco_max-a.preco_max});
+  else if(ordem==='ivDesc') itens.sort(function(a,b){return (b.iv_min||0)-(a.iv_min||0)});
+  var box=$('pedidoGrid');
+  if(!itens.length){ box.innerHTML='<div class="empty">Nenhum pedido ativo com esses filtros.<br><button class="mini" type="button" onclick="abrirCriarPedido()" style="margin-top:12px">criar o primeiro pedido →</button></div>'; return; }
+  box.innerHTML=itens.map(function(p){
+    var req=[]; if(p.iv_min!=null) req.push('IV '+p.iv_min+'+'); if(p.qualidade_min!=null) req.push('Qual. '+p.qualidade_min+'+'); if(p.nivel_min!=null) req.push('Nv. '+p.nivel_min+'+'); req.push(shinyPedido(p.shiny));
+    var msg='Olá! Vi no PokeCentral que você procura um '+p.pokemon_nome+'. Tenho um que pode atender ao seu pedido. Podemos conversar?';
+    var link=contatoLink(p.comprador_contato,msg);
+    return '<article class="pedido-card" id="pedido-'+p.id+'"><div class="pedido-buyer">🧑 '+esc(p.comprador_nome||'Comprador')+(confiaveis[p.user_id]?' <span class="selo-conf">✔ Confiável</span>':'')+'</div>'+
+      '<div class="pedido-name">'+esc(p.pokemon_nome)+'</div><div class="pedido-req">'+req.map(function(x){return '<span>'+esc(x)+'</span>'}).join('')+'</div>'+
+      '<div class="pedido-budget">PAGA '+pedidoOrcamento(p)+'</div><div class="pedido-obs">'+esc(p.obs||'Sem observações adicionais.')+'</div><div class="pedido-expira">'+pedidoPrazo(p)+'</div>'+
+      '<div class="pedido-actions">'+(link?'<a href="'+esc(link)+'" target="_blank" rel="noopener">TENHO ESTE POKÉMON →</a>':'')+'<button type="button" data-pdshare="'+p.id+'">compartilhar pedido</button></div></article>';
+  }).join('');
+  box.querySelectorAll('[data-pdshare]').forEach(function(b){b.addEventListener('click',function(){copiarPedido(this.dataset.pdshare,this)})});
+  var pid=new URLSearchParams(location.search).get('pedido'); if(pid){var el=$('pedido-'+pid);if(el){setTimeout(function(){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.borderColor='var(--gold)'},100)}}
+}
+function copiarPedido(id,btn){
+  var url=location.origin+'/loja?pedido='+encodeURIComponent(id), old=btn.textContent;
+  function ok(){btn.textContent='✓ link copiado';setTimeout(function(){btn.textContent=old},1800)}
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(ok).catch(function(){prompt('Copie o link:',url)}); else prompt('Copie o link:',url);
+}
+function abrirCriarPedido(){
+  if(!sessaoAtual){ if(confirm('Entre com Discord para criar um pedido. Entrar agora?')) sb.auth.signInWithOAuth({provider:'discord',options:{redirectTo:location.href,scopes:'identify email'}}); return; }
+  abrirPainel(); $('pedidosPanel').style.display='block'; $('pedidosPanel').scrollIntoView({behavior:'smooth'});
+}
+$('novoPedidoCta').addEventListener('click',abrirCriarPedido);
+$('pdContatoTipo').addEventListener('change',function(){$('pdContatoWrap').style.display=this.value==='wa'?'block':'none'});
+$('pdObs').addEventListener('input',function(){$('pdObsCount').textContent=this.value.length+'/160'});
+$('btnPedidoSalvar').addEventListener('click',function(){
+  if(!sessaoAtual||!meuUid){abrirCriarPedido();return}
+  var nome=$('pdNome').value.trim(), max=Number($('pdPrecoMax').value), min=Number($('pdPrecoMin').value)||null;
+  if(!nome){aviso($('pedidoMsg'),'informe qual Pokémon você procura','err');return}
+  if(!max||max<=0){aviso($('pedidoMsg'),'informe quanto você paga no máximo','err');return}
+  if(min!=null&&min>max){aviso($('pedidoMsg'),'o valor inicial não pode ser maior que o máximo','err');return}
+  var tipo=$('pdContatoTipo').value, contato;
+  if(tipo==='dc'){
+    var did=discordId(sessaoAtual); if(!did){aviso($('pedidoMsg'),'não consegui identificar seu Discord','err');return} contato='dc:'+did;
+  }else{
+    var n=$('pdContato').value.replace(/\D/g,''); if(n.length<10){aviso($('pedidoMsg'),'WhatsApp inválido — use DDD + número','err');return} contato='wa:'+n;
+  }
+  var btn=this;btn.disabled=true;aviso($('pedidoMsg'),'enviando…','');
+  var reg={user_id:meuUid,comprador_nome:nomeDiscord(sessaoAtual),comprador_contato:contato,pokemon_nome:nome,iv_min:$('pdIv').value===''?null:Number($('pdIv').value),qualidade_min:$('pdQual').value===''?null:Number($('pdQual').value),nivel_min:$('pdNivel').value===''?null:Number($('pdNivel').value),shiny:$('pdShiny').value,preco_min:min,preco_max:max,obs:$('pdObs').value.trim()||null};
+  sb.from('pedidos').insert(reg).select().then(function(r){
+    if(r.error) throw r.error;
+    ['pdNome','pdIv','pdQual','pdNivel','pdPrecoMin','pdPrecoMax','pdObs'].forEach(function(id){$(id).value=''});$('pdObsCount').textContent='0/160';
+    aviso($('pedidoMsg'),'✓ pedido publicado e já está no ar','ok');return carregar();
+  }).catch(function(e){aviso($('pedidoMsg'),'erro: '+(e.message||e)+' — rode supabase_pedidos.sql no Supabase','err')}).finally(function(){btn.disabled=false});
+});
+function renderPedidosGerenciar(){
+  if(!$('pedidoGerenciar')||!sessaoAtual)return;
+  var arr=ehAdmin?pedidos.filter(function(p){return p.status!=='rejeitado'}):pedidos.filter(function(p){return p.user_id===meuUid});
+  if(ehAdmin){var pend=pedidos.filter(function(p){return p.status==='pendente'}).length;$('atabPedidos').textContent=pend?'('+pend+')':'';arr.sort(function(a,b){return (a.status==='pendente'?0:1)-(b.status==='pendente'?0:1)})}
+  else{var ativos=arr.filter(function(p){return p.ativo!==false&&p.status!=='rejeitado'&&new Date(p.expira_em)>Date.now()}).length,lim=2;$('pedidoSlots').textContent='· '+ativos+'/'+lim+' ativos'}
+  $('pedidoGerenciar').innerHTML=arr.length?'<div class="ed-title" style="margin-top:18px">'+(ehAdmin?'PEDIDOS RECEBIDOS':'MEUS PEDIDOS')+'</div>'+arr.map(function(p){
+    var ac=ehAdmin&&p.status==='pendente'?'<button class="mini" data-pdapprove="'+p.id+'">✓ aprovar</button><button class="mini rm" data-pdreject="'+p.id+'">rejeitar</button>':(!ehAdmin&&p.ativo!==false?'<button class="mini" data-pdclose="'+p.id+'">já encontrei</button>':'');
+    return '<div class="pedido-manage"><div><b>'+esc(p.pokemon_nome)+'</b> · '+pedidoOrcamento(p)+'<br><span class="pedido-status">'+esc(p.status)+(p.ativo===false?' · encerrado':'')+'</span>'+(p.motivo_rejeicao?'<br><span style="color:var(--red)">'+esc(p.motivo_rejeicao)+'</span>':'')+'</div><div>'+ac+' <button class="mini rm" data-pddel="'+p.id+'">X</button></div></div>';
+  }).join(''):'<div class="note" style="margin-top:14px">Nenhum pedido por enquanto.</div>';
+  var box=$('pedidoGerenciar');
+  box.querySelectorAll('[data-pdapprove]').forEach(function(b){b.onclick=function(){acaoPedido(this.dataset.pdapprove,{status:'aprovado',motivo_rejeicao:null},'pedido aprovado')}});
+  box.querySelectorAll('[data-pdreject]').forEach(function(b){b.onclick=function(){var m=prompt('Motivo da rejeição:','');if(m!==null)acaoPedido(this.dataset.pdreject,{status:'rejeitado',motivo_rejeicao:m.trim()||'não especificado'},'pedido rejeitado')}});
+  box.querySelectorAll('[data-pdclose]').forEach(function(b){b.onclick=function(){acaoPedido(this.dataset.pdclose,{ativo:false},'pedido encerrado')}});
+  box.querySelectorAll('[data-pddel]').forEach(function(b){b.onclick=function(){if(confirm('Apagar este pedido?'))sb.from('pedidos').delete().eq('id',this.dataset.pddel).select().then(function(r){if(r.error)aviso($('pedidoMsg'),r.error.message,'err');else carregar()})}});
+}
+function acaoPedido(id,patch,msg){sb.from('pedidos').update(patch).eq('id',id).select().then(function(r){if(r.error){aviso($('pedidoMsg'),r.error.message,'err');return}aviso($('pedidoMsg'),'✓ '+msg,'ok');carregar()})}
+if(new URLSearchParams(location.search).get('pedido')){ aba='pedidos'; document.querySelectorAll('.shop-tab').forEach(function(x){x.classList.toggle('on',x.dataset.aba==='pedidos')}); }
 
 renderSteps();   /* mostra os passos já no carregamento, antes do estoque chegar */
 carregar().then(abrirProdutoDaURL);
