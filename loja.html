@@ -1961,7 +1961,11 @@ function renderPedidosGerenciar(){
   box.querySelectorAll('[data-pddel]').forEach(function(b){b.onclick=function(){if(confirm('Apagar este pedido?'))sb.from('pedidos').delete().eq('id',this.dataset.pddel).select().then(function(r){if(r.error)aviso($('pedidoMsg'),r.error.message,'err');else carregar()})}});
 }
 function acaoPedido(id,patch,msg){sb.from('pedidos').update(patch).eq('id',id).select().then(function(r){if(r.error){aviso($('pedidoMsg'),r.error.message,'err');return}aviso($('pedidoMsg'),'✓ '+msg,'ok');carregar()})}
-if(new URLSearchParams(location.search).get('pedido')){ aba='pedidos'; document.querySelectorAll('.shop-tab').forEach(function(x){x.classList.toggle('on',x.dataset.aba==='pedidos')}); }
+var lojaParams = new URLSearchParams(location.search);
+if(lojaParams.get('pedido') || lojaParams.get('aba')==='pedidos'){
+  aba='pedidos';
+  document.querySelectorAll('.shop-tab').forEach(function(x){x.classList.toggle('on',x.dataset.aba==='pedidos')});
+}
 
 renderSteps();   /* mostra os passos já no carregamento, antes do estoque chegar */
 carregar().then(abrirProdutoDaURL);

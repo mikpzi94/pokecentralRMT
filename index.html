@@ -138,6 +138,21 @@
   }
   .mk-cta:hover{background:var(--tint);color:var(--bg);}
   .mk-body{margin-bottom:14px;}
+  .mk-auction-secondary{grid-column:1/-1;}
+  .mk-auction-secondary .mk-head{margin-bottom:10px;}
+
+  /* pedidos: linhas compactas, porque pedidos não possuem print */
+  .request-mini-list{display:grid;gap:8px;margin-bottom:14px;}
+  .request-mini{display:block;border:2px solid var(--line);background:var(--panel2);padding:10px 11px;text-decoration:none;color:inherit;}
+  .request-mini:hover{border-color:var(--blue);}
+  .request-mini-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+  .request-mini-name{font-family:var(--px);font-size:8px;line-height:1.5;color:var(--text);}
+  .request-mini-budget{font-family:var(--px);font-size:7px;line-height:1.5;color:var(--gold);white-space:nowrap;}
+  .request-mini-meta{font-size:10.5px;color:var(--faint);margin-top:5px;line-height:1.5;}
+  @media(max-width:640px){
+    .request-mini-top{align-items:flex-start;flex-direction:column;gap:4px;}
+    .request-mini-budget{white-space:normal;}
+  }
 
   /* mini cards de estoque */
   .mini-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:14px;}
@@ -295,15 +310,15 @@
 
   <section>
     <div class="sec-head"><h2>Mercado</h2><div class="rule"></div></div>
-    <p class="sec-desc">Loja oficial, anúncios da comunidade e leilões selecionados.</p>
+    <p class="sec-desc">Compre, anuncie ou publique o Pokémon que procura. Leilões especiais aparecem quando houver algo selecionado.</p>
 
     <div class="market">
 
-      <div class="mk" style="--tint:var(--gold)">
+      <div class="mk mk-store" style="--tint:var(--gold)">
         <div class="mk-head">
           <div class="mk-ico"><img src="/icons/ui/64/loja.png" alt="" width="52" height="52" loading="lazy"></div>
           <div>
-            <div class="mk-title">À venda</div>
+            <div class="mk-title">Loja</div>
             <div class="mk-sub" id="lojaSub">carregando…</div>
           </div>
         </div>
@@ -313,7 +328,21 @@
         <a class="mk-cta" href="/loja" id="lojaCta">VER TUDO ▸</a>
       </div>
 
-      <div class="mk" style="--tint:var(--purple)">
+      <div class="mk mk-orders" style="--tint:var(--blue)">
+        <div class="mk-head">
+          <div class="mk-ico"><img src="/icons/ui/128/pedidos.png" alt="" width="52" height="52" loading="lazy"></div>
+          <div>
+            <div class="mk-title">Pedidos</div>
+            <div class="mk-sub" id="pedidosSub">carregando…</div>
+          </div>
+        </div>
+        <div class="mk-body" id="pedidosBody">
+          <div class="loading-note">buscando pedidos…</div>
+        </div>
+        <a class="mk-cta" href="/loja?aba=pedidos" id="pedidosCta">VER PEDIDOS ▸</a>
+      </div>
+
+      <div class="mk mk-auction-secondary" style="--tint:var(--purple)">
         <div class="mk-head">
           <div class="mk-ico"><img src="/icons/ui/64/leilao.png" alt="" width="52" height="52" loading="lazy"></div>
           <div>
@@ -462,6 +491,40 @@ sb.from('pokemons').select('*').eq('disponivel', true).order('criado_em', {ascen
   .catch(function(e){
     $('lojaSub').textContent = '';
     $('lojaBody').innerHTML = '<div class="empty-note">Não consegui carregar o estoque agora.</div>';
+    console.error(e);
+  });
+
+/* ---------------- PEDIDOS ---------------- */
+sb.from('pedidos').select('*')
+  .eq('status','aprovado').eq('ativo',true)
+  .gt('expira_em',new Date().toISOString())
+  .order('criado_em',{ascending:false})
+  .then(function(r){
+    if(r.error) throw r.error;
+    var itens = r.data || [];
+    if(!itens.length){
+      $('pedidosSub').textContent = 'nenhum pedido ativo agora';
+      $('pedidosBody').innerHTML = '<div class="empty-note"><b>Procurando um Pokémon?</b><br>Publique o que deseja, os requisitos e quanto pretende pagar. Jogadores que tiverem algo compatível podem falar direto com você.</div>';
+      $('pedidosCta').textContent = 'CRIAR UM PEDIDO ▸';
+      return;
+    }
+    $('pedidosSub').textContent = itens.length + ' pedido' + (itens.length===1?' ativo':'s ativos') + ' da comunidade';
+    $('pedidosBody').innerHTML = '<div class="request-mini-list">' + itens.slice(0,4).map(function(p){
+      var req = [];
+      if(p.iv_min!=null) req.push('IV '+esc(p.iv_min)+'+');
+      if(p.qualidade_min!=null) req.push('Qual. '+esc(p.qualidade_min)+'+');
+      if(p.nivel_min!=null) req.push('Nv '+esc(p.nivel_min)+'+');
+      if(p.shiny==='obrigatorio') req.push('Shiny');
+      else if(p.shiny==='opcional') req.push('Shiny opcional');
+      var orc = p.preco_max!=null ? 'ATÉ '+brl(p.preco_max) : (p.preco_min!=null ? 'A PARTIR DE '+brl(p.preco_min) : 'VALOR A COMBINAR');
+      return '<a class="request-mini" href="/loja?pedido='+encodeURIComponent(p.id)+'">'+
+        '<div class="request-mini-top"><span class="request-mini-name">'+esc(p.pokemon_nome||'Pokémon')+'</span><span class="request-mini-budget">'+orc+'</span></div>'+
+        '<div class="request-mini-meta">'+(req.length?req.join(' · '):'sem requisitos mínimos')+'</div></a>';
+    }).join('') + '</div>' + (itens.length>4?'<div class="more-note">+ '+(itens.length-4)+' pedidos na página completa</div>':'');
+  })
+  .catch(function(e){
+    $('pedidosSub').textContent = 'pedidos da comunidade';
+    $('pedidosBody').innerHTML = '<div class="empty-note">Os pedidos estão disponíveis na página da loja.</div>';
     console.error(e);
   });
 
