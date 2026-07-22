@@ -222,7 +222,7 @@ header::after{content:"●  ●  ●";position:absolute;right:28px;top:10px;colo
 .page-home .hero::after{content:"CENTRAL-00 // RECEPÇÃO  •  SISTEMA ONLINE";position:absolute;left:18px;bottom:12px;padding:5px 8px;border:1px solid var(--gold);background:rgba(12,10,7,.86);font-family:var(--px);font-size:6px;color:var(--gold);letter-spacing:.06em;z-index:4;}
 .page-home .tool,.page-home .mk,.page-store .shop-tab,.page-store .card,.page-auction .lote,.page-calculator .panel{clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,8px 100%,0 calc(100% - 8px));}
 .page-home .tool::after,.page-home .mk::after{position:absolute;right:9px;top:8px;font-family:var(--px);font-size:6px;color:var(--tint,var(--gold));letter-spacing:.06em;opacity:.85;}
-.page-home .tool[href="/rentabilidade"]::after{content:"LAB-01A";}.page-home .tool[href="/preco"]::after{content:"LAB-01B";}.page-home .mk:first-child::after{content:"MKT-02";}.page-home .mk:nth-child(2)::after{content:"AUC-03";}
+.page-home .tool[href="/rentabilidade"]::after{content:"LAB-01A";}.page-home .tool[href="/preco"]::after{content:"LAB-01B";}.page-home .mk-store::after{content:"MKT-02";}.page-home .mk-orders::after{content:"REQ-04";}.page-home .mk-auction-secondary::after{content:"AUC-03";}
 .sec-head h2::after{content:" // " var(--sector-name);color:var(--sector);opacity:.72;font-size:6px;}
 .page-store .shop-tabs::before{content:"SELECIONE O CANAL DE COMÉRCIO";display:block;flex:0 0 100%;font-family:var(--px);font-size:6px;color:var(--sector);letter-spacing:.08em;margin-bottom:-5px;}
 .page-store .shop-tabs{flex-wrap:wrap;}
