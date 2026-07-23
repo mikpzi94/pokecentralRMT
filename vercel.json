@@ -7,6 +7,7 @@
     { "source": "/pedido/:id", "destination": "/api/pedido?id=:id" }
   ],
   "redirects": [
-    { "source": "/vitrine", "destination": "/loja", "permanent": true }
+    { "source": "/vitrine", "destination": "/loja", "permanent": true },
+    { "source": "/rentabilidade", "destination": "/preco", "permanent": false }
   ]
 }

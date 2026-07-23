@@ -103,6 +103,17 @@
   .sec-desc{color:var(--faint);font-size:12.5px;margin:0 0 16px;}
   section{margin-bottom:40px;}
 
+  .quick-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+  .quick-action{position:relative;border:2px solid var(--line);border-top:4px solid var(--tint);background:var(--panel);padding:17px;text-decoration:none;color:inherit;min-width:0;}
+  .quick-action:hover{background:var(--panel2);border-color:var(--tint);}
+  .quick-code{position:absolute;right:11px;top:9px;color:var(--tint);font-family:var(--px);font-size:6px;}
+  .quick-icon{width:48px;height:48px;border:2px solid var(--line);background:var(--panel2);display:flex;align-items:center;justify-content:center;margin-bottom:13px;}
+  .quick-icon img{width:100%;height:100%;object-fit:contain;}
+  .quick-title{font-family:var(--px);font-size:9px;line-height:1.5;color:var(--tint);margin-bottom:8px;}
+  .quick-desc{font-size:11.5px;line-height:1.6;color:var(--muted);}
+  .quick-go{display:block;margin-top:12px;color:var(--tint);font-family:var(--px);font-size:7px;}
+  @media(max-width:760px){.quick-actions{grid-template-columns:1fr;}}
+
   /* ---------- grade de ferramentas ---------- */
   .tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;}
   .tool{
@@ -258,7 +269,6 @@
 
   <nav class="nav">
     <a class="home on" href="/"><img class="nav-icon" src="/icons/ui/20/hub.png" alt="">POKECENTRAL</a>
-    <a href="/rentabilidade"><img class="nav-icon" src="/icons/ui/20/rentabilidade.png" alt="">CAPTURA</a>
     <a href="/preco"><img class="nav-icon" src="/icons/ui/20/preco.png" alt="">QUANTO VALE</a>
     <a href="/loja"><img class="nav-icon" src="/icons/ui/20/loja.png" alt="">LOJA</a>
     <a href="/leilao"><img class="nav-icon" src="/icons/ui/20/leilao.png" alt="">LEILAO</a>
@@ -269,7 +279,7 @@
     <div class="hero-in">
       <div class="hero-txt">
         <h1>Farme melhor, avalie Pokémon e <span>negocie com mais segurança.</span></h1>
-        <p>Entenda suas chances de captura, encontre uma referência de preço e acesse anúncios com <b>print real</b> — tudo em uma só Central.</p>
+        <p>Descubra quanto seu Pokémon pode valer, acompanhe o mercado e negocie anúncios com <b>print real</b> — tudo em uma só Central.</p>
       </div>
     </div>
   </div>
@@ -280,39 +290,37 @@
     <span>LIMITE 4 CONTAS/IP</span>
   </div>
 
-  <section id="ferramentas">
-    <div class="sec-head"><h2>Ferramentas</h2><div class="rule"></div></div>
-    <p class="sec-desc">Grátis. Rodam no seu navegador — nada é enviado pra lugar nenhum.</p>
-    <div class="tools">
-
-      <a class="tool" href="/rentabilidade" style="--tint:var(--gold)">
-        <div class="tool-ico"><img src="/icons/ui/64/rentabilidade.png" alt="" width="64" height="64" loading="lazy"></div>
-        <div class="tool-body">
-          <div class="tool-name">Captura</div>
-          <div class="tool-desc">
-            Calcule chance acumulada, quantidade de balls e custo aproximado sem confundir probabilidade com garantia.
-          </div>
-          <span class="tool-cta">ABRIR ▸</span>
-        </div>
+  <section id="atalhos">
+    <div class="sec-head"><h2>O que você quer fazer?</h2><div class="rule"></div></div>
+    <p class="sec-desc">Escolha um caminho e vá direto ao que precisa.</p>
+    <div class="quick-actions">
+      <a class="quick-action" href="/preco" style="--tint:var(--blue)">
+        <span class="quick-code">CAL-01</span>
+        <div class="quick-icon"><img src="/icons/ui/64/preco.png" alt="" width="48" height="48"></div>
+        <div class="quick-title">Avaliar meu Pokémon</div>
+        <div class="quick-desc">Receba uma referência de preço usando espécie, IV, qualidade, nível e demanda.</div>
+        <span class="quick-go">CALCULAR VALOR ▸</span>
       </a>
-
-      <a class="tool" href="/preco" style="--tint:var(--blue)">
-        <div class="tool-ico"><img src="/icons/ui/64/preco.png" alt="" width="64" height="64" loading="lazy"></div>
-        <div class="tool-body">
-          <div class="tool-name">Quanto vale</div>
-          <div class="tool-desc">
-            Estime venda rápida, preço justo e teto de leilão usando IV, qualidade, nível e demanda.
-          </div>
-          <span class="tool-cta">ABRIR ▸</span>
-        </div>
+      <a class="quick-action" href="/loja" style="--tint:var(--gold)">
+        <span class="quick-code">MKT-02</span>
+        <div class="quick-icon"><img src="/icons/ui/64/loja.png" alt="" width="48" height="48"></div>
+        <div class="quick-title">Comprar ou vender</div>
+        <div class="quick-desc">Veja anúncios com print real ou publique gratuitamente até 3 Pokémon.</div>
+        <span class="quick-go">ABRIR MERCADO ▸</span>
       </a>
-
+      <a class="quick-action" href="/loja?aba=pedidos" style="--tint:var(--green)">
+        <span class="quick-code">REQ-03</span>
+        <div class="quick-icon"><img src="/icons/ui/128/pedidos.png" alt="" width="48" height="48"></div>
+        <div class="quick-title">Procurar um Pokémon</div>
+        <div class="quick-desc">Publique o que procura e quanto pretende pagar para vendedores encontrarem você.</div>
+        <span class="quick-go">VER E CRIAR PEDIDOS ▸</span>
+      </a>
     </div>
   </section>
 
   <section>
-    <div class="sec-head"><h2>Mercado</h2><div class="rule"></div></div>
-    <p class="sec-desc">Compre, anuncie ou publique o Pokémon que procura. Leilões especiais aparecem quando houver algo selecionado.</p>
+    <div class="sec-head"><h2>Agora na Central</h2><div class="rule"></div></div>
+    <p class="sec-desc">Estoque, pedidos e leilões atualizados ao vivo. Entre por aqui para ver o que mudou desde sua última visita.</p>
 
     <div class="market">
 
@@ -414,7 +422,7 @@
 
   <footer>
     <div class="foot-claim">
-      Ferramentas e curadoria de preços feitas por mim — <b>pode usar, só credite</b>.
+      Ferramentas, mercado e curadoria de preços feitos por mim — <b>pode usar, só credite</b>.
     </div>
 
     <div class="foot-links">
