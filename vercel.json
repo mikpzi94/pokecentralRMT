@@ -3,6 +3,7 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/p/:id", "destination": "/api/og?id=:id" },
+    { "source": "/s/:data", "destination": "/api/share?data=:data" },
     { "source": "/l/:id", "destination": "/api/leilao?id=:id" },
     { "source": "/pedido/:id", "destination": "/api/pedido?id=:id" }
   ],
