@@ -48,12 +48,12 @@ module.exports = async function handler(req,res){
   const expired = expiresAt > 0 && Date.now() > expiresAt;
   const destination = expired ? SITE : destinationFor(data);
   const species = clean(data.species,60) || 'Pokémon';
-  const player = clean(data.player,50) || 'Jogador não identificado';
+  const listingCode = clean(data.listingCode,16);
   const rarity = clean(data.rarity,24) || 'Sem raridade';
   const title = expired ? 'Anúncio expirado — PokeCentral' : species + ' · IV ' + clean(data.iv,8) + ' · ' + brl(data.price);
   const description = expired
     ? 'Este link temporário expirou. Peça um novo link ao vendedor.'
-    : rarity + ' · Quality ' + clean(data.quality,10) + ' · Power ' + clean(data.power,16) + ' · Jogador ' + player + (data.negotiable ? ' · Aceita propostas' : ' · Preço fixo');
+    : rarity + ' · Quality ' + clean(data.quality,10) + ' · Power ' + clean(data.power,16) + (listingCode ? ' · Código ' + listingCode : '') + (data.negotiable ? ' · Aceita propostas' : ' · Preço fixo');
   const image = pokemonImage(data.speciesId,Boolean(data.shiny));
   const canonical = SITE + '/s/' + encodeURIComponent(String(req.query.data || ''));
   const statusText = expired ? 'Este anúncio expirou.' : 'Abrindo o contato do vendedor…';
